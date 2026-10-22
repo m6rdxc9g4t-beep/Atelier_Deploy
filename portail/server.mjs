@@ -59,11 +59,11 @@ const HOSTED = [
     probes: ['http://127.0.0.1:3000/api/health'],
   },
   {
-    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: '#4DABF7', sub: 'wiki',
+    id: 'wiki', name: 'Wiki', icon: true, role: 'Pages, procédures et notes de la suite', color: '#4DABF7', sub: 'wiki',
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
-    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
+    id: 'formulaire', name: 'Formulaire', icon: true, role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
     probes: ['http://127.0.0.1:3300/api/health'],
   },
   {
@@ -82,7 +82,7 @@ const HOSTED = [
 
 const ONLINE = [
   {
-    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
+    id: 'suivi', name: 'Suivi', icon: true, role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
     url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
   },
   {
@@ -234,6 +234,18 @@ const server = createServer(async (req, res) => {
 
   try {
     if (path === '/sante') return json(res, 200, { status: 'ok' })
+
+    // Logos des apps : publics (aucune donnée), mis en cache une semaine.
+    const logo = path.match(/^\/logos\/([a-z]+)\.webp$/)
+    if (logo) {
+      try {
+        const file = await readFile(join(here, 'public', 'logos', `${logo[1]}.webp`))
+        res.writeHead(200, { 'Content-Type': 'image/webp', 'Cache-Control': 'public, max-age=604800' })
+        return res.end(file)
+      } catch {
+        return send(res, 404, 'Logo introuvable')
+      }
+    }
 
     // Caddy demande « cette requête peut-elle passer ? » avant chaque appel à une app.
     if (path === '/auth/verify') {
