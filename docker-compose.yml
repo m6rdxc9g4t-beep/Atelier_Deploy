@@ -48,6 +48,9 @@ services:
       PORTAL_PASSWORD: ${PORTAL_PASSWORD:?Renseigne PORTAL_PASSWORD dans .env}
       SESSION_SECRET: ${SESSION_SECRET:?Renseigne SESSION_SECRET dans .env}
       SESSION_DAYS: ${SESSION_DAYS:-30}
+      SUIVI_URL: ${SUIVI_URL:-}
+      CUISINE_URL: ${CUISINE_URL:-}
+      DATES_URL: ${DATES_URL:-}
 
   viz:
     <<: *app
@@ -101,6 +104,10 @@ services:
       OLLAMA_BASE_URL: http://127.0.0.1:11434
       PROJETS_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
       GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
+      # Autres ateliers hébergés sur ce VPS (vide = désactivé)
+      CINE_BASE_URL: http://127.0.0.1:4000/api
+      SAVOIR_BASE_URL: http://127.0.0.1:5051/api
+      TRESORERIE_BASE_URL: http://127.0.0.1:5050/api
     volumes:
       - ./data/nexus:/data/nexus
       - ./data/atelier_tab:/data/atelier_tab
@@ -116,6 +123,55 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/nexus-frontend.Dockerfile }
     depends_on: [nexus-backend]
+
+  cine:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/cine.Dockerfile }
+    environment:
+      <<: *tz
+      CORS_ORIGIN: ${PROTO:-https}://cine.${ATELIER_DOMAIN}
+      SCAN_PROBE: "true"
+      OLLAMA_URL: http://127.0.0.1:11434
+    volumes:
+      - ./data/cine:/data
+      # Dépose tes vidéos dans media/films et media/series (sur le VPS)
+      - ./media/films:/media/films:ro
+      - ./media/series:/media/series:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+
+  savoir:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/savoir.Dockerfile }
+    environment:
+      <<: *tz
+      SECRET_KEY: ${APPS_SECRET_KEY:?Renseigne APPS_SECRET_KEY dans .env (sudo ./install.sh le génère)}
+      OLLAMA_URL: http://127.0.0.1:11434
+    volumes:
+      - ./data/savoir:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5051/api/stats',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+
+  tresorerie:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/tresorerie.Dockerfile }
+    environment:
+      <<: *tz
+      SECRET_KEY: ${APPS_SECRET_KEY}
+      OLLAMA_URL: http://127.0.0.1:11434
+    volumes:
+      - ./data/tresorerie:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:5050/api/ping',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
 
   postgres:
     image: pgvector/pgvector:pg17

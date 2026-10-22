@@ -5,6 +5,10 @@
 #   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
 #   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
+#   tresorerie.{$ATELIER_DOMAIN} Atelier Trésorerie (:5050)
+#   savoir.{$ATELIER_DOMAIN}    Atelier Savoir (:5051)
+#   cine.{$ATELIER_DOMAIN}      Atelier Ciné   (:4000, vidéos en flux)
+#   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
 # Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session.
@@ -132,5 +136,40 @@
 	handle {
 		import connexion
 		reverse_proxy 127.0.0.1:3100
+	}
+}
+
+{$SITE_SCHEME}tresorerie.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 12MB
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:5050
+	}
+}
+
+{$SITE_SCHEME}savoir.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 26MB
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:5051 {
+			flush_interval -1
+		}
+	}
+}
+
+{$SITE_SCHEME}cine.{$ATELIER_DOMAIN} {
+	import securite
+	handle {
+		import connexion
+		# Vidéos en flux (requêtes Range) : rien n'est mis en tampon
+		reverse_proxy 127.0.0.1:4000 {
+			flush_interval -1
+		}
 	}
 }

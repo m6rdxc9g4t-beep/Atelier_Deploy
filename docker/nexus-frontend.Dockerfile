@@ -21,7 +21,10 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_ATELIER_VIZ_URL="$PROTO://viz.$ATELIER_DOMAIN" \
     NEXT_PUBLIC_ATELIER_TAB_URL="$PROTO://tab.$ATELIER_DOMAIN" \
     NEXT_PUBLIC_ATELIER_PROJETS_URL="$PROTO://projets.$ATELIER_DOMAIN" \
-    NEXT_PUBLIC_ATELIER_PROJETS_API_URL="$PROTO://projets.$ATELIER_DOMAIN"
+    NEXT_PUBLIC_ATELIER_PROJETS_API_URL="$PROTO://projets.$ATELIER_DOMAIN" \
+    NEXT_PUBLIC_ATELIER_TRESORERIE_URL="$PROTO://tresorerie.$ATELIER_DOMAIN" \
+    NEXT_PUBLIC_ATELIER_SAVOIR_URL="$PROTO://savoir.$ATELIER_DOMAIN" \
+    NEXT_PUBLIC_ATELIER_CINE_URL="$PROTO://cine.$ATELIER_DOMAIN"
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/atelier_nexus/frontend/ ./
 RUN rm -f .env .env.local .env.production .env.production.local && npm run build

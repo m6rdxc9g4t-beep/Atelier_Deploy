@@ -1,6 +1,9 @@
 # Suite Atelier sur VPS
 
-Nexus, Viz, Tab et Projets sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toute la suite, en HTTPS.
+La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
+
+- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Projets, Trésorerie, Savoir, Ciné.
+- **En ligne** (Vercel + Supabase, avec leur propre connexion), sous forme de liens dans le portail : Suivi, Cuisine, Dates.
 
 ```
 https://atelier.mondomaine.fr            portail : choix de l'app + connexion
@@ -8,15 +11,20 @@ https://nexus.atelier.mondomaine.fr      Atelier Nexus
 https://viz.atelier.mondomaine.fr        Atelier Viz
 https://tab.atelier.mondomaine.fr        Atelier Tab
 https://projets.atelier.mondomaine.fr    Atelier Projets
+https://tresorerie.atelier.mondomaine.fr Atelier Trésorerie
+https://savoir.atelier.mondomaine.fr     Atelier Savoir
+https://cine.atelier.mondomaine.fr       Atelier Ciné
 ```
+
+Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
 
 ## Installation (≈ 30 minutes, dont 15 de construction)
 
 ### 1. Ce qu'il te faut
 
-- Un VPS OVH sous **Ubuntu 24.04** ou Debian 12, **4 Go de RAM** conseillés (2 Go passent : le script ajoute du swap).
+- Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** conseillés pour les 7 apps (le script ajoute du swap en dessous de 6 Go).
 - Un nom de domaine (chez OVH ou ailleurs).
-- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Projets`. Permission : *Contents : Read-only*.
+- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Projets`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*.
 - Facultatif : une clé API Anthropic pour les agents de Nexus et l'assistant de Viz.
 
 ### 2. DNS
@@ -28,7 +36,7 @@ Dans l'espace client OVH → *Noms de domaine* → ton domaine → *Zone DNS* �
 | `atelier` | A | IP du VPS |
 | `*.atelier` | A | IP du VPS |
 
-Le second enregistrement (joker) couvre `nexus.`, `viz.`, `tab.` et `projets.` d'un coup. Compte quelques minutes de propagation.
+Le second enregistrement (joker) couvre tous les sous-domaines des apps d'un coup. Compte quelques minutes de propagation.
 
 ### 3. Sur le VPS
 
@@ -39,7 +47,7 @@ cd Atelier_Deploy
 sudo ./install.sh
 ```
 
-Le script installe Docker, te demande le domaine, ton e-mail, le jeton GitHub et la clé Anthropic, génère le mot de passe du portail, clone les quatre apps, les construit et les lance. À la fin, il affiche l'adresse du portail et ton mot de passe : **note-le**, il reste aussi dans `.env`.
+Le script installe Docker, te demande le domaine, ton e-mail, le jeton GitHub et la clé Anthropic, génère le mot de passe du portail, clone les apps, les construit et les lance. À la fin, il affiche l'adresse du portail et ton mot de passe : **note-le**, il reste aussi dans `.env`.
 
 Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 
@@ -51,7 +59,9 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `projets`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `projets`, `tresorerie`, `savoir`, `cine`, `portail`) |
+| Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
+| Renseigner l'adresse de Suivi | `SUIVI_URL=https://…` dans `.env`, puis `sudo docker compose up -d portail` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |
 | Redémarrer une app | `sudo docker compose restart projets` |
@@ -69,16 +79,22 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ viz.…      ──▶ Viz :8000           (API + interface, DuckDB)
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
+                    ├─ tresorerie.… ──▶ Trésorerie :5050  (Flask, SQLite)
+                    ├─ savoir.…   ──▶ Savoir :5051        (Flask, SQLite + fichiers)
+                    ├─ cine.…     ──▶ Ciné :4000          (Express, vidéos de media/ en flux)
                     └─ nexus.…    ──▶ Nexus interface :3100 + /api ──▶ Nexus API :8100
                                                              ├─▶ PostgreSQL :5433
-                                                             └─▶ MCP d'Atelier Tab (node, dans le conteneur)
+                                                             ├─▶ MCP d'Atelier Tab (node, dans le conteneur)
+                                                             └─▶ Viz, Projets, Trésorerie, Savoir, Ciné en 127.0.0.1
+
+Portail ──liens──▶ Suivi, Cuisine, Dates (Vercel + Supabase, hors VPS)
 ```
 
 - **Tout écoute sur 127.0.0.1.** Viz et Nexus n'acceptent de parler aux autres apps de la suite que sur `127.0.0.1` (contrat `atelier-node/1`). Les conteneurs partagent donc le réseau de l'hôte, et seul Caddy ouvre les ports 80 et 443.
 - **Connexion unique.** Caddy demande au portail (`forward_auth`) si chaque requête vient d'une personne connectée. Le cookie de session est posé sur `atelier.mondomaine.fr` et ses sous-domaines. Les apps n'ont pas de login propre : sans le portail, elles seraient ouvertes à tous.
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
-- **Données** dans `data/` : `viz/` (DuckDB, rapports), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+- **Données** dans `data/` : `viz/` (DuckDB, rapports), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
 ## À savoir
 
@@ -86,7 +102,11 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
 - **Envoi Tab → Projets depuis le navigateur.** L'export par défaut vise `http://127.0.0.1:3000`, c'est-à-dire ton propre ordinateur. Sur le VPS, depuis Tab : passe en mode en ligne, mets `https://projets.atelier.mondomaine.fr/api/imports/atelier-tab` comme adresse. La route d'import n'autorise en CORS que les origines locales : tant que Projets ne l'ouvre pas à `https://tab.…`, cet envoi précis reste bloqué. Les workflows Nexus Tab → Projets, eux, fonctionnent (ils passent par le serveur).
 - **Claude par abonnement (CLI).** Les images utilisent la clé API Anthropic (`CLAUDE_MODE=api`). Le mode CLI de Viz et Nexus n'est pas installé dans les conteneurs.
 - **Analyse Git de Projets.** Elle lit un dépôt local (`localRepoPath`) : sur le VPS, il faudrait que le dépôt soit cloné dans le conteneur. Le reste de Projets fonctionne normalement.
-- **Autres ateliers** (Ciné, Savoir, Trésorerie) : désactivés dans Nexus (`data/nexus/.env`). Cuisine, en ligne, reste branchable depuis l'écran Réglages de Nexus.
+- **Nexus et les autres ateliers.** Nexus joint Trésorerie, Savoir et Ciné en `127.0.0.1` (adresses fixées dans `docker-compose.yml`). Ils n'ont pas encore de manifeste `atelier-node/1` : leurs agents fonctionnent, mais ils n'apparaissent pas comme étapes dans l'éditeur de workflows.
+- **Trésorerie et données financières.** Nexus verrouille ses agents financiers sur Ollama : sans IA locale (`--profile ollama`), l'agent Finance reste muet. Garde aussi Ollama comme moteur dans Trésorerie.
+- **Suivi → Trésorerie.** La synchro de Suivi (script `launchd` sur le Mac) vise encore `http://127.0.0.1:5050` sur ton Mac. Si tu n'utilises plus que la Trésorerie du VPS, cette synchro est à déplacer sur le VPS.
+- **Ciné et l'espace disque.** Les vidéos occupent vite des dizaines de Go : vérifie la place libre avec `df -h` avant de les copier.
+- **Cuisine, Dates, Suivi** restent sur Vercel : leurs notifications iPhone, liens magiques et apps installées sur l'écran d'accueil dépendent de leur adresse actuelle. Le portail se contente de les ouvrir dans un onglet.
 
 ## Dépannage
 

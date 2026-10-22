@@ -33,6 +33,9 @@ APPS=(
   "atelier_viz|Atelier_Viz|BRANCH_VIZ"
   "atelier-tab|atelier-tab|BRANCH_TAB"
   "atelier_projets|Atelier_Projets|BRANCH_PROJETS"
+  "atelier_cine|Atelier_Cine|BRANCH_CINE"
+  "atelier-savoir|Atelier-Savoir|BRANCH_SAVOIR"
+  "atelier_tr-sorerie|Atelier_Tr-sorerie|BRANCH_TRESORERIE"
 )
 
 # Le jeton n'est jamais écrit dans .git/config : il passe par un en-tête HTTP, le temps de la commande.
@@ -65,3 +68,17 @@ sync_apps() {
 }
 
 compose() { docker compose --env-file .env "$@"; }
+
+# Génère les secrets absents de .env (utile aussi après l'ajout d'une app sur un VPS déjà installé).
+ensure_secrets() {
+  local key
+  for key in SESSION_SECRET POSTGRES_PASSWORD ATELIER_IMPORT_TOKEN APPS_SECRET_KEY; do
+    if [ -z "$(env_get "$key")" ]; then env_set "$key" "$(openssl rand -hex 32)"; ok "$key généré"; fi
+  done
+}
+
+# Dossiers de données et de médias (créés avant Docker pour en garder la propriété).
+ensure_dirs() {
+  mkdir -p data/viz data/projets data/nexus data/atelier_tab/exports \
+           data/cine data/savoir data/tresorerie media/films media/series
+}

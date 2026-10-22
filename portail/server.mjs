@@ -36,8 +36,12 @@ if (SECRET.length < 32) fail('SESSION_SECRET doit faire au moins 32 caractères.
 const salt = randomBytes(16)
 const passwordDigest = scryptSync(PASSWORD, salt, 32)
 
-/** Les apps du portail. `sub` = sous-domaine ; `probe` = adresse locale sondée par le serveur. */
-const APPS = [
+/**
+ * Les apps du portail.
+ * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
+ * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
+ */
+const HOSTED = [
   {
     id: 'nexus', name: 'Nexus', role: 'Workflows et agents IA de la suite', color: '#E8590C', sub: 'nexus',
     probes: ['http://127.0.0.1:8100/health', 'http://127.0.0.1:3100/'],
@@ -54,7 +58,33 @@ const APPS = [
     id: 'projets', name: 'Projets', role: 'Projets agiles, jalons, temps passé', color: '#94D82D', sub: 'projets',
     probes: ['http://127.0.0.1:3000/api/health'],
   },
+  {
+    id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: '#3B5BDB', sub: 'tresorerie',
+    probes: ['http://127.0.0.1:5050/api/ping'],
+  },
+  {
+    id: 'savoir', name: 'Savoir', role: 'Cours, fiches et révisions', color: '#9B5DE5', sub: 'savoir',
+    probes: ['http://127.0.0.1:5051/api/stats'],
+  },
+  {
+    id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: '#E64980', sub: 'cine',
+    probes: ['http://127.0.0.1:4000/api/health'],
+  },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
+
+const ONLINE = [
+  { id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF', url: env.SUIVI_URL || '' },
+  {
+    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#E056E2',
+    url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
+  },
+  {
+    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131',
+    url: env.DATES_URL || 'https://atelier-dates.vercel.app/accueil',
+  },
+].map((a) => ({ ...a, external: true, probes: [] }))
+
+const APPS = [...HOSTED, ...ONLINE]
 
 // ── Session signée (HMAC-SHA256), sans stockage côté serveur ────────────────
 const b64 = (buf) => Buffer.from(buf).toString('base64url')
@@ -130,7 +160,7 @@ async function probe(url) {
 
 async function statuses() {
   return Promise.all(
-    APPS.map(async (a) => {
+    HOSTED.map(async (a) => {
       if (!a.probes.length) return { id: a.id, state: 'up', ms: null }
       const results = await Promise.all(a.probes.map(probe))
       const up = results.filter((r) => r.ok).length

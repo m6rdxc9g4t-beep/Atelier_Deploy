@@ -56,15 +56,13 @@ ask() { # ask CLE "Question" [secret]
 }
 ask ATELIER_DOMAIN "Domaine du portail (ex. atelier.mondomaine.fr)"
 ask ACME_EMAIL "E-mail pour les certificats HTTPS"
-ask GITHUB_CLONE_TOKEN "Jeton GitHub (lecture des 4 dépôts privés)" secret
+ask GITHUB_CLONE_TOKEN "Jeton GitHub (lecture des dépôts privés)" secret
 ask ANTHROPIC_API_KEY "Clé API Anthropic (Entrée pour passer)" secret
 
 for key in PORTAL_PASSWORD; do
   [ -n "$(env_get $key)" ] || { env_set $key "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "$key généré"; }
 done
-for key in SESSION_SECRET POSTGRES_PASSWORD ATELIER_IMPORT_TOKEN; do
-  [ -n "$(env_get $key)" ] || { env_set $key "$(openssl rand -hex 32)"; ok "$key généré"; }
-done
+ensure_secrets
 
 DOMAIN="$(env_get ATELIER_DOMAIN)"
 [ -n "$DOMAIN" ] && [[ "$DOMAIN" != *mondomaine.fr* ]] || die "Renseigne ATELIER_DOMAIN dans .env puis relance."
@@ -73,7 +71,8 @@ DOMAIN="$(env_get ATELIER_DOMAIN)"
 step "Vérification du DNS"
 ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)
 dns_ok=1
-for host in "$DOMAIN" "nexus.$DOMAIN" "viz.$DOMAIN" "tab.$DOMAIN" "projets.$DOMAIN"; do
+for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" projets."$DOMAIN" \
+            tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN"; do
   got=$(dig +short A "$host" | tail -n1)
   if [ -n "$ip" ] && [ "$got" = "$ip" ]; then ok "$host → $got"
   else warn "$host → ${got:-aucune adresse} (attendu : ${ip:-IP du VPS})"; dns_ok=0; fi
@@ -83,13 +82,7 @@ done
 # ── 6. Code des apps ─────────────────────────────────────────────────────────
 step "Récupération des apps"
 sync_apps
-mkdir -p data/viz data/projets data/nexus data/atelier_tab/exports
-# Réglages de Nexus modifiables depuis son écran Réglages : les ateliers absents du VPS sont désactivés.
-if [ ! -f data/nexus/.env ]; then
-  printf '%s\n' '# Réglages de Nexus (écran Réglages). Vide = app désactivée.' \
-    'TRESORERIE_BASE_URL=' 'CINE_BASE_URL=' 'SAVOIR_BASE_URL=' > data/nexus/.env
-  ok "réglages de Nexus initialisés"
-fi
+ensure_dirs
 
 # ── 7. Construction et lancement ─────────────────────────────────────────────
 step "Construction des images (10 à 20 minutes la première fois)"

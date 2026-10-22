@@ -15,10 +15,12 @@ compose exec -T postgres pg_dump -U nexus -d atelier_nexus --clean --if-exists |
 ok "nexus.sql.gz"
 
 step "Archive des données"
-# Viz (DuckDB) n'accepte qu'un programme : on l'arrête quelques secondes pour une copie cohérente.
-compose stop viz >/dev/null
-tar -czf "backups/atelier-$stamp.tar.gz" data .env -C "$tmp" nexus.sql.gz
-compose start viz >/dev/null
+# Viz (DuckDB) n'accepte qu'un programme, Savoir et Trésorerie écrivent en SQLite :
+# on les arrête quelques secondes pour une copie cohérente.
+# media/ (les vidéos de Ciné) n'est pas sauvegardé : trop volumineux.
+compose stop viz savoir tresorerie >/dev/null
+tar -czf "backups/atelier-$stamp.tar.gz" data .env -C "$tmp" nexus.sql.gz || true
+compose start viz savoir tresorerie >/dev/null
 chmod 600 "backups/atelier-$stamp.tar.gz"
 ok "backups/atelier-$stamp.tar.gz ($(du -h "backups/atelier-$stamp.tar.gz" | cut -f1))"
 
