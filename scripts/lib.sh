@@ -13,7 +13,7 @@ die()  { printf '\n%s✗ %s%s\n' "$red" "$*" "$reset" >&2; exit 1; }
 # Lit une valeur de .env (sans exécuter le fichier).
 env_get() {
   [ -f .env ] || return 0
-  grep -E "^$1=" .env | tail -n1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
+  { grep -E "^$1=" .env || true; } | tail -n1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
 }
 
 # Écrit ou remplace une valeur dans .env.
