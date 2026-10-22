@@ -1,0 +1,136 @@
+# Suite Atelier : portail + 4 apps, HTTPS automatique (Let's Encrypt).
+#
+#   {$ATELIER_DOMAIN}           portail (choix de l'app) + connexion
+#   nexus.{$ATELIER_DOMAIN}     Atelier Nexus  (interface :3100, API :8100)
+#   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
+#   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques)
+#   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
+#
+# Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
+# Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session.
+# SITE_SCHEME=http:// sert uniquement aux essais en local, sans certificat.
+{
+	email {$ACME_EMAIL}
+}
+
+(securite) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	log {
+		output stdout
+		format console
+		level WARN
+	}
+}
+
+(connexion) {
+	forward_auth 127.0.0.1:9000 {
+		uri /auth/verify
+		copy_headers X-Atelier-User
+	}
+}
+
+# Les sondes /api/health restent publiques (elles ne disent que « ok ») :
+# le sélecteur de suite intégré à chaque app s'en sert d'un domaine à l'autre.
+(sante_publique) {
+	header Access-Control-Allow-Origin *
+	header Cache-Control no-store
+}
+
+{$SITE_SCHEME}{$ATELIER_DOMAIN} {
+	import securite
+	reverse_proxy 127.0.0.1:9000
+}
+
+{$SITE_SCHEME}viz.{$ATELIER_DOMAIN} {
+	import securite
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:8000
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:8000 {
+			flush_interval -1
+		}
+	}
+}
+
+{$SITE_SCHEME}tab.{$ATELIER_DOMAIN} {
+	import securite
+	handle /api/health {
+		import sante_publique
+		header Content-Type application/json
+		respond `{"status":"ok","app":"atelier-tab"}` 200
+	}
+	handle {
+		# route : la connexion est vérifiée avant la réécriture vers index.html
+		route {
+			import connexion
+			root * /srv/tab
+			@html path / /index.html
+			header @html Cache-Control no-cache
+			header /assets/* Cache-Control "public, max-age=31536000, immutable"
+			try_files {path} /index.html
+			file_server
+		}
+	}
+}
+
+{$SITE_SCHEME}projets.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 25MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3000
+	}
+	handle /api/* {
+		import connexion
+		reverse_proxy 127.0.0.1:3000 {
+			flush_interval -1
+		}
+	}
+	handle {
+		# route : la connexion est vérifiée avant la réécriture vers index.html
+		route {
+			import connexion
+			root * /srv/projets
+			@html path / /index.html
+			header @html Cache-Control no-cache
+			header /assets/* Cache-Control "public, max-age=31536000, immutable"
+			try_files {path} /index.html
+			file_server
+		}
+	}
+}
+
+{$SITE_SCHEME}nexus.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 50MB
+	}
+	@sante path /health /api/health
+	handle @sante {
+		import sante_publique
+		reverse_proxy 127.0.0.1:8100
+	}
+	@api path /api/* /docs /docs/* /openapi.json
+	handle @api {
+		import connexion
+		# flush_interval -1 : les réponses en flux (SSE) des agents arrivent au fil de l'eau
+		reverse_proxy 127.0.0.1:8100 {
+			flush_interval -1
+		}
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:3100
+	}
+}

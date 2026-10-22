@@ -1,0 +1,153 @@
+# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Projets derrière Caddy.
+#
+# Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
+# elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
+# Seul Caddy ouvre les ports 80 et 443 au monde.
+#
+# Lancer :  docker compose up -d --build        Journal :  docker compose logs -f <service>
+
+name: atelier
+
+x-build: &build
+  context: .
+  args:
+    ATELIER_DOMAIN: ${ATELIER_DOMAIN:?Renseigne ATELIER_DOMAIN dans .env}
+    PROTO: ${PROTO:-https}
+
+x-app: &app
+  network_mode: host
+  restart: unless-stopped
+  environment: &tz
+    TZ: ${TZ:-Europe/Paris}
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  caddy:
+    <<: *app
+    build: { <<: *build, dockerfile: caddy/Dockerfile }
+    environment:
+      <<: *tz
+      ATELIER_DOMAIN: ${ATELIER_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Renseigne ACME_EMAIL dans .env}
+      SITE_SCHEME: ${SITE_SCHEME:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [portail]
+
+  portail:
+    <<: *app
+    build: ./portail
+    environment:
+      <<: *tz
+      ATELIER_DOMAIN: ${ATELIER_DOMAIN}
+      SITE_SCHEME: ${PROTO:-https}
+      PORTAL_USER: ${PORTAL_USER:-atelier}
+      PORTAL_PASSWORD: ${PORTAL_PASSWORD:?Renseigne PORTAL_PASSWORD dans .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Renseigne SESSION_SECRET dans .env}
+      SESSION_DAYS: ${SESSION_DAYS:-30}
+
+  viz:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/viz.Dockerfile }
+    environment:
+      <<: *tz
+      ALLOWED_HOSTS: viz.${ATELIER_DOMAIN}
+      CLAUDE_MODE: ${VIZ_CLAUDE_MODE:-api}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
+    volumes:
+      - ./data/viz:/data
+      - ./data/atelier_tab:/data-tab:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+
+  projets:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/projets.Dockerfile }
+    environment:
+      <<: *tz
+      ALLOWED_HOSTS: projets.${ATELIER_DOMAIN}
+      APP_TIMEZONE: ${TZ:-Europe/Paris}
+      ATELIER_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
+      OLLAMA_URL: http://127.0.0.1:11434
+      GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
+    volumes:
+      - ./data/projets:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+
+  nexus-backend:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/nexus-backend.Dockerfile }
+    environment:
+      <<: *tz
+      TIMEZONE: ${TZ:-Europe/Paris}
+      CORS_ORIGINS: ${PROTO:-https}://nexus.${ATELIER_DOMAIN}
+      DATABASE_URL: postgresql+asyncpg://nexus:${POSTGRES_PASSWORD:?Renseigne POSTGRES_PASSWORD dans .env}@127.0.0.1:5433/atelier_nexus
+      DB_AUTO_MIGRATE: "true"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_MODE: api
+      LLM_DEFAULT_PROVIDER: ${NEXUS_LLM_PROVIDER:-anthropic}
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      PROJETS_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
+      GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
+    volumes:
+      - ./data/nexus:/data/nexus
+      - ./data/atelier_tab:/data/atelier_tab
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8100/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+
+  nexus-frontend:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/nexus-frontend.Dockerfile }
+    depends_on: [nexus-backend]
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: atelier_nexus
+      TZ: ${TZ:-Europe/Paris}
+    # Publié sur 127.0.0.1 seulement (5433 pour ne pas gêner un PostgreSQL déjà installé)
+    ports: ["127.0.0.1:5433:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/atelier_nexus/backend/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d atelier_nexus"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # IA locale, facultative (≥ 8 Go de RAM conseillés) : docker compose --profile ollama up -d
+  ollama:
+    <<: *app
+    image: ollama/ollama:latest
+    profiles: [ollama]
+    environment:
+      OLLAMA_HOST: 127.0.0.1:11434
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  ollama_data:
