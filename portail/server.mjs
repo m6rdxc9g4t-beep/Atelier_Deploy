@@ -59,11 +59,11 @@ const HOSTED = [
     probes: ['http://127.0.0.1:3000/api/health'],
   },
   {
-    id: 'wiki', name: 'Wiki', icon: true, role: 'Pages, procédures et notes de la suite', color: '#4DABF7', sub: 'wiki',
+    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: '#4DABF7', sub: 'wiki',
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
-    id: 'formulaire', name: 'Formulaire', icon: true, role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
+    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
     probes: ['http://127.0.0.1:3300/api/health'],
   },
   {
@@ -82,7 +82,7 @@ const HOSTED = [
 
 const ONLINE = [
   {
-    id: 'suivi', name: 'Suivi', icon: true, role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
     url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
   },
   {
