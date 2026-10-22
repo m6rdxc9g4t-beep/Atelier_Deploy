@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Met à jour les apps (dernier commit de leur branche), reconstruit et relance.
 # Usage :  sudo ./update.sh            toutes les apps
-#          sudo ./update.sh viz        une seule (nexus, viz, tab, projets, tresorerie, savoir, cine, portail)
+#          sudo ./update.sh viz        une seule (nexus, viz, tab, projets, wiki, tresorerie, savoir, cine, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -30,8 +30,8 @@ case "${1:-all}" in
   tab)     services=(caddy nexus-backend) ;;   # Tab est servi par Caddy, et son MCP vit dans Nexus
   projets) services=(projets caddy) ;;        # l'interface de Projets est servie par Caddy
   portail) services=(portail caddy) ;;
-  cine|savoir|tresorerie) services=("$1") ;;
-  *) die "App inconnue : $1 (nexus, viz, tab, projets, tresorerie, savoir, cine, portail)" ;;
+  cine|savoir|tresorerie|wiki) services=("$1") ;;
+  *) die "App inconnue : $1 (nexus, viz, tab, projets, wiki, tresorerie, savoir, cine, portail)" ;;
 esac
 
 step "Reconstruction"

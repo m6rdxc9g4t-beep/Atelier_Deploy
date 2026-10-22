@@ -1,10 +1,11 @@
-# Suite Atelier : portail + 4 apps, HTTPS automatique (Let's Encrypt).
+# Suite Atelier : portail + apps, HTTPS automatique (Let's Encrypt).
 #
 #   {$ATELIER_DOMAIN}           portail (choix de l'app) + connexion
 #   nexus.{$ATELIER_DOMAIN}     Atelier Nexus  (interface :3100, API :8100)
 #   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
 #   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
+#   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
 #   tresorerie.{$ATELIER_DOMAIN} Atelier Trésorerie (:5050)
 #   savoir.{$ATELIER_DOMAIN}    Atelier Savoir (:5051)
 #   cine.{$ATELIER_DOMAIN}      Atelier Ciné   (:4000, vidéos en flux)
@@ -112,6 +113,22 @@
 			try_files {path} /index.html
 			file_server
 		}
+	}
+}
+
+{$SITE_SCHEME}wiki.{$ATELIER_DOMAIN} {
+	import securite
+	# Pièces jointes du Wiki : 20 Mo par fichier (WIKI_MAX_UPLOAD_MB), plus l'enveloppe multipart.
+	request_body /api/* {
+		max_size 25MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3200
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:3200
 	}
 }
 
