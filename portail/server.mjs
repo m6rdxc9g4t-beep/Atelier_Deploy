@@ -63,6 +63,10 @@ const HOSTED = [
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
+    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
+    probes: ['http://127.0.0.1:3300/api/health'],
+  },
+  {
     id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: '#3B5BDB', sub: 'tresorerie',
     probes: ['http://127.0.0.1:5050/api/ping'],
   },
