@@ -170,7 +170,7 @@ function tile(a, i, s, last) {
     ? (a.url ? '<span class="state"><span class="arrow" aria-hidden="true">↗</span>S\'ouvre dans un onglet</span>' : '<span class="state">Adresse à renseigner (.env)</span>')
     : `<span class="state" data-s="${s.state}"><span class="dot" aria-hidden="true"></span>${LABELS[s.state]}${s.ms != null ? ` · ${s.ms} ms` : ''}</span>`;
   el.innerHTML = `
-    <div class="visual${a.icon ? ' is-icon' : ''}"><img src="/logos/${a.id}.webp" alt="" width="320" height="280" loading="lazy" decoding="async">${i < 10 ? `<span class="key" aria-hidden="true">${keyOf(i)}</span>` : ''}</div>
+    <div class="visual${a.icon ? ' is-icon' : ''}"><img src="/logos/${a.id}.webp?v=3" alt="" width="320" height="280" loading="lazy" decoding="async">${i < 10 ? `<span class="key" aria-hidden="true">${keyOf(i)}</span>` : ''}</div>
     <div><h3>${a.name}</h3><p>${a.role}</p></div>
     <div class="foot">${state}${a.id === last ? '<span class="badge">Dernière</span>' : `<span class="host">${host}</span>`}</div>`;
   el.addEventListener('click', () => store.set('atelier:last', a.id));

@@ -236,6 +236,7 @@ const server = createServer(async (req, res) => {
     if (path === '/sante') return json(res, 200, { status: 'ok' })
 
     // Logos des apps : publics (aucune donnée), mis en cache une semaine.
+    // Après un changement de logo, augmenter ?v= dans index.html pour forcer le rechargement.
     const logo = path.match(/^\/logos\/([a-z]+)\.webp$/)
     if (logo) {
       try {
