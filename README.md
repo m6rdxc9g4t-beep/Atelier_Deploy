@@ -2,13 +2,14 @@
 
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
-- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
+- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
 - **En ligne** (Vercel + Supabase, avec leur propre connexion), sous forme de liens dans le portail : Suivi, Cuisine, Dates.
 
 ```
 https://atelier.mondomaine.fr            portail : choix de l'app + connexion
 https://nexus.atelier.mondomaine.fr      Atelier Nexus
 https://viz.atelier.mondomaine.fr        Atelier Viz
+https://convert.atelier.mondomaine.fr    Atelier Convert
 https://tab.atelier.mondomaine.fr        Atelier Tab
 https://projets.atelier.mondomaine.fr    Atelier Projets
 https://wiki.atelier.mondomaine.fr       Atelier Wiki
@@ -24,9 +25,9 @@ Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelie
 
 ### 1. Ce qu'il te faut
 
-- Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** conseillés pour les 9 apps (le script ajoute du swap en dessous de 6 Go).
+- Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** conseillés pour les 10 apps (le script ajoute du swap en dessous de 6 Go).
 - Un nom de domaine (chez OVH ou ailleurs).
-- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*.
+- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Convert`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*.
 - Facultatif : une clé API Anthropic pour les agents de Nexus et l'assistant de Viz.
 
 ### 2. DNS
@@ -61,7 +62,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portail`) |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
 | Changer l'adresse de Suivi, Cuisine ou Dates | `SUIVI_URL=https://…` (ou `CUISINE_URL`, `DATES_URL`) dans `.env`, puis `sudo ./update.sh portail` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
@@ -79,6 +80,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de l'app, /auth/verify)
                     │
                     ├─ viz.…      ──▶ Viz :8000           (API + interface, DuckDB)
+                    ├─ convert.…  ──▶ Convert :8010       (API + interface, OCR Tesseract)
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
                     ├─ wiki.…     ──▶ Wiki :3200          (Fastify, SQLite + pièces jointes)
@@ -99,11 +101,12 @@ Portail ──liens──▶ Suivi, Cuisine, Dates (Vercel + Supabase, hors VPS)
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
-- **Données** dans `data/` : `viz/` (DuckDB, rapports), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
 ## À savoir
 
 - **Tab dans le navigateur garde ses données dans le navigateur.** L'interface web de Tab enregistre tes tables dans IndexedDB, sur l'appareil qui l'ouvre. Ce que Nexus écrit dans Tab passe par le serveur MCP, qui travaille sur les fichiers de `data/atelier_tab/`. Les deux ne se voient pas. Pour les réunir, il faudrait brancher l'adaptateur `restAdapter` déjà présent dans Tab sur un petit service de stockage côté VPS.
+- **Convert sur le serveur** : « Envoyer dans Atelier Tab » écrit dans `data/atelier_tab/` (les fichiers du MCP de Tab, que Nexus voit), pas dans le Tab de ton navigateur. Depuis le navigateur, utilise plutôt l'export (CSV français, Excel). L'OCR (Tesseract, français + anglais) est inclus dans l'image et tourne sur le VPS.
 - **Envoi Tab → Projets depuis le navigateur.** L'export par défaut vise `http://127.0.0.1:3000`, c'est-à-dire ton propre ordinateur. Sur le VPS, depuis Tab : passe en mode en ligne, mets `https://projets.atelier.mondomaine.fr/api/imports/atelier-tab` comme adresse. La route d'import n'autorise en CORS que les origines locales : tant que Projets ne l'ouvre pas à `https://tab.…`, cet envoi précis reste bloqué. Les workflows Nexus Tab → Projets, eux, fonctionnent (ils passent par le serveur).
 - **Claude par abonnement (CLI).** Les images utilisent la clé API Anthropic (`CLAUDE_MODE=api`). Le mode CLI de Viz et Nexus n'est pas installé dans les conteneurs.
 - **Analyse Git de Projets.** Elle lit un dépôt local (`localRepoPath`) : sur le VPS, il faudrait que le dépôt soit cloné dans le conteneur. Le reste de Projets fonctionne normalement.

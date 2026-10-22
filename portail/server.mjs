@@ -78,6 +78,10 @@ const HOSTED = [
     id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: '#E64980', sub: 'cine',
     probes: ['http://127.0.0.1:4000/api/health'],
   },
+  {
+    id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: '#C9951D', sub: 'convert',
+    probes: ['http://127.0.0.1:8010/api/health'],
+  },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [

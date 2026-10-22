@@ -1,4 +1,4 @@
-# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Projets, Wiki… derrière Caddy.
+# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki… derrière Caddy.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
 # elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
@@ -67,6 +67,25 @@ services:
       - ./data/atelier_tab:/data-tab:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+
+  convert:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/convert.Dockerfile }
+    environment:
+      <<: *tz
+      ALLOWED_HOSTS: convert.${ATELIER_DOMAIN}
+      CLAUDE_MODE: api
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+    volumes:
+      - ./data/convert:/data
+      # « Envoyer dans Atelier Tab » écrit dans les fichiers de Tab côté serveur (ceux du MCP de Tab, pour Nexus).
+      - ./data/atelier_tab:/data-tab
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8010/api/health',timeout=3)"]
       interval: 30s
       timeout: 5s
       start_period: 30s

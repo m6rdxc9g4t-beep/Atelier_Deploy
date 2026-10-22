@@ -32,6 +32,7 @@ APPS=(
   "atelier_nexus|Atelier_Nexus|BRANCH_NEXUS"
   "atelier_viz|Atelier_Viz|BRANCH_VIZ"
   "atelier-tab|atelier-tab|BRANCH_TAB"
+  "atelier_convert|Atelier_Convert|BRANCH_CONVERT"
   "atelier_projets|Atelier_Projets|BRANCH_PROJETS"
   "atelier_wiki|Atelier_Wiki|BRANCH_WIKI"
   "atelier_formulaire|Atelier_Formulaire|BRANCH_FORMULAIRE"
@@ -81,6 +82,6 @@ ensure_secrets() {
 
 # Dossiers de données et de médias (créés avant Docker pour en garder la propriété).
 ensure_dirs() {
-  mkdir -p data/viz data/projets data/nexus data/atelier_tab/exports \
+  mkdir -p data/viz data/convert data/projets data/nexus data/atelier_tab/exports \
            data/cine data/savoir data/tresorerie data/wiki data/formulaire media/films media/series
 }

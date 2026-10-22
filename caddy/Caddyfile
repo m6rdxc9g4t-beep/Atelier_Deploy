@@ -4,6 +4,7 @@
 #   nexus.{$ATELIER_DOMAIN}     Atelier Nexus  (interface :3100, API :8100)
 #   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
 #   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques)
+#   convert.{$ATELIER_DOMAIN}   Atelier Convert (:8010, sert aussi son interface ; OCR Tesseract)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
 #   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
 #   formulaire.{$ATELIER_DOMAIN} Atelier Formulaire (:3300 ; réponse par lien public sans connexion)
@@ -85,6 +86,22 @@
 			try_files {path} /index.html
 			file_server
 		}
+	}
+}
+
+{$SITE_SCHEME}convert.{$ATELIER_DOMAIN} {
+	import securite
+	# Fichiers à convertir : 50 Mo au plus (MAX_UPLOAD_MB), plus l'enveloppe multipart.
+	request_body /api/* {
+		max_size 55MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:8010
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:8010
 	}
 }
 
