@@ -81,7 +81,10 @@ const HOSTED = [
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
-  { id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF', url: env.SUIVI_URL || '' },
+  {
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
+    url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
+  },
   {
     id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#E056E2',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',

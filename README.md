@@ -63,7 +63,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
 | Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portail`) |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
-| Renseigner l'adresse de Suivi | `SUIVI_URL=https://…` dans `.env`, puis `sudo docker compose up -d portail` |
+| Changer l'adresse de Suivi, Cuisine ou Dates | `SUIVI_URL=https://…` (ou `CUISINE_URL`, `DATES_URL`) dans `.env`, puis `sudo ./update.sh portail` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |
 | Redémarrer une app | `sudo docker compose restart projets` |
