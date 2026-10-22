@@ -248,6 +248,18 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    // Icônes de la Suite (onglet, Dock, écran d'accueil) : publiques, comme les logos.
+    const icone = path === '/apple-touch-icon.png' ? ['apple-touch-icon'] : path.match(/^\/icones\/([a-z0-9-]+)\.png$/)?.slice(1)
+    if (icone) {
+      try {
+        const file = await readFile(join(here, 'public', 'icones', `${icone[0]}.png`))
+        res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=604800' })
+        return res.end(file)
+      } catch {
+        return send(res, 404, 'Icône introuvable')
+      }
+    }
+
     // Caddy demande « cette requête peut-elle passer ? » avant chaque appel à une app.
     if (path === '/auth/verify') {
       const s = session(req)

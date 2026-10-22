@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Connexion · Suite Atelier</title>
+<link rel="icon" type="image/png" href="/icones/favicon-64.png?v=1">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">
+<meta name="apple-mobile-web-app-title" content="Suite Atelier">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,8 +33,7 @@ body{
     var(--bg);
 }
 main{width:min(100%,380px);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:20px;box-shadow:0 20px 60px -30px rgba(232,89,12,.45)}
-.mark{display:grid;grid-template-columns:repeat(2,14px);gap:4px}
-.mark i{width:14px;height:14px;border-radius:5px;display:block}
+.mark{display:block;width:56px;height:56px;filter:drop-shadow(0 0 10px rgba(63,216,255,.35))}
 h1{font:900 26px/1.1 var(--f-display);margin:0}
 h1 span{color:var(--faint);font-weight:800}
 p.lede{margin:-12px 0 0;color:var(--muted)}
@@ -46,7 +48,7 @@ button:hover,button:focus-visible{filter:brightness(1.07);outline:none}
 </head>
 <body>
 <main>
-  <span class="mark" aria-hidden="true"><i style="background:#E8590C"></i><i style="background:#F2C811"></i><i style="background:#21A366"></i><i style="background:#94D82D"></i></span>
+  <img class="mark" src="/icones/logo-96.png?v=1" alt="" width="56" height="56">
   <h1>Suite <span>Atelier</span></h1>
   <p class="lede">Une connexion pour Nexus, Viz, Tab et Projets.</p>
   {{ERREUR}}
