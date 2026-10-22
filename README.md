@@ -16,7 +16,7 @@ https://projets.atelier.mondomaine.fr    Atelier Projets
 
 - Un VPS OVH sous **Ubuntu 24.04** ou Debian 12, **4 Go de RAM** conseillés (2 Go passent : le script ajoute du swap).
 - Un nom de domaine (chez OVH ou ailleurs).
-- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Projets`. Permission : *Contents : Read-only*.
+- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Projets`. Permission : *Contents : Read-only*.
 - Facultatif : une clé API Anthropic pour les agents de Nexus et l'assistant de Viz.
 
 ### 2. DNS
