@@ -14,6 +14,17 @@ x-build: &build
     ATELIER_DOMAIN: ${ATELIER_DOMAIN:?Renseigne ATELIER_DOMAIN dans .env}
     PROTO: ${PROTO:-https}
 
+# IA : l'Ollama du serveur (service « ollama ») et un seul modèle pour toutes les apps.
+# Chaque app lit le nom de variable qui la concerne ; les autres sont ignorés.
+# Délais longs : sans carte graphique, une réponse peut prendre plusieurs minutes.
+x-ia: &ia
+  OLLAMA_URL: http://127.0.0.1:11434
+  OLLAMA_BASE_URL: http://127.0.0.1:11434
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1:8b}
+  OLLAMA_TIMEOUT: "600"
+  OLLAMA_TIMEOUT_SECONDS: "600"
+  OLLAMA_TIMEOUT_MS: "600000"
+
 x-app: &app
   network_mode: host
   restart: unless-stopped
@@ -56,11 +67,10 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/viz.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       ALLOWED_HOSTS: viz.${ATELIER_DOMAIN}
       CLAUDE_MODE: ${VIZ_CLAUDE_MODE:-api}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
       GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
     volumes:
       - ./data/viz:/data
@@ -75,11 +85,10 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/convert.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       ALLOWED_HOSTS: convert.${ATELIER_DOMAIN}
       CLAUDE_MODE: api
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
     volumes:
       - ./data/convert:/data
       # « Envoyer dans Atelier Tab » écrit dans les fichiers de Tab côté serveur (ceux du MCP de Tab, pour Nexus).
@@ -94,11 +103,11 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/projets.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       ALLOWED_HOSTS: projets.${ATELIER_DOMAIN}
       APP_TIMEZONE: ${TZ:-Europe/Paris}
       ATELIER_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
-      OLLAMA_URL: http://127.0.0.1:11434
+      OLLAMA_NUM_CTX: "8192"
       GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
     volumes:
       - ./data/projets:/data
@@ -112,7 +121,7 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/wiki.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       ALLOWED_HOSTS: wiki.${ATELIER_DOMAIN}
       WIKI_PUBLIC_URL: ${PROTO:-https}://wiki.${ATELIER_DOMAIN}
     volumes:
@@ -127,7 +136,7 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/formulaire.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       ALLOWED_HOSTS: formulaire.${ATELIER_DOMAIN}
       FORMULAIRE_PUBLIC_URL: ${PROTO:-https}://formulaire.${ATELIER_DOMAIN}
     volumes:
@@ -142,15 +151,14 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/nexus-backend.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       TIMEZONE: ${TZ:-Europe/Paris}
       CORS_ORIGINS: ${PROTO:-https}://nexus.${ATELIER_DOMAIN}
       DATABASE_URL: postgresql+asyncpg://nexus:${POSTGRES_PASSWORD:?Renseigne POSTGRES_PASSWORD dans .env}@127.0.0.1:5433/atelier_nexus
       DB_AUTO_MIGRATE: "true"
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       CLAUDE_MODE: api
-      LLM_DEFAULT_PROVIDER: ${NEXUS_LLM_PROVIDER:-anthropic}
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      LLM_DEFAULT_PROVIDER: ${NEXUS_LLM_PROVIDER:-ollama}
       PROJETS_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
       GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}
       # Autres ateliers hébergés sur ce VPS (vide = désactivé)
@@ -177,10 +185,9 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/cine.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       CORS_ORIGIN: ${PROTO:-https}://cine.${ATELIER_DOMAIN}
       SCAN_PROBE: "true"
-      OLLAMA_URL: http://127.0.0.1:11434
     volumes:
       - ./data/cine:/data
       # Dépose tes vidéos dans media/films et media/series (sur le VPS)
@@ -196,9 +203,8 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/savoir.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       SECRET_KEY: ${APPS_SECRET_KEY:?Renseigne APPS_SECRET_KEY dans .env (sudo ./install.sh le génère)}
-      OLLAMA_URL: http://127.0.0.1:11434
     volumes:
       - ./data/savoir:/data
     healthcheck:
@@ -211,9 +217,8 @@ services:
     <<: *app
     build: { <<: *build, dockerfile: docker/tresorerie.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
       SECRET_KEY: ${APPS_SECRET_KEY}
-      OLLAMA_URL: http://127.0.0.1:11434
     volumes:
       - ./data/tresorerie:/data
     healthcheck:
@@ -241,15 +246,26 @@ services:
       timeout: 5s
       retries: 10
 
-  # IA locale, facultative (≥ 8 Go de RAM conseillés) : docker compose --profile ollama up -d
+  # IA du serveur, partagée par toutes les apps (et par Tab via https://tab.<domaine>/ollama/).
+  # Le modèle (OLLAMA_MODEL dans .env) est choisi selon la mémoire et téléchargé par install.sh / update.sh.
   ollama:
     <<: *app
     image: ollama/ollama:latest
-    profiles: [ollama]
     environment:
+      <<: *tz
       OLLAMA_HOST: 127.0.0.1:11434
+      # Un seul modèle en mémoire, une requête à la fois : le serveur n'a pas de carte graphique.
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_KEEP_ALIVE: 30m
+      OLLAMA_CONTEXT_LENGTH: "8192"
     volumes:
       - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
 
 volumes:
   caddy_data:

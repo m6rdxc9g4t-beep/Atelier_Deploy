@@ -85,3 +85,47 @@ ensure_dirs() {
   mkdir -p data/viz data/convert data/projets data/nexus data/atelier_tab/exports \
            data/cine data/savoir data/tresorerie data/wiki data/formulaire media/films media/series
 }
+
+# IA du serveur : choisit le modèle selon la mémoire (une seule fois ; modifiable ensuite dans .env).
+# Le reste de la suite occupe environ 2 Go : un modèle 8B (≈ 5 Go) demande ≥ 10 Go au total.
+ensure_ia() {
+  local model ram_mb
+  model="$(env_get OLLAMA_MODEL)"
+  if [ -z "$model" ]; then
+    ram_mb=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+    if [ "$ram_mb" -ge 10000 ]; then model="llama3.1:8b"
+    elif [ "$ram_mb" -ge 5000 ]; then model="llama3.2:3b"
+    else
+      model="llama3.2:1b"
+      warn "Seulement ${ram_mb} Mo de mémoire : modèle d'IA réduit ($model), réponses de qualité limitée."
+    fi
+    env_set OLLAMA_MODEL "$model"
+    ok "modèle d'IA : $model (mémoire du serveur : ${ram_mb} Mo)"
+  fi
+  # Sans clé Anthropic, Nexus utilise l'IA du serveur.
+  if [ -z "$(env_get ANTHROPIC_API_KEY)" ] && [ "$(env_get NEXUS_LLM_PROVIDER)" = "anthropic" ]; then
+    env_set NEXUS_LLM_PROVIDER ollama
+    ok "Nexus : moteur par défaut = IA du serveur (aucune clé Anthropic)"
+  fi
+}
+
+# Télécharge le modèle dans le service ollama (plusieurs Go la première fois, rien ensuite).
+pull_model() {
+  local model i
+  model="$(env_get OLLAMA_MODEL)"; model="${model:-llama3.1:8b}"
+  compose up -d ollama >/dev/null
+  for i in $(seq 1 30); do
+    compose exec -T ollama ollama list >/dev/null 2>&1 && break
+    sleep 2
+  done
+  if compose exec -T ollama ollama list 2>/dev/null | awk 'NR>1 {print $1}' | grep -qxF "$model"; then
+    ok "modèle d'IA $model déjà présent"
+    return 0
+  fi
+  step "Téléchargement du modèle d'IA $model (plusieurs Go, une seule fois)"
+  if compose exec -T ollama ollama pull "$model"; then
+    ok "modèle $model prêt"
+  else
+    warn "Téléchargement du modèle impossible pour l'instant : relance sudo ./update.sh ia plus tard."
+  fi
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Met à jour les apps (dernier commit de leur branche), reconstruit et relance.
 # Usage :  sudo ./update.sh            toutes les apps
-#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portail)
+#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, ia, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -20,6 +20,7 @@ if [ -z "${ATELIER_KIT_A_JOUR:-}" ]; then
   fi
 fi
 ensure_secrets
+ensure_ia
 sync_apps
 ensure_dirs
 
@@ -31,13 +32,15 @@ case "${1:-all}" in
   projets) services=(projets caddy) ;;        # l'interface de Projets est servie par Caddy
   portail) services=(portail caddy) ;;
   cine|savoir|tresorerie|wiki|formulaire|convert) services=("$1") ;;
-  *) die "App inconnue : $1 (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portail)" ;;
+  ia|ollama) services=(ollama) ;;             # IA du serveur : télécharge le modèle choisi dans .env
+  *) die "App inconnue : $1 (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, ia, portail)" ;;
 esac
 
 step "Reconstruction"
 compose build "${services[@]}"
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
+case "${1:-all}" in all|ia|ollama) pull_model ;; esac
 docker image prune -f >/dev/null
 ok "terminé"
 compose ps

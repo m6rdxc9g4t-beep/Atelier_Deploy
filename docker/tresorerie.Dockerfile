@@ -14,6 +14,6 @@ RUN rm -f .env
 ENV DATABASE_PATH=/data/finance.db \
     PORT=5050
 
-# Un seul processus (migrations au démarrage, SQLite) ; délai > 180 s des appels IA.
-CMD ["gunicorn", "--bind", "127.0.0.1:5050", "--workers", "1", "--threads", "8", "--timeout", "200", \
+# Un seul processus (migrations au démarrage, SQLite) ; pas de délai : sur le serveur, une réponse de l'IA peut prendre plusieurs minutes.
+CMD ["gunicorn", "--bind", "127.0.0.1:5050", "--workers", "1", "--threads", "8", "--timeout", "0", \
      "--access-logfile", "-", "app:create_app()"]

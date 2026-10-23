@@ -72,7 +72,8 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Sauvegarder chaque nuit | `echo "30 3 * * * root $(pwd)/backup.sh >/dev/null" \| sudo tee /etc/cron.d/atelier-backup` |
 | Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` |
 | Déployer une autre branche | `BRANCH_NEXUS=ma-branche` dans `.env`, puis `sudo ./update.sh nexus` |
-| Activer l'IA locale (Ollama) | `sudo docker compose --profile ollama up -d`, puis `NEXUS_LLM_PROVIDER=ollama` dans `.env` |
+| Changer de modèle d'IA | `OLLAMA_MODEL=…` dans `.env` (ex. `llama3.1:8b`, `llama3.2:3b`, `qwen3:8b`), puis `sudo ./update.sh` |
+| Retélécharger le modèle d'IA | `sudo ./update.sh ia` |
 
 ## Comment c'est monté
 
@@ -103,6 +104,16 @@ Portail ──liens──▶ Suivi, Cuisine, Dates (Vercel + Supabase, hors VPS)
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
 - **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
+## IA du serveur (Ollama)
+
+Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
+
+- **Un seul modèle pour tout le monde** (`OLLAMA_MODEL` dans `.env`), choisi à l'installation selon la mémoire du serveur : `llama3.1:8b` à partir de 10 Go, `llama3.2:3b` à partir de 5 Go, `llama3.2:1b` en dessous. Il est téléchargé une fois (2 à 5 Go) et reste en mémoire 30 minutes après la dernière demande.
+- **Lent sans carte graphique** : une réponse prend de quelques secondes à quelques minutes. Les délais des apps sont réglés à 10 minutes.
+- **Tab** joint l'IA par `https://tab.<domaine>/ollama/`, derrière la connexion du portail. Seules les routes de conversation passent : personne ne peut télécharger ou supprimer de modèle depuis Internet.
+- **Wiki** (« Rédiger avec l'IA ») et **Formulaire** (« Créer avec l'IA ») proposent un brouillon que tu relis avant d'enregistrer.
+- **Claude reste possible** dans Nexus, Viz et Convert avec `ANTHROPIC_API_KEY` ; sans clé, Nexus utilise l'IA du serveur.
+
 ## À savoir
 
 - **Tab dans le navigateur garde ses données dans le navigateur.** L'interface web de Tab enregistre tes tables dans IndexedDB, sur l'appareil qui l'ouvre. Ce que Nexus écrit dans Tab passe par le serveur MCP, qui travaille sur les fichiers de `data/atelier_tab/`. Les deux ne se voient pas. Pour les réunir, il faudrait brancher l'adaptateur `restAdapter` déjà présent dans Tab sur un petit service de stockage côté VPS.
@@ -111,7 +122,7 @@ Portail ──liens──▶ Suivi, Cuisine, Dates (Vercel + Supabase, hors VPS)
 - **Claude par abonnement (CLI).** Les images utilisent la clé API Anthropic (`CLAUDE_MODE=api`). Le mode CLI de Viz et Nexus n'est pas installé dans les conteneurs.
 - **Analyse Git de Projets.** Elle lit un dépôt local (`localRepoPath`) : sur le VPS, il faudrait que le dépôt soit cloné dans le conteneur. Le reste de Projets fonctionne normalement.
 - **Nexus et les autres ateliers.** Nexus joint Trésorerie, Savoir et Ciné en `127.0.0.1` (adresses fixées dans `docker-compose.yml`). Ils n'ont pas encore de manifeste `atelier-node/1` : leurs agents fonctionnent, mais ils n'apparaissent pas comme étapes dans l'éditeur de workflows.
-- **Trésorerie et données financières.** Nexus verrouille ses agents financiers sur Ollama : sans IA locale (`--profile ollama`), l'agent Finance reste muet. Garde aussi Ollama comme moteur dans Trésorerie.
+- **Trésorerie et données financières.** Nexus verrouille ses agents financiers sur Ollama, qui tourne sur le serveur : rien ne part chez un tiers. Garde aussi Ollama comme moteur dans les paramètres de Trésorerie.
 - **Suivi → Trésorerie.** La synchro de Suivi (script `launchd` sur le Mac) vise encore `http://127.0.0.1:5050` sur ton Mac. Si tu n'utilises plus que la Trésorerie du VPS, cette synchro est à déplacer sur le VPS.
 - **Ciné et l'espace disque.** Les vidéos occupent vite des dizaines de Go : vérifie la place libre avec `df -h` avant de les copier.
 - **Cuisine, Dates, Suivi** restent sur Vercel : leurs notifications iPhone, liens magiques et apps installées sur l'écran d'accueil dépendent de leur adresse actuelle. Le portail se contente de les ouvrir dans un onglet.

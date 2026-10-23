@@ -63,6 +63,7 @@ for key in PORTAL_PASSWORD; do
   [ -n "$(env_get $key)" ] || { env_set $key "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "$key généré"; }
 done
 ensure_secrets
+ensure_ia
 
 DOMAIN="$(env_get ATELIER_DOMAIN)"
 [ -n "$DOMAIN" ] && [[ "$DOMAIN" != *mondomaine.fr* ]] || die "Renseigne ATELIER_DOMAIN dans .env puis relance."
@@ -90,6 +91,7 @@ compose build
 step "Démarrage"
 compose up -d --remove-orphans
 ok "conteneurs lancés"
+pull_model
 
 cat <<EOF
 

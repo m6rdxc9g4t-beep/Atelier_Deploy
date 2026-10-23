@@ -18,6 +18,7 @@ RUN VITE_ATELIER_TAB_URL="$PROTO://tab.$ATELIER_DOMAIN" \
     VITE_ATELIER_VIZ_URL="$PROTO://viz.$ATELIER_DOMAIN" \
     VITE_ATELIER_PROJETS_URL="$PROTO://projets.$ATELIER_DOMAIN" \
     VITE_ATELIER_PROJETS_API_URL="$PROTO://projets.$ATELIER_DOMAIN" \
+    VITE_OLLAMA_URL=/ollama \
     npm run build
 
 # ── Atelier Projets (interface web ; l'API tourne dans son propre conteneur) ──

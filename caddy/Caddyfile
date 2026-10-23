@@ -3,7 +3,7 @@
 #   {$ATELIER_DOMAIN}           portail (choix de l'app) + connexion
 #   nexus.{$ATELIER_DOMAIN}     Atelier Nexus  (interface :3100, API :8100)
 #   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
-#   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques)
+#   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques ; /ollama/ = IA du serveur pour l'assistant)
 #   convert.{$ATELIER_DOMAIN}   Atelier Convert (:8010, sert aussi son interface ; OCR Tesseract)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
 #   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
@@ -74,6 +74,23 @@
 		import sante_publique
 		header Content-Type application/json
 		respond `{"status":"ok","app":"atelier-tab"}` 200
+	}
+	# Assistant de Tab : l'Ollama du serveur, sur la même origine, après connexion au portail.
+	# Seules les routes dont l'assistant a besoin passent (pas de téléchargement ni de suppression de modèle).
+	@ollama path /ollama/api/chat /ollama/api/tags /ollama/api/show /ollama/api/version
+	handle @ollama {
+		import connexion
+		uri strip_prefix /ollama
+		reverse_proxy 127.0.0.1:11434 {
+			# Ollama n'accepte que ses propres noms d'hôte et origines : la requête arrive comme locale.
+			header_up Host 127.0.0.1:11434
+			header_up -Origin
+			header_up -Referer
+			flush_interval -1
+		}
+	}
+	handle /ollama/* {
+		respond "Route d'Ollama non autorisée" 403
 	}
 	handle {
 		# route : la connexion est vérifiée avant la réécriture vers index.html
