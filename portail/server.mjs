@@ -40,6 +40,7 @@ const passwordDigest = scryptSync(PASSWORD, salt, 32)
  * Les apps du portail.
  * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
  * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
+ * Dates est hébergée ici mais garde sa propre connexion (Supabase), comme sur Vercel.
  */
 const HOSTED = [
   {
@@ -82,6 +83,11 @@ const HOSTED = [
     id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: '#C9951D', sub: 'convert',
     probes: ['http://127.0.0.1:8010/api/health'],
   },
+  {
+    // Sa propre connexion (Supabase) : chacun des deux entre avec son compte
+    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131', sub: 'dates',
+    probes: ['http://127.0.0.1:3400/api/health'],
+  },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
@@ -92,10 +98,6 @@ const ONLINE = [
   {
     id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#E056E2',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
-  },
-  {
-    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131',
-    url: env.DATES_URL || 'https://atelier-dates.vercel.app/accueil',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
 

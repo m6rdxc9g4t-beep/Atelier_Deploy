@@ -1,4 +1,4 @@
-# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki… derrière Caddy.
+# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Dates… derrière Caddy.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
 # elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
@@ -61,7 +61,6 @@ services:
       SESSION_DAYS: ${SESSION_DAYS:-30}
       SUIVI_URL: ${SUIVI_URL:-}
       CUISINE_URL: ${CUISINE_URL:-}
-      DATES_URL: ${DATES_URL:-}
 
   viz:
     <<: *app
@@ -146,6 +145,39 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+
+  # Dates (Notre Petit Monde) : sa propre connexion (Supabase), pas celle du portail,
+  # pour que chacun des deux entre avec son compte. Données dans Supabase, rien sur le VPS.
+  dates:
+    <<: *app
+    build:
+      context: .
+      dockerfile: docker/dates.Dockerfile
+      args:
+        ATELIER_DOMAIN: ${ATELIER_DOMAIN}
+        PROTO: ${PROTO:-https}
+        SUPABASE_URL: ${DATES_SUPABASE_URL:-https://ghoawrwbmzrdskodlaxe.supabase.co}
+        SUPABASE_PUBLISHABLE_KEY: ${DATES_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_QQE3LMNgjks0WlBkqYg3Ow_FXaWP3KK}
+        VAPID_PUBLIC_KEY: ${DATES_VAPID_PUBLIC_KEY:-BIFKtDh_9kCH7VO4uK0ePMuB-4lcP21hC-QXfuCvZ9SDnlA91lLDZXA2l0z4JfYoZED-Mnpt9CQdMApcfVUpY10}
+    environment:
+      <<: *tz
+      NEXT_PUBLIC_SUPABASE_URL: ${DATES_SUPABASE_URL:-https://ghoawrwbmzrdskodlaxe.supabase.co}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${DATES_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_QQE3LMNgjks0WlBkqYg3Ow_FXaWP3KK}
+      NEXT_PUBLIC_SITE_URL: ${PROTO:-https}://dates.${ATELIER_DOMAIN}
+      NEXT_PUBLIC_APP_TIMEZONE: ${TZ:-Europe/Paris}
+      # Notifications (facultatives : sans ces clés, le canal correspondant est simplement coupé)
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${DATES_VAPID_PUBLIC_KEY:-BIFKtDh_9kCH7VO4uK0ePMuB-4lcP21hC-QXfuCvZ9SDnlA91lLDZXA2l0z4JfYoZED-Mnpt9CQdMApcfVUpY10}
+      VAPID_PRIVATE_KEY: ${DATES_VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${DATES_VAPID_SUBJECT:-https://atelier-dates.vercel.app}
+      BREVO_API_KEY: ${DATES_BREVO_API_KEY:-}
+      BREVO_SENDER_EMAIL: ${DATES_BREVO_SENDER_EMAIL:-}
+      BREVO_SENDER_NAME: ${DATES_BREVO_SENDER_NAME:-Notre Petit Monde}
+      BREVO_SMS_SENDER: ${DATES_BREVO_SMS_SENDER:-PetitMonde}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3400/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
 
   nexus-backend:
     <<: *app

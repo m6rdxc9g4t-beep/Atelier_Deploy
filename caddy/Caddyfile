@@ -11,10 +11,12 @@
 #   tresorerie.{$ATELIER_DOMAIN} Atelier Trésorerie (:5050)
 #   savoir.{$ATELIER_DOMAIN}    Atelier Savoir (:5051)
 #   cine.{$ATELIER_DOMAIN}      Atelier Ciné   (:4000, vidéos en flux)
-#   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
+#   dates.{$ATELIER_DOMAIN}     Atelier Dates  (:3400, Next.js ; sa propre connexion Supabase, pas celle du portail)
+#   Cuisine et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
-# Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session.
+# Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session,
+# sauf Dates : elle a ses deux comptes (Supabase) et l'autre membre du couple n'a pas le mot de passe du portail.
 # SITE_SCHEME=http:// sert uniquement aux essais en local, sans certificat.
 {
 	email {$ACME_EMAIL}
@@ -242,6 +244,25 @@
 		import connexion
 		# Vidéos en flux (requêtes Range) : rien n'est mis en tampon
 		reverse_proxy 127.0.0.1:4000 {
+			flush_interval -1
+		}
+	}
+}
+
+# Dates n'importe pas « connexion » : l'app vérifie elle-même la session Supabase
+# (toute page sans session renvoie vers /connexion, et RLS protège chaque donnée).
+{$SITE_SCHEME}dates.{$ATELIER_DOMAIN} {
+	import securite
+	# Les photos partent directement du navigateur vers Supabase : seuls les formulaires passent ici.
+	request_body {
+		max_size 5MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3400
+	}
+	handle {
+		reverse_proxy 127.0.0.1:3400 {
 			flush_interval -1
 		}
 	}

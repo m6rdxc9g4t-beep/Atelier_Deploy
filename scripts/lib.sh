@@ -39,6 +39,7 @@ APPS=(
   "atelier_cine|Atelier_Cine|BRANCH_CINE"
   "atelier-savoir|Atelier-Savoir|BRANCH_SAVOIR"
   "atelier_tr-sorerie|Atelier_Tr-sorerie|BRANCH_TRESORERIE"
+  "atelier_dates|Atelier_Dates|BRANCH_DATES"
 )
 
 # Le jeton n'est jamais écrit dans .git/config : il passe par un en-tête HTTP, le temps de la commande.
