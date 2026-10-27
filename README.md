@@ -3,8 +3,8 @@
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
-- **Hébergée sur le VPS avec sa propre connexion** : Dates (comptes Supabase, pour que chacun des deux entre avec le sien).
-- **En ligne** (Vercel + Supabase, avec leur propre connexion), sous forme de liens dans le portail : Suivi, Cuisine.
+- **Hébergées sur le VPS avec leur propre connexion** : Dates et Suivi (comptes Supabase, pour que chacun entre avec le sien).
+- **En ligne** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Cuisine.
 
 ```
 https://atelier.mondomaine.fr            portail : choix de l'app + connexion
@@ -19,6 +19,7 @@ https://tresorerie.atelier.mondomaine.fr Atelier Trésorerie
 https://savoir.atelier.mondomaine.fr     Atelier Savoir
 https://cine.atelier.mondomaine.fr       Atelier Ciné
 https://dates.atelier.mondomaine.fr      Atelier Dates (Notre Petit Monde)
+https://suivi.atelier.mondomaine.fr      Atelier Suivi
 ```
 
 Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
@@ -64,9 +65,9 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `dates`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `dates`, `suivi`, `portail`) |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
-| Changer l'adresse de Suivi ou Cuisine | `SUIVI_URL=https://…` (ou `CUISINE_URL`) dans `.env`, puis `sudo ./update.sh portail` |
+| Changer l'adresse de Cuisine | `CUISINE_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
 | Activer les notifications de Dates | `DATES_VAPID_PRIVATE_KEY`, `DATES_BREVO_API_KEY` et `DATES_BREVO_SENDER_EMAIL` dans `.env` (mêmes valeurs que sur Vercel), puis `sudo ./update.sh dates` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |
@@ -93,17 +94,18 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ savoir.…   ──▶ Savoir :5051        (Flask, SQLite + fichiers)
                     ├─ cine.…     ──▶ Ciné :4000          (Express, vidéos de media/ en flux)
                     ├─ dates.…    ──▶ Dates :3400         (Next.js, sans la connexion du portail) ──▶ Supabase
+                    ├─ suivi.…    ──▶ Suivi :3500         (Next.js, sans la connexion du portail) ──▶ Supabase
                     └─ nexus.…    ──▶ Nexus interface :3100 + /api ──▶ Nexus API :8100
                                                              ├─▶ PostgreSQL :5433
                                                              ├─▶ MCP d'Atelier Tab (node, dans le conteneur)
                                                              └─▶ Viz, Projets, Trésorerie, Savoir, Ciné en 127.0.0.1
 
-Portail ──liens──▶ Suivi, Cuisine (Vercel + Supabase, hors VPS)
+Portail ──lien──▶ Cuisine (Vercel + Supabase, hors VPS)
 ```
 
 - **Tout écoute sur 127.0.0.1.** Viz et Nexus n'acceptent de parler aux autres apps de la suite que sur `127.0.0.1` (contrat `atelier-node/1`). Les conteneurs partagent donc le réseau de l'hôte, et seul Caddy ouvre les ports 80 et 443.
 - **Connexion unique.** Caddy demande au portail (`forward_auth`) si chaque requête vient d'une personne connectée. Le cookie de session est posé sur `atelier.mondomaine.fr` et ses sous-domaines. Les apps n'ont pas de login propre : sans le portail, elles seraient ouvertes à tous.
-- **Dates, l'exception.** `dates.…` ne passe pas par la connexion du portail : l'app vérifie elle-même la session Supabase (toute page sans session renvoie vers `/connexion`) et la base n'ouvre chaque donnée qu'aux deux membres du couple (RLS). Ainsi chacun des deux entre avec son propre compte, sans connaître le mot de passe du portail.
+- **Dates et Suivi, les exceptions.** `dates.…` et `suivi.…` ne passent pas par la connexion du portail : chaque app vérifie elle-même la session Supabase (toute page sans session renvoie vers `/connexion`) et la base n'ouvre chaque donnée qu'à son propriétaire (RLS ; pour Dates, aux deux membres du couple). Ainsi chacun entre avec son propre compte, sans connaître le mot de passe du portail.
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
@@ -130,7 +132,8 @@ Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert t
 - **Trésorerie et données financières.** Nexus verrouille ses agents financiers sur Ollama, qui tourne sur le serveur : rien ne part chez un tiers. Garde aussi Ollama comme moteur dans les paramètres de Trésorerie.
 - **Suivi → Trésorerie.** La synchro de Suivi (script `launchd` sur le Mac) vise encore `http://127.0.0.1:5050` sur ton Mac. Si tu n'utilises plus que la Trésorerie du VPS, cette synchro est à déplacer sur le VPS.
 - **Ciné et l'espace disque.** Les vidéos occupent vite des dizaines de Go : vérifie la place libre avec `df -h` avant de les copier.
-- **Cuisine et Suivi** restent sur Vercel : leurs notifications iPhone, liens magiques et apps installées sur l'écran d'accueil dépendent de leur adresse actuelle. Le portail se contente de les ouvrir dans un onglet.
+- **Cuisine** reste sur Vercel : ses notifications iPhone, liens magiques et app installée sur l'écran d'accueil dépendent de son adresse actuelle. Le portail se contente de l'ouvrir dans un onglet.
+- **Suivi sur le VPS et sur Vercel en même temps.** Les deux adresses partagent la même base Supabase (projet atelier-cuisine, tables de Suivi à part) : rien n'est stocké sur le VPS. Pour le lien magique, ajouter `https://suivi.<domaine>/**` dans Supabase → *Authentication → URL Configuration → Redirect URLs*. Pour l'app sur l'écran d'accueil de l'iPhone, la réinstaller depuis `https://suivi.<domaine>`.
 - **Dates sur le VPS et sur Vercel en même temps.** Les deux adresses partagent la même base Supabase : un cadeau ajouté sur l'une apparaît sur l'autre. Rien n'est stocké sur le VPS (rien à sauvegarder). À savoir :
   - **Connexion par mot de passe** : fonctionne tout de suite. **Lien magique** : ajouter `https://dates.<domaine>/**` dans Supabase → *Authentication → URL Configuration → Redirect URLs*, sinon le lien ramène sur la version Vercel.
   - **App sur l'écran d'accueil et notifications push** : elles sont liées à une adresse. Pour passer au VPS, réinstalle l'app depuis `https://dates.<domaine>` et réactive les notifications dans Paramètres. Avec la même clé `DATES_VAPID_PRIVATE_KEY` que Vercel, les deux versions peuvent notifier les mêmes appareils.

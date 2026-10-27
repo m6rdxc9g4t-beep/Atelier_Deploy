@@ -73,7 +73,7 @@ step "Vérification du DNS"
 ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)
 dns_ok=1
 for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" convert."$DOMAIN" projets."$DOMAIN" \
-            tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" dates."$DOMAIN"; do
+            tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" dates."$DOMAIN" suivi."$DOMAIN"; do
   got=$(dig +short A "$host" | tail -n1)
   if [ -n "$ip" ] && [ "$got" = "$ip" ]; then ok "$host → $got"
   else warn "$host → ${got:-aucune adresse} (attendu : ${ip:-IP du VPS})"; dns_ok=0; fi

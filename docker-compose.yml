@@ -1,4 +1,4 @@
-# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Dates… derrière Caddy.
+# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Dates, Suivi… derrière Caddy.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
 # elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
@@ -59,7 +59,6 @@ services:
       PORTAL_PASSWORD: ${PORTAL_PASSWORD:?Renseigne PORTAL_PASSWORD dans .env}
       SESSION_SECRET: ${SESSION_SECRET:?Renseigne SESSION_SECRET dans .env}
       SESSION_DAYS: ${SESSION_DAYS:-30}
-      SUIVI_URL: ${SUIVI_URL:-}
       CUISINE_URL: ${CUISINE_URL:-}
 
   viz:
@@ -175,6 +174,30 @@ services:
       BREVO_SMS_SENDER: ${DATES_BREVO_SMS_SENDER:-PetitMonde}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3400/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+
+  # Suivi : sa propre connexion (Supabase), comme sur Vercel. Données dans Supabase
+  # (projet atelier-cuisine, tables à part), rien sur le VPS.
+  suivi:
+    <<: *app
+    build:
+      context: .
+      dockerfile: docker/suivi.Dockerfile
+      args:
+        ATELIER_DOMAIN: ${ATELIER_DOMAIN}
+        PROTO: ${PROTO:-https}
+        SUPABASE_URL: ${SUIVI_SUPABASE_URL:-https://hcdiuxznceuixindcvhp.supabase.co}
+        SUPABASE_PUBLISHABLE_KEY: ${SUIVI_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_u73IIIZSlDPm-1Aqrq95MQ_wwz4xtGm}
+    environment:
+      <<: *tz
+      NEXT_PUBLIC_SUPABASE_URL: ${SUIVI_SUPABASE_URL:-https://hcdiuxznceuixindcvhp.supabase.co}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${SUIVI_SUPABASE_PUBLISHABLE_KEY:-sb_publishable_u73IIIZSlDPm-1Aqrq95MQ_wwz4xtGm}
+      NEXT_PUBLIC_SITE_URL: ${PROTO:-https}://suivi.${ATELIER_DOMAIN}
+      NEXT_PUBLIC_APP_TIMEZONE: ${TZ:-Europe/Paris}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3500/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 30s
