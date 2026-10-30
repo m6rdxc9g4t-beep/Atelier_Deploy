@@ -4,6 +4,7 @@ La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à o
 
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
 - **Hébergées sur le VPS avec leur propre connexion** : Dates et Suivi (comptes Supabase, pour que chacun entre avec le sien).
+- **Hébergée sur le VPS et publique**, sans connexion : le Portfolio, la vitrine destinée aux recruteurs.
 - **En ligne** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Cuisine.
 
 ```
@@ -20,6 +21,7 @@ https://savoir.atelier.mondomaine.fr     Atelier Savoir
 https://cine.atelier.mondomaine.fr       Atelier Ciné
 https://dates.atelier.mondomaine.fr      Atelier Dates (Notre Petit Monde)
 https://suivi.atelier.mondomaine.fr      Atelier Suivi
+https://portfolio.atelier.mondomaine.fr  Portfolio (public)
 ```
 
 Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
@@ -65,7 +67,8 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `dates`, `suivi`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `dates`, `suivi`, `portfolio`, `portail`) |
+| Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
 | Changer l'adresse de Cuisine | `CUISINE_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
 | Activer les notifications de Dates | `DATES_VAPID_PRIVATE_KEY`, `DATES_BREVO_API_KEY` et `DATES_BREVO_SENDER_EMAIL` dans `.env` (mêmes valeurs que sur Vercel), puis `sudo ./update.sh dates` |
@@ -95,6 +98,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ cine.…     ──▶ Ciné :4000          (Express, vidéos de media/ en flux)
                     ├─ dates.…    ──▶ Dates :3400         (Next.js, sans la connexion du portail) ──▶ Supabase
                     ├─ suivi.…    ──▶ Suivi :3500         (Next.js, sans la connexion du portail) ──▶ Supabase
+                    ├─ portfolio.… ──▶ Portfolio :8787    (Express + React, public, sans connexion)
                     └─ nexus.…    ──▶ Nexus interface :3100 + /api ──▶ Nexus API :8100
                                                              ├─▶ PostgreSQL :5433
                                                              ├─▶ MCP d'Atelier Tab (node, dans le conteneur)
@@ -106,10 +110,11 @@ Portail ──lien──▶ Cuisine (Vercel + Supabase, hors VPS)
 - **Tout écoute sur 127.0.0.1.** Viz et Nexus n'acceptent de parler aux autres apps de la suite que sur `127.0.0.1` (contrat `atelier-node/1`). Les conteneurs partagent donc le réseau de l'hôte, et seul Caddy ouvre les ports 80 et 443.
 - **Connexion unique.** Caddy demande au portail (`forward_auth`) si chaque requête vient d'une personne connectée. Le cookie de session est posé sur `atelier.mondomaine.fr` et ses sous-domaines. Les apps n'ont pas de login propre : sans le portail, elles seraient ouvertes à tous.
 - **Dates et Suivi, les exceptions.** `dates.…` et `suivi.…` ne passent pas par la connexion du portail : chaque app vérifie elle-même la session Supabase (toute page sans session renvoie vers `/connexion`) et la base n'ouvre chaque donnée qu'à son propriétaire (RLS ; pour Dates, aux deux membres du couple). Ainsi chacun entre avec son propre compte, sans connaître le mot de passe du portail.
+- **Le Portfolio, public.** `portfolio.…` ne passe pas par la connexion du portail : c'est un site vitrine, sans données privées. Seuls les messages du formulaire de contact sont enregistrés, dans `data/portfolio/messages.jsonl`. Sa démo DataMind n'utilise que `PORTFOLIO_ANTHROPIC_API_KEY` (vide = agent désactivé), jamais la clé des autres apps.
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
-- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
 ## IA du serveur (Ollama)
 

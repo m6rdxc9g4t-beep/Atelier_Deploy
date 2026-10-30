@@ -93,6 +93,11 @@ const HOSTED = [
     id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF', sub: 'suivi',
     probes: ['http://127.0.0.1:3500/api/health'],
   },
+  {
+    // Site public (sans connexion) : la vitrine pour les recruteurs
+    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#2EE6A0', sub: 'portfolio',
+    probes: ['http://127.0.0.1:8787/api/health'],
+  },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [

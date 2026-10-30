@@ -13,6 +13,7 @@
 #   cine.{$ATELIER_DOMAIN}      Atelier Ciné   (:4000, vidéos en flux)
 #   dates.{$ATELIER_DOMAIN}     Atelier Dates  (:3400, Next.js ; sa propre connexion Supabase, pas celle du portail)
 #   suivi.{$ATELIER_DOMAIN}     Atelier Suivi  (:3500, Next.js ; sa propre connexion Supabase, pas celle du portail)
+#   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
 #   Cuisine est une app en ligne (Vercel) : simple lien du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
@@ -285,4 +286,14 @@
 			flush_interval -1
 		}
 	}
+}
+
+# Portfolio : site public destiné aux recruteurs, sans la connexion du portail.
+# Le serveur applique ses propres en-têtes (helmet) et limite le formulaire de contact.
+{$SITE_SCHEME}portfolio.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 2MB
+	}
+	reverse_proxy 127.0.0.1:8787
 }
