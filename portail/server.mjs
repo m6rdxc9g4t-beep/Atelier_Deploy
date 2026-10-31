@@ -40,7 +40,7 @@ const passwordDigest = scryptSync(PASSWORD, salt, 32)
  * Les apps du portail.
  * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
  * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
- * Dates et Suivi sont hébergées ici mais gardent leur propre connexion (Supabase), comme sur Vercel.
+ * Dates, Suivi et Cuisine sont des apps en ligne : le portail ouvre leur adresse Vercel.
  */
 const HOSTED = [
   {
@@ -84,16 +84,6 @@ const HOSTED = [
     probes: ['http://127.0.0.1:8010/api/health'],
   },
   {
-    // Sa propre connexion (Supabase) : chacun des deux entre avec son compte
-    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131', sub: 'dates',
-    probes: ['http://127.0.0.1:3400/api/health'],
-  },
-  {
-    // Sa propre connexion (Supabase), comme sur Vercel
-    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF', sub: 'suivi',
-    probes: ['http://127.0.0.1:3500/api/health'],
-  },
-  {
     // Site public (sans connexion) : la vitrine pour les recruteurs
     id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#2EE6A0', sub: 'portfolio',
     probes: ['http://127.0.0.1:8787/api/health'],
@@ -101,6 +91,14 @@ const HOSTED = [
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
+  {
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
+    url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
+  },
+  {
+    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131',
+    url: env.DATES_URL || 'https://atelier-dates.vercel.app',
+  },
   {
     id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#E056E2',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',

@@ -3,9 +3,9 @@
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
-- **Hébergées sur le VPS avec leur propre connexion** : Dates et Suivi (comptes Supabase, pour que chacun entre avec le sien).
+- **Hébergées aussi sur le VPS avec leur propre connexion** : Dates et Suivi (comptes Supabase). Le portail ne les montre plus : ses tuiles ouvrent leur version Vercel.
 - **Hébergée sur le VPS et publique**, sans connexion : le Portfolio, la vitrine destinée aux recruteurs.
-- **En ligne** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Cuisine.
+- **En ligne** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine.
 
 ```
 https://atelier.mondomaine.fr            portail : choix de l'app + connexion
@@ -71,7 +71,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, `suivi` par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
-| Changer l'adresse de Cuisine | `CUISINE_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
+| Changer l'adresse de Cuisine, Suivi ou Dates | `CUISINE_URL`, `SUIVI_URL` ou `DATES_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
 | Activer les notifications de Dates | `DATES_VAPID_PRIVATE_KEY`, `DATES_BREVO_API_KEY` et `DATES_BREVO_SENDER_EMAIL` dans `.env` (mêmes valeurs que sur Vercel), puis `sudo ./update.sh dates` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |

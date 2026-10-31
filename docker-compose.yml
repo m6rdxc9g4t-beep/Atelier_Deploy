@@ -60,6 +60,8 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?Renseigne SESSION_SECRET dans .env}
       SESSION_DAYS: ${SESSION_DAYS:-30}
       CUISINE_URL: ${CUISINE_URL:-}
+      SUIVI_URL: ${SUIVI_URL:-}
+      DATES_URL: ${DATES_URL:-}
 
   viz:
     <<: *app
