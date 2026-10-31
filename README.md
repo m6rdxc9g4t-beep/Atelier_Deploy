@@ -68,6 +68,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
 | Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `dates`, `suivi`, `portfolio`, `portail`) |
+| Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, `suivi` par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
 | Changer l'adresse de Cuisine | `CUISINE_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
