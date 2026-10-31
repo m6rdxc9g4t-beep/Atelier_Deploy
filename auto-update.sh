@@ -8,7 +8,7 @@
 #   sudo ./auto-update.sh status    apps suivies, versions installée et publiée, dernières lignes du journal
 #   sudo ./auto-update.sh           une vérification maintenant (ce que lance le cron)
 #
-# Apps suivies : AUTO_UPDATE_APPS dans .env (noms de update.sh, séparés par des espaces), « suivi » par défaut.
+# Apps suivies : AUTO_UPDATE_APPS dans .env (noms de update.sh, séparés par des espaces), aucune par défaut.
 # Journal : logs/auto-update.log
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
@@ -17,7 +17,8 @@ CRON_FILE=/etc/cron.d/atelier-auto-update
 LOCK=/run/atelier-auto-update.lock
 LOG="$ROOT/logs/auto-update.log"
 
-tracked_apps() { local a; a="$(env_get AUTO_UPDATE_APPS)"; echo "${a:-suivi}"; }
+# dates et suivi ne tournent plus sur le VPS (Vercel uniquement) : ignorées même si .env les cite encore
+tracked_apps() { local a; a="$(env_get AUTO_UPDATE_APPS)"; echo " $a " | sed -e 's/ dates / /g' -e 's/ suivi / /g' | xargs; }
 
 # app (nom de update.sh) → « dossier|dépôt|variable de branche » de scripts/lib.sh
 app_entry() {
@@ -74,7 +75,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 CRON
     chmod 644 "$CRON_FILE"
     ok "vérification automatique toutes les 5 minutes ($CRON_FILE)"
-    ok "apps suivies : $(tracked_apps)  (AUTO_UPDATE_APPS dans .env)"
+    ok "apps suivies : $(tracked_apps | sed 's/^$/aucune/')  (AUTO_UPDATE_APPS dans .env)"
     ok "journal : $LOG"
     ;;
   remove)
