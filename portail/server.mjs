@@ -100,7 +100,7 @@ const ONLINE = [
     url: env.DATES_URL || 'https://atelier-dates.vercel.app',
   },
   {
-    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#E056E2',
+    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#C8B5F2',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
