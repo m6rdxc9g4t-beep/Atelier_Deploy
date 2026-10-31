@@ -39,8 +39,6 @@ APPS=(
   "atelier_cine|Atelier_Cine|BRANCH_CINE"
   "atelier-savoir|Atelier-Savoir|BRANCH_SAVOIR"
   "atelier_tr-sorerie|Atelier_Tr-sorerie|BRANCH_TRESORERIE"
-  "atelier_dates|Atelier_Dates|BRANCH_DATES"
-  "atelier_suivi|Atelier_Suivi|BRANCH_SUIVI"
   "atelier_portefolio|Atelier_Portefolio|BRANCH_PORTFOLIO"
 )
 
