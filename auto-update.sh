@@ -88,7 +88,7 @@ CRON
       if [ "$remote" = "$local_sha" ]; then ok "$app : à jour (${local_sha:0:7})"
       else warn "$app : installé ${local_sha:0:7}, publié ${remote:0:7}"; fi
     done
-    [ -f "$LOG" ] && { echo; tail -n 8 "$LOG"; }
+    if [ -f "$LOG" ]; then echo; tail -n 8 "$LOG"; fi
     ;;
   check) check ;;
   *) die "Usage : sudo ./auto-update.sh [install|remove|status]" ;;
