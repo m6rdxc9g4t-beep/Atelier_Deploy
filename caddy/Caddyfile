@@ -14,6 +14,7 @@
 #   dates.{$ATELIER_DOMAIN}     redirection vers Atelier Dates sur Vercel
 #   suivi.{$ATELIER_DOMAIN}     redirection vers Atelier Suivi sur Vercel
 #   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
+#   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; section « Sites & tests » du portail)
 #   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
@@ -268,4 +269,20 @@
 		max_size 2MB
 	}
 	reverse_proxy 127.0.0.1:8787
+}
+
+# ── Sites & tests ─────────────────────────────────────────────────────────────
+# Agent Ops Lab : simulation logistique (Next.js autonome), derrière la connexion du portail.
+# Pour ajouter un autre site de test : un bloc comme celui-ci, un service dans docker-compose.yml,
+# une entrée dans SITES (portail/server.mjs) et dans APPS (scripts/lib.sh).
+{$SITE_SCHEME}ops.{$ATELIER_DOMAIN} {
+	import securite
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3400
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:3400
+	}
 }

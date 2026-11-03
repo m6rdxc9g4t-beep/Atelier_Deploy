@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Met à jour les apps (dernier commit de leur branche), reconstruit et relance.
 # Usage :  sudo ./update.sh            toutes les apps
-#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ia, portail)
+#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, ia, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -34,8 +34,9 @@ case "${1:-all}" in
   cine|savoir|tresorerie|wiki|formulaire|convert) services=("$1") ;;
   dates|suivi) die "$1 ne tourne plus sur le VPS : elle est sur Vercel, qui se met à jour tout seul à chaque commit." ;;
   portfolio) services=(portfolio caddy portail) ;;  # Caddy et le portail connaissent son adresse et sa tuile
+  ops)     services=(ops caddy portail) ;;    # Sites & tests : Agent Ops Lab (Caddy et le portail connaissent son adresse)
   ia|ollama) services=(ollama) ;;             # IA du serveur : télécharge le modèle choisi dans .env
-  *) die "App inconnue : $1 (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ia, portail)" ;;
+  *) die "App inconnue : $1 (nexus, viz, tab, convert, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, ia, portail)" ;;
 esac
 
 step "Reconstruction"

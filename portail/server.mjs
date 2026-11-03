@@ -41,6 +41,7 @@ const passwordDigest = scryptSync(PASSWORD, salt, 32)
  * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
  * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
  * Dates, Suivi et Cuisine sont des apps en ligne : le portail ouvre leur adresse Vercel.
+ * Sites & tests (`group: 'sites'`) : simulations et maquettes hébergées sur le VPS, rangées dans leur propre section.
  */
 const HOSTED = [
   {
@@ -90,6 +91,15 @@ const HOSTED = [
   },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
+// Sites & tests : hébergés sur le VPS, derrière la connexion, dans une section à part du portail.
+// Pour en ajouter un : une entrée ici (+ logo public/logos/<id>.webp), un bloc Caddy, un service Docker.
+const SITES = [
+  {
+    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: '#7C5CFF', sub: 'ops',
+    probes: ['http://127.0.0.1:3400/api/health'],
+  },
+].map((a) => ({ ...a, group: 'sites', url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
+
 const ONLINE = [
   {
     id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
@@ -105,7 +115,8 @@ const ONLINE = [
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
 
-const APPS = [...HOSTED, ...ONLINE]
+const APPS = [...HOSTED, ...SITES, ...ONLINE]
+const PROBED = [...HOSTED, ...SITES]
 
 // ── Session signée (HMAC-SHA256), sans stockage côté serveur ────────────────
 const b64 = (buf) => Buffer.from(buf).toString('base64url')
@@ -181,7 +192,7 @@ async function probe(url) {
 
 async function statuses() {
   return Promise.all(
-    HOSTED.map(async (a) => {
+    PROBED.map(async (a) => {
       if (!a.probes.length) return { id: a.id, state: 'up', ms: null }
       const results = await Promise.all(a.probes.map(probe))
       const up = results.filter((r) => r.ok).length
