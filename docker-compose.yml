@@ -1,5 +1,5 @@
 # Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki… derrière Caddy.
-# Section « Sites & tests » du portail : Agent Ops Lab (service ops).
+# Section « Sites & tests » du portail : Agent Ops Lab (service ops) et Atelier Mission (service mission).
 # Cuisine, Dates et Suivi vivent sur Vercel uniquement : le portail les ouvre là-bas.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
@@ -175,6 +175,28 @@ services:
     build: { <<: *build, dockerfile: docker/ops.Dockerfile }
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3400/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+
+  # Atelier Mission : mini-CRM freelance (prospects, devis, factures, relances), API + interface sur :3500.
+  # Lit le temps dans Projets (127.0.0.1:3000) et écrit les encaissements dans Trésorerie (127.0.0.1:5050).
+  # Brevo et SUPER PDP : identifiants facultatifs, utilisés seulement en mode « En ligne » de l'app.
+  mission:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/mission.Dockerfile }
+    environment:
+      <<: *tz
+      ALLOWED_HOSTS: mission.${ATELIER_DOMAIN}
+      BREVO_API_KEY: ${MISSION_BREVO_API_KEY:-}
+      SUPERPDP_CLIENT_ID: ${MISSION_SUPERPDP_CLIENT_ID:-}
+      SUPERPDP_CLIENT_SECRET: ${MISSION_SUPERPDP_CLIENT_SECRET:-}
+      SUPERPDP_URL: ${MISSION_SUPERPDP_URL:-}
+      REMINDER_TICK_MINUTES: "15"
+    volumes:
+      - ./data/mission:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3500/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 20s

@@ -42,6 +42,7 @@ APPS=(
   "atelier_portefolio|Atelier_Portefolio|BRANCH_PORTFOLIO"
   # Sites & tests
   "agent-ops-lab|agent-ops-lab|BRANCH_OPS"
+  "atelier_mission|Atelier_Mission|BRANCH_MISSION"
 )
 
 # Le jeton n'est jamais écrit dans .git/config : il passe par un en-tête HTTP, le temps de la commande.
@@ -86,9 +87,11 @@ ensure_secrets() {
 # Dossiers de données et de médias (créés avant Docker pour en garder la propriété).
 ensure_dirs() {
   mkdir -p data/viz data/convert data/projets data/nexus data/atelier_tab/exports \
-           data/cine data/savoir data/tresorerie data/wiki data/formulaire data/portfolio media/films media/series
+           data/cine data/savoir data/tresorerie data/wiki data/formulaire data/portfolio data/mission media/films media/series
   # Le portfolio tourne sous l'utilisateur node (uid 1000) : il écrit ses messages de contact dans data/portfolio.
   chown 1000:1000 data/portfolio
+  # Mission aussi (utilisateur node) : sa base SQLite vit dans data/mission.
+  chown -R 1000:1000 data/mission
 }
 
 # IA du serveur : choisit le modèle selon la mémoire (une seule fois ; modifiable ensuite dans .env).

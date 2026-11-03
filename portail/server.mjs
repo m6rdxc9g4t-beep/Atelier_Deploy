@@ -98,6 +98,10 @@ const SITES = [
     id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: '#7C5CFF', sub: 'ops',
     probes: ['http://127.0.0.1:3400/api/health'],
   },
+  {
+    id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: '#F59F00', sub: 'mission',
+    probes: ['http://127.0.0.1:3500/api/health'],
+  },
 ].map((a) => ({ ...a, group: 'sites', url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
