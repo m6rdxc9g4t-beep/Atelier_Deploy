@@ -15,6 +15,7 @@
 #   suivi.{$ATELIER_DOMAIN}     redirection vers Atelier Suivi sur Vercel
 #   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
 #   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; section « Sites & tests » du portail)
+#   mission.{$ATELIER_DOMAIN}   Atelier Mission (:3500, sert aussi son interface ; section « Sites & tests »)
 #   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
@@ -284,5 +285,22 @@
 	handle {
 		import connexion
 		reverse_proxy 127.0.0.1:3400
+	}
+}
+
+# Atelier Mission : mini-CRM freelance (API Fastify + interface), derrière la connexion du portail.
+# L'app n'a pas de connexion propre : seule la sonde /api/health est publique.
+{$SITE_SCHEME}mission.{$ATELIER_DOMAIN} {
+	import securite
+	request_body /api/* {
+		max_size 2MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3500
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:3500
 	}
 }
