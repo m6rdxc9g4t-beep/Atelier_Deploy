@@ -129,6 +129,11 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
     <nav class="apps" id="apps" aria-label="Apps hébergées sur le VPS"></nav>
   </section>
 
+  <section class="group" aria-labelledby="g-sites" id="g-sites-wrap">
+    <h2 class="group-title" id="g-sites">Sites &amp; tests <small>simulations, maquettes et essais</small></h2>
+    <nav class="apps" id="sites" aria-label="Sites et tests"></nav>
+  </section>
+
   <section class="group" aria-labelledby="g-online">
     <h2 class="group-title" id="g-online">Apps en ligne <small>avec leur propre connexion</small></h2>
     <nav class="apps" id="online" aria-label="Apps en ligne"></nav>
@@ -153,6 +158,8 @@ const store = {
 
 const nav = document.getElementById('apps');
 const navOnline = document.getElementById('online');
+const navSites = document.getElementById('sites');
+document.getElementById('g-sites-wrap').hidden = !APPS.some(a => a.group === 'sites');
 const newtab = document.getElementById('newtab');
 newtab.checked = store.get('atelier:newtab') === '1';
 newtab.addEventListener('change', () => { store.set('atelier:newtab', newtab.checked ? '1' : '0'); render(lastStatuses) });
@@ -171,7 +178,7 @@ function tile(a, i, s, last) {
     ? (a.url ? '<span class="state"><span class="arrow" aria-hidden="true">↗</span>S\'ouvre dans un onglet</span>' : '<span class="state">Adresse à renseigner (.env)</span>')
     : `<span class="state" data-s="${s.state}"><span class="dot" aria-hidden="true"></span>${LABELS[s.state]}${s.ms != null ? ` · ${s.ms} ms` : ''}</span>`;
   el.innerHTML = `
-    <div class="visual${a.icon ? ' is-icon' : ''}"><img src="/logos/${a.id}.webp?v=4" alt="" width="320" height="280" loading="lazy" decoding="async">${i < 10 ? `<span class="key" aria-hidden="true">${keyOf(i)}</span>` : ''}</div>
+    <div class="visual${a.icon ? ' is-icon' : ''}"><img src="/logos/${a.id}.webp?v=5" alt="" width="320" height="280" loading="lazy" decoding="async">${i < 10 ? `<span class="key" aria-hidden="true">${keyOf(i)}</span>` : ''}</div>
     <div><h3>${a.name}</h3><p>${a.role}</p></div>
     <div class="foot">${state}${a.id === last ? '<span class="badge">Dernière</span>' : `<span class="host">${host}</span>`}</div>`;
   el.addEventListener('click', () => store.set('atelier:last', a.id));
@@ -181,10 +188,10 @@ function tile(a, i, s, last) {
 function render(statuses = {}) {
   lastStatuses = statuses;
   const last = store.get('atelier:last');
-  nav.innerHTML = ''; navOnline.innerHTML = '';
+  nav.innerHTML = ''; navOnline.innerHTML = ''; navSites.innerHTML = '';
   APPS.forEach((a, i) => {
     const s = statuses[a.id] || { state: 'unknown' };
-    (a.external ? navOnline : nav).appendChild(tile(a, i, s, last));
+    (a.external ? navOnline : a.group === 'sites' ? navSites : nav).appendChild(tile(a, i, s, last));
   });
 }
 
@@ -196,7 +203,7 @@ async function refresh() {
     const data = await res.json();
     render(Object.fromEntries(data.apps.map(s => [s.id, s])));
     const down = data.apps.filter(s => s.state !== 'up').length;
-    label.textContent = (down ? `${down} app(s) du serveur indisponible(s)` : 'Toutes les apps du serveur sont en ligne') + ` · vérifié à ${new Date(data.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    label.textContent = (down ? `${down} app(s) ou site(s) du serveur indisponible(s)` : 'Toutes les apps du serveur sont en ligne') + ` · vérifié à ${new Date(data.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
   } catch {
     label.textContent = 'Impossible de vérifier l’état des apps';
   }
