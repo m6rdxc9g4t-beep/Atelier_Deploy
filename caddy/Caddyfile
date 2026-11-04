@@ -128,7 +128,7 @@
 	}
 }
 
-# DataMind : API + interface sur :3600 ; les réponses de l'agent arrivent en flux (SSE).
+# DataMind (section « Sites & tests ») : API + interface sur :3600 ; réponses de l'agent en flux (SSE).
 {$SITE_SCHEME}datamind.{$ATELIER_DOMAIN} {
 	import securite
 	# Fichiers de données : 200 Mo au plus (MAX_UPLOAD_MB), plus l'enveloppe multipart.

@@ -85,10 +85,6 @@ const HOSTED = [
     probes: ['http://127.0.0.1:8010/api/health'],
   },
   {
-    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: '#4F46E5', sub: 'datamind',
-    probes: ['http://127.0.0.1:3600/api/health'],
-  },
-  {
     // Site public (sans connexion) : la vitrine pour les recruteurs
     id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#2EE6A0', sub: 'portfolio',
     probes: ['http://127.0.0.1:8787/api/health'],
@@ -105,6 +101,10 @@ const SITES = [
   {
     id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: '#F59F00', sub: 'mission',
     probes: ['http://127.0.0.1:3500/api/health'],
+  },
+  {
+    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: '#4F46E5', sub: 'datamind',
+    probes: ['http://127.0.0.1:3600/api/health'],
   },
 ].map((a) => ({ ...a, group: 'sites', url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 

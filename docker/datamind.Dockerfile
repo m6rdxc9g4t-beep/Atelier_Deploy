@@ -11,7 +11,7 @@ COPY apps/agent_data/backend/package.json backend/
 COPY apps/agent_data/frontend/package.json frontend/
 RUN npm ci --include=dev --no-audit --no-fund
 COPY apps/agent_data/ ./
-RUN npm run build && npm prune --omit=dev --no-audit --no-fund
+RUN npm run build
 
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production \
@@ -21,9 +21,13 @@ ENV NODE_ENV=production \
     STATIC_DIR=/app/frontend/dist \
     SAMPLES_DIR=/app/sample_data
 WORKDIR /app
-COPY --from=build /app/package.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/backend/package.json ./backend/
+# Dépendances de production du backend seulement (le binaire musl de Claude Code est inutile sur Debian).
+COPY apps/agent_data/package.json apps/agent_data/package-lock.json ./
+COPY apps/agent_data/backend/package.json backend/
+COPY apps/agent_data/frontend/package.json frontend/
+RUN npm ci --omit=dev --workspace=backend --no-audit --no-fund \
+    && rm -rf node_modules/@anthropic-ai/claude-agent-sdk-linux-*-musl \
+    && npm cache clean --force
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/frontend/dist ./frontend/dist
 COPY --from=build /app/sample_data ./sample_data

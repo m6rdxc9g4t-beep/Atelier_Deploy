@@ -2,9 +2,9 @@
 
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
-- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, DataMind, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
+- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
 - **Hébergée sur le VPS et publique**, sans connexion : le Portfolio, la vitrine destinée aux recruteurs.
-- **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **Ops Lab** (Agent Ops Lab, un logiciel de transport simulé piloté par un agent IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
+- **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **Ops Lab** (Agent Ops Lab, un logiciel de transport simulé piloté par un agent IA), **DataMind** (agent d'analyse de données) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
 - **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
 
 ```
@@ -12,7 +12,6 @@ https://atelier.mondomaine.fr            portail : choix de l'app + connexion
 https://nexus.atelier.mondomaine.fr      Atelier Nexus
 https://viz.atelier.mondomaine.fr        Atelier Viz
 https://convert.atelier.mondomaine.fr    Atelier Convert
-https://datamind.atelier.mondomaine.fr   DataMind (agent d'analyse de données)
 https://tab.atelier.mondomaine.fr        Atelier Tab
 https://projets.atelier.mondomaine.fr    Atelier Projets
 https://wiki.atelier.mondomaine.fr       Atelier Wiki
@@ -25,6 +24,7 @@ https://suivi.atelier.mondomaine.fr      → redirige vers Atelier Suivi (Vercel
 https://portfolio.atelier.mondomaine.fr  Portfolio (public)
 https://ops.atelier.mondomaine.fr        Ops Lab (Sites & tests)
 https://mission.atelier.mondomaine.fr    Atelier Mission (Sites & tests)
+https://datamind.atelier.mondomaine.fr   DataMind (Sites & tests)
 ```
 
 Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
@@ -123,12 +123,12 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 
 ## DataMind
 
-Agent d'analyse de données (dépôt public `Agent_Data`, web app TypeScript : Fastify + DuckDB, React). On dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit des requêtes SQL qu'il **exécute réellement** sur les données, avec graphiques, segmentation, modèle prédictif et prévision. Onglets Assistant, Exploration, Qualité et Données.
+Agent d'analyse de données, dans la section **Sites & tests** du portail (dépôt public `Agent_Data`, web app TypeScript : Fastify + DuckDB, React). On dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit des requêtes SQL qu'il **exécute réellement** sur les données, avec graphiques, segmentation, modèle prédictif et prévision.
 
-- **Moteur** : l'IA du serveur par défaut (`OLLAMA_MODEL`) ; Claude au choix dans l'interface si `ANTHROPIC_API_KEY` est renseignée (`DATAMIND_ENGINE=claude` pour le proposer d'abord, `DATAMIND_CLAUDE_MODEL` pour le modèle).
+- **Claude avec ton forfait, sans clé API** : sur ton Mac, `claude setup-token` (Claude Code connecté à ton compte Pro ou Max) affiche un jeton `sk-ant-oat01-…` valable un an. Colle-le dans `DATAMIND_CLAUDE_OAUTH_TOKEN` (`.env`), puis `sudo ./update.sh datamind`. DataMind passe par le Claude Agent SDK et consomme les limites de ton abonnement. C'est un usage personnel : ne partage pas l'accès au portail.
+- **Sinon** : l'IA du serveur (`OLLAMA_MODEL`), ou Claude par clé API si `ANTHROPIC_API_KEY` est renseignée. `DATAMIND_ENGINE` force le moteur proposé, `DATAMIND_CLAUDE_MODEL` le modèle Claude.
 - **Données** : jeux de données (Parquet) et analyses (JSON) dans `data/datamind/`, compris dans les sauvegardes.
-- **Sécurité** : les requêtes de l'IA sont en lecture seule, sur une base en mémoire sans accès aux fichiers ; l'app est derrière la connexion du portail.
-- **Petit modèle** : avec `llama3.2:3b` ou `1b`, les analyses simples passent ; pour la modélisation, Claude ou `llama3.1:8b` donnent de bien meilleurs résultats.
+- **Sécurité** : les requêtes de l'IA sont en lecture seule, sur une base en mémoire sans accès aux fichiers ; les outils de Claude Code (fichiers, commandes, web) sont désactivés ; l'app est derrière la connexion du portail.
 - Installer ou mettre à jour : `sudo ./update.sh datamind`.
 
 ## IA du serveur (Ollama)
