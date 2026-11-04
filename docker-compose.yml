@@ -104,6 +104,26 @@ services:
       timeout: 5s
       start_period: 30s
 
+  # DataMind (dépôt Agent_Data) : agent d'analyse de données (Streamlit sur 127.0.0.1:8501).
+  # IA du serveur par défaut ; Claude disponible avec ANTHROPIC_API_KEY. Rien n'est stocké sur le disque.
+  datamind:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/datamind.Dockerfile }
+    environment:
+      <<: [*tz, *ia]
+      STREAMLIT_SERVER_ADDRESS: 127.0.0.1
+      STREAMLIT_SERVER_PORT: "8501"
+      DATAMIND_ENGINE: ${DATAMIND_ENGINE:-ollama}
+      DATAMIND_INSTANCE_LABEL: Suite Atelier
+      OLLAMA_NUM_CTX: "8192"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DATAMIND_CLAUDE_MODEL: ${DATAMIND_CLAUDE_MODEL:-claude-sonnet-5-5}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+
   projets:
     <<: *app
     build: { <<: *build, dockerfile: docker/projets.Dockerfile }

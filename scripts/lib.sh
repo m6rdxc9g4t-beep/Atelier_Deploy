@@ -33,6 +33,7 @@ APPS=(
   "atelier_viz|Atelier_Viz|BRANCH_VIZ"
   "atelier-tab|atelier-tab|BRANCH_TAB"
   "atelier_convert|Atelier_Convert|BRANCH_CONVERT"
+  "agent_data|Agent_Data|BRANCH_DATAMIND"
   "atelier_projets|Atelier_Projets|BRANCH_PROJETS"
   "atelier_wiki|Atelier_Wiki|BRANCH_WIKI"
   "atelier_formulaire|Atelier_Formulaire|BRANCH_FORMULAIRE"

@@ -5,6 +5,7 @@
 #   viz.{$ATELIER_DOMAIN}       Atelier Viz    (:8000, sert aussi son interface)
 #   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques ; /ollama/ = IA du serveur pour l'assistant)
 #   convert.{$ATELIER_DOMAIN}   Atelier Convert (:8010, sert aussi son interface ; OCR Tesseract)
+#   datamind.{$ATELIER_DOMAIN}  DataMind       (:8501, agent d'analyse de données, Streamlit)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
 #   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
 #   formulaire.{$ATELIER_DOMAIN} Atelier Formulaire (:3300 ; réponse par lien public sans connexion)
@@ -124,6 +125,27 @@
 	handle {
 		import connexion
 		reverse_proxy 127.0.0.1:8010
+	}
+}
+
+# DataMind (Streamlit) : l'interface passe par une WebSocket (/_stcore/stream), relayée telle quelle.
+# /api/health public, comme les autres apps (réécrit vers la sonde de Streamlit).
+{$SITE_SCHEME}datamind.{$ATELIER_DOMAIN} {
+	import securite
+	# Fichiers de données : 200 Mo au plus (server.maxUploadSize), plus l'enveloppe multipart.
+	request_body {
+		max_size 210MB
+	}
+	handle /api/health {
+		import sante_publique
+		rewrite * /_stcore/health
+		reverse_proxy 127.0.0.1:8501
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:8501 {
+			flush_interval -1
+		}
 	}
 }
 

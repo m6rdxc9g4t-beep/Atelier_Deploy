@@ -2,7 +2,7 @@
 
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
-- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
+- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, DataMind, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
 - **Hébergée sur le VPS et publique**, sans connexion : le Portfolio, la vitrine destinée aux recruteurs.
 - **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **Ops Lab** (Agent Ops Lab, un logiciel de transport simulé piloté par un agent IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
 - **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
@@ -12,6 +12,7 @@ https://atelier.mondomaine.fr            portail : choix de l'app + connexion
 https://nexus.atelier.mondomaine.fr      Atelier Nexus
 https://viz.atelier.mondomaine.fr        Atelier Viz
 https://convert.atelier.mondomaine.fr    Atelier Convert
+https://datamind.atelier.mondomaine.fr   DataMind (agent d'analyse de données)
 https://tab.atelier.mondomaine.fr        Atelier Tab
 https://projets.atelier.mondomaine.fr    Atelier Projets
 https://wiki.atelier.mondomaine.fr       Atelier Wiki
@@ -34,7 +35,7 @@ Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelie
 
 - Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** conseillés pour les 10 apps (le script ajoute du swap en dessous de 6 Go).
 - Un nom de domaine (chez OVH ou ailleurs).
-- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Convert`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*.
+- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Convert`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*. (`Agent_Data`, `Atelier_Portefolio`, `agent-ops-lab` et `Atelier_Mission` sont publics : rien à ajouter.)
 - Facultatif : une clé API Anthropic pour les agents de Nexus et l'assistant de Viz.
 
 ### 2. DNS
@@ -69,7 +70,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
@@ -91,6 +92,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     │
                     ├─ viz.…      ──▶ Viz :8000           (API + interface, DuckDB)
                     ├─ convert.…  ──▶ Convert :8010       (API + interface, OCR Tesseract)
+                    ├─ datamind.… ──▶ DataMind :8501      (Streamlit, agent d'analyse ; WebSocket) ──▶ Ollama
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
                     ├─ wiki.…     ──▶ Wiki :3200          (Fastify, SQLite + pièces jointes)
@@ -119,15 +121,25 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
 - **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
+## DataMind
+
+Agent d'analyse de données (dépôt public `Agent_Data`) : on dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit du Python qu'il **exécute réellement** sur les données (chiffres, graphiques, rapport HTML). Onglets Assistant, Exploration, Qualité et Données.
+
+- **Moteur** : l'IA du serveur par défaut (`OLLAMA_MODEL`) ; Claude au choix dans l'interface si `ANTHROPIC_API_KEY` est renseignée (`DATAMIND_ENGINE=claude` pour l'ouvrir directement sur Claude, `DATAMIND_CLAUDE_MODEL` pour le modèle).
+- **Rien n'est stocké** : le fichier et la conversation vivent dans la session du navigateur ; on garde un rapport avec « Exporter le rapport ».
+- **Sécurité** : le code écrit par l'IA tourne dans le conteneur `datamind` (utilisateur sans privilèges), derrière la connexion du portail.
+- **Petit modèle** : avec `llama3.2:3b` ou `1b`, les analyses simples passent ; pour la modélisation, Claude ou `llama3.1:8b` donnent de bien meilleurs résultats.
+- Installer ou mettre à jour : `sudo ./update.sh datamind`.
+
 ## IA du serveur (Ollama)
 
-Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
+Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, DataMind, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
 
 - **Un seul modèle pour tout le monde** (`OLLAMA_MODEL` dans `.env`), choisi à l'installation selon la mémoire du serveur : `llama3.1:8b` à partir de 10 Go, `llama3.2:3b` à partir de 5 Go, `llama3.2:1b` en dessous. Il est téléchargé une fois (2 à 5 Go) et reste en mémoire 30 minutes après la dernière demande.
 - **Lent sans carte graphique** : une réponse prend de quelques secondes à quelques minutes. Les délais des apps sont réglés à 10 minutes.
 - **Tab** joint l'IA par `https://tab.<domaine>/ollama/`, derrière la connexion du portail. Seules les routes de conversation passent : personne ne peut télécharger ou supprimer de modèle depuis Internet.
 - **Wiki** (« Rédiger avec l'IA ») et **Formulaire** (« Créer avec l'IA ») proposent un brouillon que tu relis avant d'enregistrer.
-- **Claude reste possible** dans Nexus, Viz et Convert avec `ANTHROPIC_API_KEY` ; sans clé, Nexus utilise l'IA du serveur.
+- **Claude reste possible** dans Nexus, Viz, Convert et DataMind avec `ANTHROPIC_API_KEY` ; sans clé, Nexus utilise l'IA du serveur.
 
 ## À savoir
 
