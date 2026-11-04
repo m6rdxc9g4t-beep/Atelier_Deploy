@@ -86,7 +86,7 @@ const HOSTED = [
   },
   {
     id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: '#4F46E5', sub: 'datamind',
-    probes: ['http://127.0.0.1:8501/_stcore/health'],
+    probes: ['http://127.0.0.1:3600/api/health'],
   },
   {
     // Site public (sans connexion) : la vitrine pour les recruteurs

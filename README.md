@@ -92,7 +92,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     │
                     ├─ viz.…      ──▶ Viz :8000           (API + interface, DuckDB)
                     ├─ convert.…  ──▶ Convert :8010       (API + interface, OCR Tesseract)
-                    ├─ datamind.… ──▶ DataMind :8501      (Streamlit, agent d'analyse ; WebSocket) ──▶ Ollama
+                    ├─ datamind.… ──▶ DataMind :3600      (Fastify + DuckDB, interface React ; SSE) ──▶ Ollama
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
                     ├─ wiki.…     ──▶ Wiki :3200          (Fastify, SQLite + pièces jointes)
@@ -119,15 +119,15 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
-- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `datamind/` (jeux de données et analyses de DataMind), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
 ## DataMind
 
-Agent d'analyse de données (dépôt public `Agent_Data`) : on dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit du Python qu'il **exécute réellement** sur les données (chiffres, graphiques, rapport HTML). Onglets Assistant, Exploration, Qualité et Données.
+Agent d'analyse de données (dépôt public `Agent_Data`, web app TypeScript : Fastify + DuckDB, React). On dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit des requêtes SQL qu'il **exécute réellement** sur les données, avec graphiques, segmentation, modèle prédictif et prévision. Onglets Assistant, Exploration, Qualité et Données.
 
-- **Moteur** : l'IA du serveur par défaut (`OLLAMA_MODEL`) ; Claude au choix dans l'interface si `ANTHROPIC_API_KEY` est renseignée (`DATAMIND_ENGINE=claude` pour l'ouvrir directement sur Claude, `DATAMIND_CLAUDE_MODEL` pour le modèle).
-- **Rien n'est stocké** : le fichier et la conversation vivent dans la session du navigateur ; on garde un rapport avec « Exporter le rapport ».
-- **Sécurité** : le code écrit par l'IA tourne dans le conteneur `datamind` (utilisateur sans privilèges), derrière la connexion du portail.
+- **Moteur** : l'IA du serveur par défaut (`OLLAMA_MODEL`) ; Claude au choix dans l'interface si `ANTHROPIC_API_KEY` est renseignée (`DATAMIND_ENGINE=claude` pour le proposer d'abord, `DATAMIND_CLAUDE_MODEL` pour le modèle).
+- **Données** : jeux de données (Parquet) et analyses (JSON) dans `data/datamind/`, compris dans les sauvegardes.
+- **Sécurité** : les requêtes de l'IA sont en lecture seule, sur une base en mémoire sans accès aux fichiers ; l'app est derrière la connexion du portail.
 - **Petit modèle** : avec `llama3.2:3b` ou `1b`, les analyses simples passent ; pour la modélisation, Claude ou `llama3.1:8b` donnent de bien meilleurs résultats.
 - Installer ou mettre à jour : `sudo ./update.sh datamind`.
 

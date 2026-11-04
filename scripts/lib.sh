@@ -88,11 +88,13 @@ ensure_secrets() {
 # Dossiers de données et de médias (créés avant Docker pour en garder la propriété).
 ensure_dirs() {
   mkdir -p data/viz data/convert data/projets data/nexus data/atelier_tab/exports \
-           data/cine data/savoir data/tresorerie data/wiki data/formulaire data/portfolio data/mission media/films media/series
+           data/cine data/savoir data/tresorerie data/wiki data/formulaire data/portfolio data/mission data/datamind media/films media/series
   # Le portfolio tourne sous l'utilisateur node (uid 1000) : il écrit ses messages de contact dans data/portfolio.
   chown 1000:1000 data/portfolio
   # Mission aussi (utilisateur node) : sa base SQLite vit dans data/mission.
   chown -R 1000:1000 data/mission
+  # DataMind aussi (utilisateur node) : jeux de données et analyses dans data/datamind.
+  chown -R 1000:1000 data/datamind
 }
 
 # IA du serveur : choisit le modèle selon la mémoire (une seule fois ; modifiable ensuite dans .env).
