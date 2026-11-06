@@ -647,7 +647,7 @@
       "app-suivi": {
         "role": "secondary",
         "displayName": "App Suivi",
-        "canonical": "#008295"
+        "canonical": "#8a5fb8"
       },
       "app-dates": {
         "role": "secondary",
@@ -657,7 +657,7 @@
       "app-cuisine": {
         "role": "secondary",
         "displayName": "App Cuisine",
-        "canonical": "#8568a7"
+        "canonical": "#3a6c97"
       }
     },
     "typographyMeta": {
