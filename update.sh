@@ -41,15 +41,34 @@ case "${1:-all}" in
   *) die "App inconnue : $1 (nexus, viz, tab, convert, datamind, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)" ;;
 esac
 
-step "Reconstruction"
+# Le disque du VPS est petit (40 Go) : une reconstruction garde l'ancienne image (en service) à côté de la
+# nouvelle, plus le cache de construction. Tout reconstruire d'un coup demande donc plus de 10 Go libres.
+# On reconstruit une app à la fois : construire, relancer, supprimer l'ancienne image et le cache, puis la suivante.
+libre_go() { df -Pk "$ROOT" | awk 'NR==2 { printf "%d", $4 / 1048576 }'; }
+nettoyer() {
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -af >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
+}
+
 # Données DVF de l'observatoire immobilier (Portfolio) : retéléchargées au plus une fois par mois.
 export DVF_CACHE_KEY="${DVF_CACHE_KEY:-$(date +%Y-%m)}"
-compose build "${services[@]}"
+
+step "Reconstruction"
+nettoyer
+ok "espace libre : $(libre_go) Go"
+if [ ${#services[@]} -eq 0 ]; then
+  mapfile -t services < <(compose config --services)
+fi
+for service in "${services[@]}"; do
+  [ "$(libre_go)" -ge 3 ] || die "moins de 3 Go libres sur le disque : libère de la place (df -h /, sudo docker system df) puis relance"
+  compose build "$service"
+  compose up -d "$service"
+  nettoyer
+  ok "$service à jour (espace libre : $(libre_go) Go)"
+done
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
-docker image prune -f >/dev/null
-# Le disque du VPS est petit (40 Go) : on vide le cache de construction de plus de 3 jours après chaque mise à jour.
-docker builder prune -af --filter until=72h >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
+nettoyer
 ok "terminé"
 compose ps
