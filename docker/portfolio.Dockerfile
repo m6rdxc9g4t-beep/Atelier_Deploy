@@ -3,6 +3,21 @@
 # Pas de connexion au portail : c'est la vitrine destinée aux recruteurs.
 # Messages du formulaire de contact dans data/portfolio/messages.jsonl.
 
+# Données publiques DVF (ventes immobilières, Etalab) pour la démo « Observatoire immobilier » :
+# téléchargées et agrégées ici, dans une étape à part, pour n'être refaites qu'une fois par mois
+# (DVF_CACHE_KEY = mois courant) ou quand le script change. Un échec réseau ne bloque pas la construction :
+# la démo affiche alors « Données en préparation ».
+FROM node:22-bookworm-slim AS dvf
+ARG DVF_CACHE_KEY=
+ARG DVF_DEPARTEMENTS=49,62,59,44,35
+WORKDIR /app
+COPY apps/atelier_portefolio/scripts/dvf ./scripts/dvf
+RUN mkdir -p client/public/data/dvf \
+    && if [ -f scripts/dvf/fetch-dvf.mjs ]; then \
+         echo "DVF ${DVF_CACHE_KEY} : départements ${DVF_DEPARTEMENTS}" \
+         && DVF_DEPARTEMENTS="${DVF_DEPARTEMENTS}" DVF_OPTIONAL=1 node scripts/dvf/fetch-dvf.mjs || true; \
+       fi
+
 FROM node:22-bookworm-slim AS build
 ENV CI=1
 WORKDIR /app
@@ -12,6 +27,7 @@ COPY apps/atelier_portefolio/server/package.json server/
 COPY apps/atelier_portefolio/client/package.json client/
 RUN npm ci --no-audit --no-fund
 COPY apps/atelier_portefolio/ ./
+COPY --from=dvf /app/client/public/data/dvf ./client/public/data/dvf
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-bookworm-slim

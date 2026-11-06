@@ -67,6 +67,8 @@ services:
       CUISINE_URL: ${CUISINE_URL:-}
       SUIVI_URL: ${SUIVI_URL:-}
       DATES_URL: ${DATES_URL:-}
+      # Vitrine pro : adresse publique du Portfolio et de ses démos (ex. relais Netlify), vide = portfolio.<domaine>.
+      PORTFOLIO_PUBLIC_URL: ${PORTFOLIO_PUBLIC_URL:-}
 
   viz:
     <<: *app
@@ -180,7 +182,15 @@ services:
   # Portfolio : site public (vitrine pour les recruteurs), sans la connexion du portail.
   portfolio:
     <<: *app
-    build: { <<: *build, dockerfile: docker/portfolio.Dockerfile }
+    build:
+      <<: *build
+      dockerfile: docker/portfolio.Dockerfile
+      args:
+        ATELIER_DOMAIN: ${ATELIER_DOMAIN:?Renseigne ATELIER_DOMAIN dans .env}
+        PROTO: ${PROTO:-https}
+        # Observatoire immobilier : clé de cache des données DVF (mois courant, posé par update.sh).
+        DVF_CACHE_KEY: ${DVF_CACHE_KEY:-}
+        DVF_DEPARTEMENTS: ${DVF_DEPARTEMENTS:-49,62,59,44,35}
     environment:
       <<: *tz
       # Agent IA de la démo DataMind : clé dédiée et facultative (le site est public, vide = désactivé).

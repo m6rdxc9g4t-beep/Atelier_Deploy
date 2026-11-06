@@ -15,7 +15,7 @@
 #   dates.{$ATELIER_DOMAIN}     redirection vers Atelier Dates sur Vercel
 #   suivi.{$ATELIER_DOMAIN}     redirection vers Atelier Suivi sur Vercel
 #   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
-#   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; section « Sites & tests » du portail)
+#   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; public, section « Vitrine pro » du portail)
 #   mission.{$ATELIER_DOMAIN}   Atelier Mission (:3500, sert aussi son interface ; section « Sites & tests »)
 #   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
 #
@@ -293,9 +293,10 @@
 }
 
 # ── Sites & tests ─────────────────────────────────────────────────────────────
-# Agent Ops Lab : simulation logistique (Next.js autonome), derrière la connexion du portail.
-# Pour ajouter un autre site de test : un bloc comme celui-ci, un service dans docker-compose.yml,
-# une entrée dans SITES (portail/server.mjs) et dans APPS (scripts/lib.sh).
+# Agent Ops Lab : simulation logistique (Next.js autonome), PUBLIQUE (section « Vitrine pro » du portail).
+# Tout tourne dans le navigateur du visiteur : aucune donnée ni IA côté serveur, rien à protéger.
+# Pour ajouter un site de test privé : un bloc comme celui de Mission (avec `import connexion`), un service
+# dans docker-compose.yml, une entrée dans SITES (portail/server.mjs) et dans APPS (scripts/lib.sh).
 {$SITE_SCHEME}ops.{$ATELIER_DOMAIN} {
 	import securite
 	handle /api/health {
@@ -303,7 +304,6 @@
 		reverse_proxy 127.0.0.1:3400
 	}
 	handle {
-		import connexion
 		reverse_proxy 127.0.0.1:3400
 	}
 }

@@ -3,8 +3,8 @@
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
-- **Hébergée sur le VPS et publique**, sans connexion : le Portfolio, la vitrine destinée aux recruteurs.
-- **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **Ops Lab** (Agent Ops Lab, un logiciel de transport simulé piloté par un agent IA), **DataMind** (agent d'analyse de données) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
+- **Vitrine pro**, hébergée sur le VPS et **publique** (sans connexion) : le Portfolio, ses démos interactives (observatoire immobilier, e-commerce temps réel, labo A/B et causal, prévision de ventes, DataMind sans IA) et **Ops Lab**. Chaque entrée du portail a un bouton « Copier le lien public » (adresse `PORTFOLIO_PUBLIC_URL`, par ex. le relais Netlify). Les démos tournent dans le navigateur du visiteur : rien ne coûte au serveur, aucune IA payante.
+- **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **DataMind** (agent d'analyse de données, l'app complète avec son IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
 - **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
 
 ```

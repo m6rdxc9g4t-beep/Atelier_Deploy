@@ -84,20 +84,53 @@ const HOSTED = [
     id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: '#9d6d1c', sub: 'convert',
     probes: ['http://127.0.0.1:8010/api/health'],
   },
-  {
-    // Site public (sans connexion) : la vitrine pour les recruteurs
-    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#4a5468', sub: 'portfolio',
-    probes: ['http://127.0.0.1:8787/api/health'],
-  },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
+
+// Vitrine pro : ce que François montre aux recruteurs et aux clients. Tout y est PUBLIC (sans connexion)
+// et sans IA payante. `share` = lien public à copier depuis le portail.
+// Le Portfolio et ses démos peuvent avoir une adresse publique propre (PORTFOLIO_PUBLIC_URL, ex. le relais
+// Netlify https://francois-pichon.netlify.app) ; sinon portfolio.<domaine>.
+const PORTFOLIO_BASE = (env.PORTFOLIO_PUBLIC_URL || `${SCHEME}://portfolio.${DOMAIN}`).replace(/\/$/, '')
+const PORTFOLIO_PROBE = ['http://127.0.0.1:8787/api/health']
+const VITRINE = [
+  {
+    id: 'portfolio', name: 'Portfolio', role: 'CV, projets d’économétrie, contact', color: '#4a5468',
+    path: '/', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-immobilier', icon: 'demo-immobilier', name: 'Observatoire immobilier', role: 'Démo · prix au m² DVF, carte, modèle de prix',
+    color: '#4a5468', path: '/demos/observatoire-immobilier', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-ecommerce', icon: 'demo-ecommerce', name: 'E-commerce temps réel', role: 'Démo · KPI en direct, détection d’anomalies',
+    color: '#4a5468', path: '/demos/ecommerce-temps-reel', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-ab', icon: 'demo-ab', name: 'Labo A/B et causal', role: 'Démo · puissance, significativité, diff-in-diff',
+    color: '#4a5468', path: '/demos/labo-ab-causal', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-prevision', icon: 'demo-prevision', name: 'Prévision de ventes', role: 'Démo · CSV → prévision avec intervalles',
+    color: '#4a5468', path: '/demos/prevision-ventes', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-datamind', icon: 'datamind', name: 'DataMind (démo)', role: 'Démo · exploration de données, sans IA en public',
+    color: '#6967e1', path: '/projets/datamind', probes: PORTFOLIO_PROBE,
+  },
+]
+  .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
+  .concat([
+    {
+      // Ops Lab : simulation qui tourne dans le navigateur, rendue publique par Caddy.
+      id: 'ops', name: 'Ops Lab', role: 'Démo · TMS simulé, piloté par un agent IA', color: '#895bd5',
+      url: `${SCHEME}://ops.${DOMAIN}/`, probes: ['http://127.0.0.1:3400/api/health'],
+    },
+  ])
+  .map(({ path, ...a }) => ({ ...a, group: 'vitrine', public: true, share: a.url }))
 
 // Sites & tests : hébergés sur le VPS, derrière la connexion, dans une section à part du portail.
 // Pour en ajouter un : une entrée ici (+ icône <symbol id="app-<id>"> dans public/atelier-icons.svg), un bloc Caddy, un service Docker.
 const SITES = [
-  {
-    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: '#895bd5', sub: 'ops',
-    probes: ['http://127.0.0.1:3400/api/health'],
-  },
   {
     id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: '#b55d00', sub: 'mission',
     probes: ['http://127.0.0.1:3500/api/health'],
@@ -123,8 +156,8 @@ const ONLINE = [
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
 
-const APPS = [...HOSTED, ...SITES, ...ONLINE]
-const PROBED = [...HOSTED, ...SITES]
+const APPS = [...HOSTED, ...VITRINE, ...SITES, ...ONLINE]
+const PROBED = [...HOSTED, ...VITRINE, ...SITES]
 
 // ── Session signée (HMAC-SHA256), sans stockage côté serveur ────────────────
 const b64 = (buf) => Buffer.from(buf).toString('base64url')
@@ -199,10 +232,16 @@ async function probe(url) {
 }
 
 async function statuses() {
+  // Plusieurs entrées partagent une même sonde (le Portfolio et ses démos) : une seule requête par adresse.
+  const once = new Map()
+  const probeOnce = (url) => {
+    if (!once.has(url)) once.set(url, probe(url))
+    return once.get(url)
+  }
   return Promise.all(
     PROBED.map(async (a) => {
       if (!a.probes.length) return { id: a.id, state: 'up', ms: null }
-      const results = await Promise.all(a.probes.map(probe))
+      const results = await Promise.all(a.probes.map(probeOnce))
       const up = results.filter((r) => r.ok).length
       const state = up === results.length ? 'up' : up === 0 ? 'down' : 'partial'
       const ms = results.every((r) => r.ms != null) ? Math.max(...results.map((r) => r.ms)) : null
