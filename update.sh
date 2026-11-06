@@ -42,10 +42,14 @@ case "${1:-all}" in
 esac
 
 step "Reconstruction"
+# Données DVF de l'observatoire immobilier (Portfolio) : retéléchargées au plus une fois par mois.
+export DVF_CACHE_KEY="${DVF_CACHE_KEY:-$(date +%Y-%m)}"
 compose build "${services[@]}"
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
 docker image prune -f >/dev/null
+# Le disque du VPS est petit (40 Go) : on vide le cache de construction de plus de 3 jours après chaque mise à jour.
+docker builder prune -af --filter until=72h >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
 ok "terminé"
 compose ps

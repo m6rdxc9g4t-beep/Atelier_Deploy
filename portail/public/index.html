@@ -46,7 +46,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Lignes */
-.at-row { grid-template-columns: 22px 20px minmax(110px, 160px) minmax(0, 1fr) 150px 64px 16px; }
+.at-row { grid-template-columns: 22px 20px minmax(150px, 220px) minmax(0, 1fr) 150px 64px 24px; }
 .k { font-size: var(--t-meta); color: var(--faint); text-align: center; font-variant-numeric: tabular-nums; }
 .name { font-weight: 500; font-size: var(--t-base); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .role { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -56,6 +56,26 @@
 .ext-mark { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: var(--t-small); }
 .ext-mark .ic { width: 13px; height: 13px; }
 .last { font-size: var(--t-meta); color: var(--accent); font-weight: 500; margin-left: 6px; }
+
+/* Ligne et tuile : lien étiré sur toute la surface, bouton de copie au-dessus */
+.at-row, .tile { position: relative; cursor: pointer; }
+.row-link { color: inherit; text-decoration: none; }
+.row-link::after { content: ""; position: absolute; inset: 0; }
+.row-link:focus-visible { outline: none; }
+.at-row:has(.row-link:focus-visible), .tile:has(.row-link:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pub { margin-left: 8px; padding: 1px 6px; font-size: var(--t-meta); font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; vertical-align: 1px; }
+.copy {
+  position: relative; z-index: 1; display: inline-grid; place-items: center; width: 24px; height: 24px; margin-left: -4px;
+  color: var(--faint); background: transparent; border: 0; border-radius: var(--r-sm); cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.copy:hover, .copy:focus-visible { color: var(--ink); background: var(--selected); }
+.copy.is-done { color: var(--accent); }
+.tile .foot .copy { margin-left: auto; }
+.tile .foot .pub { margin-left: 0; }
+.notice { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); margin: 0; padding: 8px 14px; font-size: var(--t-small);
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-pop); z-index: 5; }
+.notice:empty { display: none; }
 
 /* Icônes */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 8px; padding: 14px 20px 22px; }
@@ -67,7 +87,8 @@
 .tile:hover { background: var(--hover); }
 .tile.is-sel { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
 .tile .k { position: absolute; top: 10px; right: 10px; }
-.tile .name { font-size: var(--t-strong); }
+.tile .name { font-size: var(--t-strong); display: block; white-space: normal; line-height: 1.25; }
+.tile-text { display: block; width: 100%; min-width: 0; }
 .tile .role { white-space: normal; font-size: var(--t-small); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.7em; }
 .tile .foot { display: flex; align-items: center; gap: 8px; width: 100%; }
 .tile .foot { min-height: 18px; }
@@ -112,6 +133,7 @@
   .at-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 8px 14px; gap: 12px; }
   .at-row .at-appicon { --size: 28px; border-radius: var(--r-md); }
   .at-row .k, .at-row .ms, .at-row .go { display: none; }
+  .at-row .copy { width: 36px; height: 36px; }
   .at-row .name-role { display: flex; flex-direction: column; min-width: 0; }
   .at-row .role { font-size: var(--t-small); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 14px 20px; }
@@ -139,6 +161,7 @@
       <button class="at-nav-item" data-filter="incidents"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Incidents<span class="at-count" data-count="incidents"></span></button>
       <div class="at-nav-sec">Groupes</div>
       <button class="at-nav-item" data-filter="vps"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>Sur le serveur<span class="at-count" data-count="vps"></span></button>
+      <button class="at-nav-item" data-filter="vitrine"><svg class="ic" aria-hidden="true"><use href="#i-briefcase"/></svg>Vitrine pro<span class="at-count" data-count="vitrine"></span></button>
       <button class="at-nav-item" data-filter="sites"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg>Sites &amp; tests<span class="at-count" data-count="sites"></span></button>
       <button class="at-nav-item" data-filter="online"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>En ligne<span class="at-count" data-count="online"></span></button>
     </nav>
@@ -170,11 +193,13 @@
       <button class="at-btn at-btn--ghost at-btn--icon" id="refresh" type="button" title="Vérifier maintenant"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only">Vérifier maintenant</span></button>
     </header>
     <div id="content"></div>
+    <p class="notice" id="notice" role="status" aria-live="polite"></p>
     <div class="hint" aria-hidden="true">
       <span><kbd class="at-kbd">1</kbd>–<kbd class="at-kbd">0</kbd> ouvrir</span>
       <span><kbd class="at-kbd">↑</kbd><kbd class="at-kbd">↓</kbd> choisir</span>
       <span><kbd class="at-kbd">↵</kbd> ouvrir · <kbd class="at-kbd">⌘</kbd><kbd class="at-kbd">↵</kbd> nouvel onglet</span>
       <span><kbd class="at-kbd">⌘K</kbd> rechercher</span>
+      <span><kbd class="at-kbd">C</kbd> copier un lien public</span>
       <span>{{DOMAINE}}</span>
     </div>
   </main>
@@ -185,17 +210,18 @@ const APPS = /*APPS*/[];
 const DOMAIN = '{{DOMAINE}}';
 const GROUPS = [
   { id: 'vps', title: 'Sur le serveur', note: 'derrière la connexion du portail' },
+  { id: 'vitrine', title: 'Vitrine pro', note: 'public, à montrer aux recruteurs et aux clients' },
   { id: 'sites', title: 'Sites & tests', note: 'simulations, maquettes et essais' },
   { id: 'online', title: 'En ligne', note: 'Vercel, avec leur propre connexion' },
 ];
-const TITLES = { all: 'Toutes les apps', recent: 'Récentes', incidents: 'Incidents', vps: 'Sur le serveur', sites: 'Sites & tests', online: 'En ligne' };
+const TITLES = { all: 'Toutes les apps', recent: 'Récentes', incidents: 'Incidents', vps: 'Sur le serveur', vitrine: 'Vitrine pro', sites: 'Sites & tests', online: 'En ligne' };
 const LABELS = { up: 'En ligne', down: 'Hors ligne', partial: 'Démarrage partiel', unknown: 'Vérification…' };
 
 const store = {
   get(k) { try { return localStorage.getItem(k) } catch { return null } },
   set(k, v) { try { localStorage.setItem(k, v) } catch {} },
 };
-const groupOf = (a) => (a.external ? 'online' : a.group === 'sites' ? 'sites' : 'vps');
+const groupOf = (a) => (a.external ? 'online' : a.group === 'sites' || a.group === 'vitrine' ? a.group : 'vps');
 APPS.forEach((a, i) => { a.key = i < 10 ? (i === 9 ? '0' : String(i + 1)) : ''; a.grp = groupOf(a) });
 
 const $ = (s) => document.querySelector(s);
@@ -266,25 +292,32 @@ function msHtml(a) {
   if (s.state !== 'up') return '—';
   return s.ms != null ? `${s.ms} ms` : 'statique';
 }
-const icon = (a, size = '') => `<span class="at-appicon ${size}" style="--app:${a.color}" aria-hidden="true"><svg><use href="#app-${a.id}"/></svg></span>`;
+const icon = (a, size = '') => `<span class="at-appicon ${size}" style="--app:${a.color}" aria-hidden="true"><svg><use href="#app-${a.icon || a.id}"/></svg></span>`;
 const goIcon = (a) => `<svg class="ic go" aria-hidden="true"><use href="#i-${a.external ? 'external' : 'arrow-right'}"/></svg>`;
 const opensNew = (a) => a.external || newtab.checked;
-const attrs = (a, i) => `${a.url ? `href="${a.url}"` : 'aria-disabled="true"'} data-i="${i}" style="--app:${a.color}"${opensNew(a) ? ' target="_blank" rel="noopener"' : ''}`;
+const linkAttrs = (a) => `${a.url ? `href="${a.url}"` : 'aria-disabled="true"'}${opensNew(a) ? ' target="_blank" rel="noopener"' : ''}`;
+// Lien public (Vitrine pro) : bouton « Copier le lien », au-dessus du lien étiré de la ligne.
+const copyBtn = (a) => a.share
+  ? `<button class="copy" type="button" data-copy="${a.share}" title="Copier le lien public"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg><span class="sr-only">Copier le lien public de ${a.name}</span></button>`
+  : '';
+const pubTag = (a) => (a.public ? '<span class="pub">Public</span>' : '');
 
 function itemHtml(a, i, last) {
   const down = stateOf(a) === 'down' ? ' is-down' : '';
   const lastBadge = a.id === last ? '<span class="last">Dernière</span>' : '';
-  const label = `${a.name}, ${a.role}. ${a.external ? 'S’ouvre sur Vercel' : LABELS[stateOf(a)]}`;
+  const label = `${a.name}, ${a.role}. ${a.external ? 'S’ouvre sur Vercel' : a.public ? 'Public' : LABELS[stateOf(a)]}`;
+  // La ligne entière est cliquable par un lien « étiré » (::after) ; le bouton de copie passe au-dessus.
+  const link = `<a class="row-link" ${linkAttrs(a)} aria-label="${label}">${a.name}</a>`;
   if (view === 'grid') {
-    return `<a class="tile${down}" ${attrs(a, i)} aria-label="${label}">
+    return `<div class="tile${down}" data-i="${i}" style="--app:${a.color}">
       <span class="k">${a.key}</span>${icon(a, 'at-appicon--lg')}
-      <span><span class="name">${a.name}</span>${lastBadge}<span class="role">${a.role}</span></span>
-      <span class="foot">${stateOf(a) === 'up' ? `<span class="ms">${msHtml(a)}</span>` : stateHtml(a, true)}</span></a>`;
+      <span class="tile-text"><span class="name">${link}</span>${lastBadge}<span class="role">${a.role}</span></span>
+      <span class="foot">${stateOf(a) === 'up' ? `<span class="ms">${msHtml(a)}</span>` : stateHtml(a, true)}${pubTag(a)}${copyBtn(a)}</span></div>`;
   }
-  return `<a class="at-row${down}" ${attrs(a, i)} aria-label="${label}">
+  return `<div class="at-row${down}" data-i="${i}" style="--app:${a.color}" role="listitem">
     <span class="k">${a.key}</span>${icon(a)}
-    <span class="name-role"><span class="name">${a.name}${lastBadge}</span><span class="role">${a.role}</span></span>
-    ${stateHtml(a)}<span class="ms">${msHtml(a)}</span>${goIcon(a)}</a>`;
+    <span class="name-role"><span class="name">${link}${pubTag(a)}${lastBadge}</span><span class="role">${a.role}</span></span>
+    ${stateHtml(a)}<span class="ms">${msHtml(a)}</span>${a.share ? copyBtn(a) : goIcon(a)}</div>`;
 }
 
 function render() {
@@ -355,9 +388,31 @@ content.addEventListener('mousemove', (e) => {
 });
 content.addEventListener('click', (e) => {
   if (e.target.closest('[data-clear]')) { q.value = ''; render(); q.focus(); return }
+  const copy = e.target.closest('[data-copy]');
+  if (copy) { e.preventDefault(); copyLink(copy.dataset.copy, copy); return }
   const el = e.target.closest('[data-i]');
-  if (el) noteOpen(visible[Number(el.dataset.i)]);
+  if (el && e.target.closest('a')) noteOpen(visible[Number(el.dataset.i)]);
 });
+
+// ── Copier un lien public (Vitrine pro) ──
+async function copyLink(url, btn) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(url); ok = true } catch {
+    const t = document.createElement('textarea');
+    t.value = url; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { ok = document.execCommand('copy') } catch {}
+    t.remove();
+  }
+  $('#notice').textContent = ok ? `Lien copié : ${url}` : `Copie impossible : ${url}`;
+  if (btn) {
+    btn.classList.add('is-done');
+    btn.querySelector('use')?.setAttribute('href', ok ? '#i-check' : '#i-x');
+    setTimeout(() => { btn.classList.remove('is-done'); btn.querySelector('use')?.setAttribute('href', '#i-link') }, 1600);
+  }
+  clearTimeout(copyLink.t);
+  copyLink.t = setTimeout(() => ($('#notice').textContent = ''), 4000);
+}
 
 document.querySelectorAll('[data-filter]').forEach((b) => b.addEventListener('click', () => {
   filter = b.dataset.filter; store.set('atelier:filter', filter); q.value = ''; sel = 0; render();
@@ -380,6 +435,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault(); open(visible[sel], e.metaKey || e.ctrlKey); return;
   }
   if (inSearch || e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input,textarea')) return;
+  if (e.key === 'c' && visible[sel]?.share) { copyLink(visible[sel].share, content.querySelector(`[data-i="${sel}"] [data-copy]`)); return }
   if (/^[0-9]$/.test(e.key)) open(APPS.find((a) => a.key === e.key));
 });
 
