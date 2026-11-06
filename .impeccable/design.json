@@ -1,0 +1,912 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-06T15:02:25+00:00",
+  "title": "Design System: Suite Atelier",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Indigo d'atelier",
+        "canonical": "oklch(0.540 0.184 278.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.060 278.3)",
+          "oklch(0.264 0.121 278.3)",
+          "oklch(0.379 0.161 278.3)",
+          "oklch(0.493 0.182 278.3)",
+          "oklch(0.607 0.182 278.3)",
+          "oklch(0.721 0.161 278.3)",
+          "oklch(0.836 0.121 278.3)",
+          "oklch(0.950 0.060 278.3)"
+        ]
+      },
+      "accent-ink": {
+        "role": "primary",
+        "displayName": "Encre sur indigo",
+        "canonical": "oklch(1.000 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(0.150 0.000 89.9)",
+          "oklch(0.264 0.000 89.9)",
+          "oklch(0.379 0.000 89.9)",
+          "oklch(0.493 0.000 89.9)",
+          "oklch(0.607 0.000 89.9)",
+          "oklch(0.721 0.000 89.9)",
+          "oklch(0.836 0.000 89.9)",
+          "oklch(0.950 0.000 89.9)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Voile indigo",
+        "canonical": "color-mix(in oklab, #5b5bd6 14%, transparent)",
+        "tonalRamp": [
+          "oklch(0.150 0.060 278.3)",
+          "oklch(0.264 0.121 278.3)",
+          "oklch(0.379 0.161 278.3)",
+          "oklch(0.493 0.182 278.3)",
+          "oklch(0.607 0.182 278.3)",
+          "oklch(0.721 0.161 278.3)",
+          "oklch(0.836 0.121 278.3)",
+          "oklch(0.950 0.060 278.3)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Fond d'atelier",
+        "canonical": "oklch(0.988 0.001 286.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.000 286.4)",
+          "oklch(0.264 0.001 286.4)",
+          "oklch(0.379 0.001 286.4)",
+          "oklch(0.493 0.001 286.4)",
+          "oklch(0.607 0.001 286.4)",
+          "oklch(0.721 0.001 286.4)",
+          "oklch(0.836 0.001 286.4)",
+          "oklch(0.950 0.000 286.4)"
+        ]
+      },
+      "bg-side": {
+        "role": "neutral",
+        "displayName": "Fond de barre",
+        "canonical": "oklch(0.970 0.003 264.5)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 264.5)",
+          "oklch(0.264 0.002 264.5)",
+          "oklch(0.379 0.003 264.5)",
+          "oklch(0.493 0.003 264.5)",
+          "oklch(0.607 0.003 264.5)",
+          "oklch(0.721 0.003 264.5)",
+          "oklch(0.836 0.002 264.5)",
+          "oklch(0.950 0.001 264.5)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "oklch(1.000 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(0.150 0.000 89.9)",
+          "oklch(0.264 0.000 89.9)",
+          "oklch(0.379 0.000 89.9)",
+          "oklch(0.493 0.000 89.9)",
+          "oklch(0.607 0.000 89.9)",
+          "oklch(0.721 0.000 89.9)",
+          "oklch(0.836 0.000 89.9)",
+          "oklch(0.950 0.000 89.9)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Survol",
+        "canonical": "oklch(0.952 0.004 271.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 271.4)",
+          "oklch(0.264 0.003 271.4)",
+          "oklch(0.379 0.004 271.4)",
+          "oklch(0.493 0.004 271.4)",
+          "oklch(0.607 0.004 271.4)",
+          "oklch(0.721 0.004 271.4)",
+          "oklch(0.836 0.003 271.4)",
+          "oklch(0.950 0.001 271.4)"
+        ]
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "Sélection neutre",
+        "canonical": "oklch(0.932 0.008 278.6)",
+        "tonalRamp": [
+          "oklch(0.150 0.003 278.6)",
+          "oklch(0.264 0.005 278.6)",
+          "oklch(0.379 0.007 278.6)",
+          "oklch(0.493 0.008 278.6)",
+          "oklch(0.607 0.008 278.6)",
+          "oklch(0.721 0.007 278.6)",
+          "oklch(0.836 0.005 278.6)",
+          "oklch(0.950 0.003 278.6)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Filet",
+        "canonical": "oklch(0.919 0.006 275.0)",
+        "tonalRamp": [
+          "oklch(0.150 0.002 275.0)",
+          "oklch(0.264 0.004 275.0)",
+          "oklch(0.379 0.005 275.0)",
+          "oklch(0.493 0.005 275.0)",
+          "oklch(0.607 0.005 275.0)",
+          "oklch(0.721 0.005 275.0)",
+          "oklch(0.836 0.004 275.0)",
+          "oklch(0.950 0.002 275.0)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Filet appuyé",
+        "canonical": "oklch(0.864 0.009 271.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.003 271.3)",
+          "oklch(0.264 0.006 271.3)",
+          "oklch(0.379 0.007 271.3)",
+          "oklch(0.493 0.008 271.3)",
+          "oklch(0.607 0.008 271.3)",
+          "oklch(0.721 0.007 271.3)",
+          "oklch(0.836 0.006 271.3)",
+          "oklch(0.950 0.003 271.3)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Encre",
+        "canonical": "oklch(0.222 0.006 271.1)",
+        "tonalRamp": [
+          "oklch(0.150 0.002 271.1)",
+          "oklch(0.264 0.004 271.1)",
+          "oklch(0.379 0.005 271.1)",
+          "oklch(0.493 0.006 271.1)",
+          "oklch(0.607 0.006 271.1)",
+          "oklch(0.721 0.005 271.1)",
+          "oklch(0.836 0.004 271.1)",
+          "oklch(0.950 0.002 271.1)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Encre seconde",
+        "canonical": "oklch(0.356 0.011 264.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.004 264.4)",
+          "oklch(0.264 0.007 264.4)",
+          "oklch(0.379 0.010 264.4)",
+          "oklch(0.493 0.011 264.4)",
+          "oklch(0.607 0.011 264.4)",
+          "oklch(0.721 0.010 264.4)",
+          "oklch(0.836 0.007 264.4)",
+          "oklch(0.950 0.004 264.4)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Atténué",
+        "canonical": "oklch(0.499 0.015 266.6)",
+        "tonalRamp": [
+          "oklch(0.150 0.005 266.6)",
+          "oklch(0.264 0.010 266.6)",
+          "oklch(0.379 0.013 266.6)",
+          "oklch(0.493 0.015 266.6)",
+          "oklch(0.607 0.015 266.6)",
+          "oklch(0.721 0.013 266.6)",
+          "oklch(0.836 0.010 266.6)",
+          "oklch(0.950 0.005 266.6)"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Discret",
+        "canonical": "oklch(0.545 0.015 266.6)",
+        "tonalRamp": [
+          "oklch(0.150 0.005 266.6)",
+          "oklch(0.264 0.010 266.6)",
+          "oklch(0.379 0.013 266.6)",
+          "oklch(0.493 0.015 266.6)",
+          "oklch(0.607 0.015 266.6)",
+          "oklch(0.721 0.013 266.6)",
+          "oklch(0.836 0.010 266.6)",
+          "oklch(0.950 0.005 266.6)"
+        ]
+      },
+      "up": {
+        "role": "tertiary",
+        "displayName": "Vert en ligne (texte)",
+        "canonical": "oklch(0.559 0.135 153.0)",
+        "tonalRamp": [
+          "oklch(0.150 0.044 153.0)",
+          "oklch(0.264 0.089 153.0)",
+          "oklch(0.379 0.118 153.0)",
+          "oklch(0.493 0.133 153.0)",
+          "oklch(0.607 0.133 153.0)",
+          "oklch(0.721 0.118 153.0)",
+          "oklch(0.836 0.089 153.0)",
+          "oklch(0.950 0.044 153.0)"
+        ]
+      },
+      "up-dot": {
+        "role": "tertiary",
+        "displayName": "Vert en ligne (pastille)",
+        "canonical": "oklch(0.632 0.152 153.0)",
+        "tonalRamp": [
+          "oklch(0.150 0.050 153.0)",
+          "oklch(0.264 0.100 153.0)",
+          "oklch(0.379 0.133 153.0)",
+          "oklch(0.493 0.150 153.0)",
+          "oklch(0.607 0.150 153.0)",
+          "oklch(0.721 0.133 153.0)",
+          "oklch(0.836 0.100 153.0)",
+          "oklch(0.950 0.050 153.0)"
+        ]
+      },
+      "partial": {
+        "role": "tertiary",
+        "displayName": "Ambre partiel (texte)",
+        "canonical": "oklch(0.551 0.125 63.9)",
+        "tonalRamp": [
+          "oklch(0.150 0.041 63.9)",
+          "oklch(0.264 0.082 63.9)",
+          "oklch(0.379 0.109 63.9)",
+          "oklch(0.493 0.123 63.9)",
+          "oklch(0.607 0.123 63.9)",
+          "oklch(0.721 0.109 63.9)",
+          "oklch(0.836 0.082 63.9)",
+          "oklch(0.950 0.041 63.9)"
+        ]
+      },
+      "partial-dot": {
+        "role": "tertiary",
+        "displayName": "Ambre partiel (pastille)",
+        "canonical": "oklch(0.742 0.151 74.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.050 74.3)",
+          "oklch(0.264 0.099 74.3)",
+          "oklch(0.379 0.133 74.3)",
+          "oklch(0.493 0.149 74.3)",
+          "oklch(0.607 0.149 74.3)",
+          "oklch(0.721 0.133 74.3)",
+          "oklch(0.836 0.099 74.3)",
+          "oklch(0.950 0.050 74.3)"
+        ]
+      },
+      "down": {
+        "role": "tertiary",
+        "displayName": "Rouge hors ligne (texte)",
+        "canonical": "oklch(0.551 0.190 27.5)",
+        "tonalRamp": [
+          "oklch(0.150 0.063 27.5)",
+          "oklch(0.264 0.125 27.5)",
+          "oklch(0.379 0.167 27.5)",
+          "oklch(0.493 0.188 27.5)",
+          "oklch(0.607 0.188 27.5)",
+          "oklch(0.721 0.167 27.5)",
+          "oklch(0.836 0.125 27.5)",
+          "oklch(0.950 0.063 27.5)"
+        ]
+      },
+      "down-dot": {
+        "role": "tertiary",
+        "displayName": "Rouge hors ligne (pastille)",
+        "canonical": "oklch(0.626 0.193 23.0)",
+        "tonalRamp": [
+          "oklch(0.150 0.063 23.0)",
+          "oklch(0.264 0.127 23.0)",
+          "oklch(0.379 0.169 23.0)",
+          "oklch(0.493 0.191 23.0)",
+          "oklch(0.607 0.191 23.0)",
+          "oklch(0.721 0.169 23.0)",
+          "oklch(0.836 0.127 23.0)",
+          "oklch(0.950 0.063 23.0)"
+        ]
+      },
+      "mark-bg": {
+        "role": "neutral",
+        "displayName": "Fond de marque",
+        "canonical": "oklch(0.222 0.006 271.1)",
+        "tonalRamp": [
+          "oklch(0.150 0.002 271.1)",
+          "oklch(0.264 0.004 271.1)",
+          "oklch(0.379 0.005 271.1)",
+          "oklch(0.493 0.006 271.1)",
+          "oklch(0.607 0.006 271.1)",
+          "oklch(0.721 0.005 271.1)",
+          "oklch(0.836 0.004 271.1)",
+          "oklch(0.950 0.002 271.1)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Indigo d'atelier (sombre)",
+        "canonical": "oklch(0.672 0.177 279.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.058 279.4)",
+          "oklch(0.264 0.116 279.4)",
+          "oklch(0.379 0.155 279.4)",
+          "oklch(0.493 0.174 279.4)",
+          "oklch(0.607 0.174 279.4)",
+          "oklch(0.721 0.155 279.4)",
+          "oklch(0.836 0.116 279.4)",
+          "oklch(0.950 0.058 279.4)"
+        ]
+      },
+      "dark-accent-ink": {
+        "role": "primary",
+        "displayName": "Encre sur indigo (sombre)",
+        "canonical": "oklch(0.173 0.004 264.5)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 264.5)",
+          "oklch(0.264 0.003 264.5)",
+          "oklch(0.379 0.004 264.5)",
+          "oklch(0.493 0.004 264.5)",
+          "oklch(0.607 0.004 264.5)",
+          "oklch(0.721 0.004 264.5)",
+          "oklch(0.836 0.003 264.5)",
+          "oklch(0.950 0.001 264.5)"
+        ]
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Fond d'atelier (sombre)",
+        "canonical": "oklch(0.173 0.004 264.5)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 264.5)",
+          "oklch(0.264 0.003 264.5)",
+          "oklch(0.379 0.004 264.5)",
+          "oklch(0.493 0.004 264.5)",
+          "oklch(0.607 0.004 264.5)",
+          "oklch(0.721 0.004 264.5)",
+          "oklch(0.836 0.003 264.5)",
+          "oklch(0.950 0.001 264.5)"
+        ]
+      },
+      "dark-bg-side": {
+        "role": "neutral",
+        "displayName": "Fond de barre (sombre)",
+        "canonical": "oklch(0.191 0.004 264.5)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 264.5)",
+          "oklch(0.264 0.003 264.5)",
+          "oklch(0.379 0.004 264.5)",
+          "oklch(0.493 0.004 264.5)",
+          "oklch(0.607 0.004 264.5)",
+          "oklch(0.721 0.004 264.5)",
+          "oklch(0.836 0.003 264.5)",
+          "oklch(0.950 0.001 264.5)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Surface (sombre)",
+        "canonical": "oklch(0.209 0.006 271.1)",
+        "tonalRamp": [
+          "oklch(0.150 0.002 271.1)",
+          "oklch(0.264 0.004 271.1)",
+          "oklch(0.379 0.005 271.1)",
+          "oklch(0.493 0.006 271.1)",
+          "oklch(0.607 0.006 271.1)",
+          "oklch(0.721 0.005 271.1)",
+          "oklch(0.836 0.004 271.1)",
+          "oklch(0.950 0.002 271.1)"
+        ]
+      },
+      "dark-hover": {
+        "role": "neutral",
+        "displayName": "Survol (sombre)",
+        "canonical": "oklch(0.231 0.008 274.6)",
+        "tonalRamp": [
+          "oklch(0.150 0.003 274.6)",
+          "oklch(0.264 0.005 274.6)",
+          "oklch(0.379 0.007 274.6)",
+          "oklch(0.493 0.008 274.6)",
+          "oklch(0.607 0.008 274.6)",
+          "oklch(0.721 0.007 274.6)",
+          "oklch(0.836 0.005 274.6)",
+          "oklch(0.950 0.003 274.6)"
+        ]
+      },
+      "dark-selected": {
+        "role": "neutral",
+        "displayName": "Sélection neutre (sombre)",
+        "canonical": "oklch(0.266 0.011 278.1)",
+        "tonalRamp": [
+          "oklch(0.150 0.004 278.1)",
+          "oklch(0.264 0.007 278.1)",
+          "oklch(0.379 0.010 278.1)",
+          "oklch(0.493 0.011 278.1)",
+          "oklch(0.607 0.011 278.1)",
+          "oklch(0.721 0.010 278.1)",
+          "oklch(0.836 0.007 278.1)",
+          "oklch(0.950 0.004 278.1)"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Filet (sombre)",
+        "canonical": "oklch(0.269 0.010 268.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.003 268.3)",
+          "oklch(0.264 0.006 268.3)",
+          "oklch(0.379 0.009 268.3)",
+          "oklch(0.493 0.010 268.3)",
+          "oklch(0.607 0.010 268.3)",
+          "oklch(0.721 0.009 268.3)",
+          "oklch(0.836 0.006 268.3)",
+          "oklch(0.950 0.003 268.3)"
+        ]
+      },
+      "dark-line-strong": {
+        "role": "neutral",
+        "displayName": "Filet appuyé (sombre)",
+        "canonical": "oklch(0.330 0.013 273.0)",
+        "tonalRamp": [
+          "oklch(0.150 0.004 273.0)",
+          "oklch(0.264 0.008 273.0)",
+          "oklch(0.379 0.011 273.0)",
+          "oklch(0.493 0.012 273.0)",
+          "oklch(0.607 0.012 273.0)",
+          "oklch(0.721 0.011 273.0)",
+          "oklch(0.836 0.008 273.0)",
+          "oklch(0.950 0.004 273.0)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Encre (sombre)",
+        "canonical": "oklch(0.934 0.004 271.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.001 271.4)",
+          "oklch(0.264 0.003 271.4)",
+          "oklch(0.379 0.004 271.4)",
+          "oklch(0.493 0.004 271.4)",
+          "oklch(0.607 0.004 271.4)",
+          "oklch(0.721 0.004 271.4)",
+          "oklch(0.836 0.003 271.4)",
+          "oklch(0.950 0.001 271.4)"
+        ]
+      },
+      "dark-ink-2": {
+        "role": "neutral",
+        "displayName": "Encre seconde (sombre)",
+        "canonical": "oklch(0.839 0.009 271.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.003 271.3)",
+          "oklch(0.264 0.006 271.3)",
+          "oklch(0.379 0.008 271.3)",
+          "oklch(0.493 0.008 271.3)",
+          "oklch(0.607 0.008 271.3)",
+          "oklch(0.721 0.008 271.3)",
+          "oklch(0.836 0.006 271.3)",
+          "oklch(0.950 0.003 271.3)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Atténué (sombre)",
+        "canonical": "oklch(0.686 0.014 266.7)",
+        "tonalRamp": [
+          "oklch(0.150 0.005 266.7)",
+          "oklch(0.264 0.009 266.7)",
+          "oklch(0.379 0.012 266.7)",
+          "oklch(0.493 0.014 266.7)",
+          "oklch(0.607 0.014 266.7)",
+          "oklch(0.721 0.012 266.7)",
+          "oklch(0.836 0.009 266.7)",
+          "oklch(0.950 0.005 266.7)"
+        ]
+      },
+      "dark-faint": {
+        "role": "neutral",
+        "displayName": "Discret (sombre)",
+        "canonical": "oklch(0.633 0.016 268.4)",
+        "tonalRamp": [
+          "oklch(0.150 0.005 268.4)",
+          "oklch(0.264 0.010 268.4)",
+          "oklch(0.379 0.014 268.4)",
+          "oklch(0.493 0.015 268.4)",
+          "oklch(0.607 0.015 268.4)",
+          "oklch(0.721 0.014 268.4)",
+          "oklch(0.836 0.010 268.4)",
+          "oklch(0.950 0.005 268.4)"
+        ]
+      },
+      "dark-up": {
+        "role": "tertiary",
+        "displayName": "Vert en ligne (texte) (sombre)",
+        "canonical": "oklch(0.735 0.136 159.3)",
+        "tonalRamp": [
+          "oklch(0.150 0.045 159.3)",
+          "oklch(0.264 0.090 159.3)",
+          "oklch(0.379 0.119 159.3)",
+          "oklch(0.493 0.134 159.3)",
+          "oklch(0.607 0.134 159.3)",
+          "oklch(0.721 0.119 159.3)",
+          "oklch(0.836 0.090 159.3)",
+          "oklch(0.950 0.045 159.3)"
+        ]
+      },
+      "dark-partial": {
+        "role": "tertiary",
+        "displayName": "Ambre partiel (texte) (sombre)",
+        "canonical": "oklch(0.807 0.137 78.2)",
+        "tonalRamp": [
+          "oklch(0.150 0.045 78.2)",
+          "oklch(0.264 0.090 78.2)",
+          "oklch(0.379 0.120 78.2)",
+          "oklch(0.493 0.135 78.2)",
+          "oklch(0.607 0.135 78.2)",
+          "oklch(0.721 0.120 78.2)",
+          "oklch(0.836 0.090 78.2)",
+          "oklch(0.950 0.045 78.2)"
+        ]
+      },
+      "dark-down": {
+        "role": "tertiary",
+        "displayName": "Rouge hors ligne (texte) (sombre)",
+        "canonical": "oklch(0.712 0.181 22.8)",
+        "tonalRamp": [
+          "oklch(0.150 0.060 22.8)",
+          "oklch(0.264 0.119 22.8)",
+          "oklch(0.379 0.159 22.8)",
+          "oklch(0.493 0.179 22.8)",
+          "oklch(0.607 0.179 22.8)",
+          "oklch(0.721 0.159 22.8)",
+          "oklch(0.836 0.119 22.8)",
+          "oklch(0.950 0.060 22.8)"
+        ]
+      },
+      "dark-mark-bg": {
+        "role": "neutral",
+        "displayName": "Fond de marque (sombre)",
+        "canonical": "oklch(0.294 0.013 272.9)",
+        "tonalRamp": [
+          "oklch(0.150 0.004 272.9)",
+          "oklch(0.264 0.009 272.9)",
+          "oklch(0.379 0.011 272.9)",
+          "oklch(0.493 0.013 272.9)",
+          "oklch(0.607 0.013 272.9)",
+          "oklch(0.721 0.011 272.9)",
+          "oklch(0.836 0.009 272.9)",
+          "oklch(0.950 0.004 272.9)"
+        ]
+      },
+      "app-nexus": {
+        "role": "secondary",
+        "displayName": "App Nexus",
+        "canonical": "#c84f00"
+      },
+      "app-viz": {
+        "role": "secondary",
+        "displayName": "App Viz",
+        "canonical": "#996c00"
+      },
+      "app-tab": {
+        "role": "secondary",
+        "displayName": "App Tab",
+        "canonical": "#1c8742"
+      },
+      "app-projets": {
+        "role": "secondary",
+        "displayName": "App Projets",
+        "canonical": "#568100"
+      },
+      "app-wiki": {
+        "role": "secondary",
+        "displayName": "App Wiki",
+        "canonical": "#007cbb"
+      },
+      "app-formulaire": {
+        "role": "secondary",
+        "displayName": "App Formulaire",
+        "canonical": "#008478"
+      },
+      "app-tresorerie": {
+        "role": "secondary",
+        "displayName": "App Tresorerie",
+        "canonical": "#3c72da"
+      },
+      "app-savoir": {
+        "role": "secondary",
+        "displayName": "App Savoir",
+        "canonical": "#a853c1"
+      },
+      "app-cine": {
+        "role": "secondary",
+        "displayName": "App Cine",
+        "canonical": "#cd3d83"
+      },
+      "app-convert": {
+        "role": "secondary",
+        "displayName": "App Convert",
+        "canonical": "#9d6d1c"
+      },
+      "app-portfolio": {
+        "role": "secondary",
+        "displayName": "App Portfolio",
+        "canonical": "#4a5468"
+      },
+      "app-ops": {
+        "role": "secondary",
+        "displayName": "App Ops",
+        "canonical": "#895bd5"
+      },
+      "app-mission": {
+        "role": "secondary",
+        "displayName": "App Mission",
+        "canonical": "#b55d00"
+      },
+      "app-datamind": {
+        "role": "secondary",
+        "displayName": "App Datamind",
+        "canonical": "#6967e1"
+      },
+      "app-suivi": {
+        "role": "secondary",
+        "displayName": "App Suivi",
+        "canonical": "#008295"
+      },
+      "app-dates": {
+        "role": "secondary",
+        "displayName": "App Dates",
+        "canonical": "#db373a"
+      },
+      "app-cuisine": {
+        "role": "secondary",
+        "displayName": "App Cuisine",
+        "canonical": "#8568a7"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Titre de page",
+        "purpose": "Titre d'une page autonome (connexion)."
+      },
+      "title": {
+        "displayName": "Titre",
+        "purpose": "Titre d'un état vide."
+      },
+      "title-sm": {
+        "displayName": "Fort",
+        "purpose": "Nom de l'espace, nom en tuile, saisie, bouton large."
+      },
+      "body": {
+        "displayName": "Base",
+        "purpose": "Texte courant, rôles, notes de groupe."
+      },
+      "label": {
+        "displayName": "Libellé",
+        "purpose": "Boutons, navigation, noms en liste, libellés de champ."
+      },
+      "label-sm": {
+        "displayName": "Petit",
+        "purpose": "États, segmenté, case à cocher, santé, latences."
+      },
+      "meta": {
+        "displayName": "Méta",
+        "purpose": "Compteurs, numéros de raccourci, sections de navigation ; chiffres tabulaires."
+      }
+    },
+    "shadows": [
+      {
+        "name": "seg-pressed",
+        "value": "0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--line)",
+        "purpose": "Option active du contrôle segmenté."
+      },
+      {
+        "name": "appicon-relief",
+        "value": "inset 0 0 0 0.5px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.22)",
+        "purpose": "Bord et reflet de l'icône d'app."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px var(--accent-soft)",
+        "purpose": "Champ ou recherche en focus."
+      },
+      {
+        "name": "shadow-pop",
+        "value": "0 1px 2px rgb(16 17 20 / 0.06), 0 8px 24px -8px rgb(16 17 20 / 0.18)",
+        "purpose": "Panneaux flottants et dialogues ; provisoire, pas encore exercé. Sombre : 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -10px rgb(0 0 0 / 0.7)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Glissés d'arrivée (flèche de sélection, contenu 4 px)."
+      },
+      {
+        "name": "t-fast",
+        "value": "120ms",
+        "purpose": "Fonds, bords et couleurs au survol et au focus."
+      },
+      {
+        "name": "t-med",
+        "value": "200ms",
+        "purpose": "Déplacement de la flèche de sélection."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0ms",
+        "purpose": "Sous prefers-reduced-motion, toute transition et animation est coupée."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "760px",
+        "purpose": "Coquille en une colonne ; défini dans la page du portail, pas encore dans atelier.css."
+      }
+    ],
+    "layout": {
+      "side-w": "232px",
+      "top-h": "44px",
+      "row-h": "40px",
+      "row-h-narrow": "52px"
+    },
+    "theme": {
+      "cookie": "atelier_theme",
+      "values": [
+        "system",
+        "light",
+        "dark"
+      ],
+      "domain": "Domain=<ATELIER_DOMAIN>; Path=/; Max-Age=31536000; SameSite=Lax (+ Secure en https)",
+      "apply": "Script en ligne avant la feuille de style ; pose html[data-theme=light|dark] et data-theme-pref."
+    },
+    "assets": {
+      "stylesheet": "/atelier.css",
+      "iconSprite": "/atelier-icons.svg (i-* interface, app-<id> par app, atelier-mark)",
+      "fonts": "/fonts/inter-latin-wght-normal.woff2, /fonts/inter-latin-ext-wght-normal.woff2",
+      "cors": "Access-Control-Allow-Origin: *"
+    }
+  },
+  "components": [
+    {
+      "name": "Bouton principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Action principale, une seule par écran (Se connecter).",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Se connecter</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 30px; padding: 0 12px; font: 500 13px/1 Inter, ui-sans-serif, system-ui, sans-serif; font-feature-settings: \"cv11\", \"ss03\"; border-radius: 7px; cursor: pointer; transition: background 120ms, border-color 120ms, color 120ms; } .ds-btn-primary { background: var(--accent, #5b5bd6); color: var(--accent-ink, #ffffff); border: 1px solid transparent; } .ds-btn-primary:hover { background: color-mix(in oklab, var(--accent, #5b5bd6) 88%, var(--ink, #1a1b1e)); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent, #5b5bd6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Bouton",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Action secondaire sur surface, bord appuyé.",
+      "html": "<button class=\"ds-btn-default\">Effacer la recherche</button>",
+      "css": ".ds-btn-default { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; font: 500 13px/1 Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink, #1a1b1e); background: var(--surface, #ffffff); border: 1px solid var(--line-strong, #d0d2d8); border-radius: 7px; cursor: pointer; transition: background 120ms; } .ds-btn-default:hover { background: var(--hover, #eeeff2); } .ds-btn-default:active { background: var(--selected, #e7e8ee); } .ds-btn-default:focus-visible { outline: 2px solid var(--accent, #5b5bd6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Bouton fantôme (icône)",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Commande d'appoint en icône seule : rafraîchir, se déconnecter.",
+      "html": "<button class=\"ds-btn-ghost\" title=\"Vérifier maintenant\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; color: var(--muted, #5f636c); background: transparent; border: 1px solid transparent; border-radius: 7px; cursor: pointer; transition: background 120ms, color 120ms; } .ds-btn-ghost:hover { background: var(--hover, #eeeff2); color: var(--ink, #1a1b1e); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--accent, #5b5bd6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Champ",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Champ libellé au-dessus, focus indigo avec halo.",
+      "html": "<label class=\"ds-field\">Identifiant<input class=\"ds-input\" placeholder=\"francois\"></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font: 500 13px Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink-2, #393c42); width: 280px; } .ds-input { height: 36px; padding: 0 12px; font: 400 14px Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink, #1a1b1e); background: var(--surface, #ffffff); border: 1px solid var(--line-strong, #d0d2d8); border-radius: 7px; transition: border-color 120ms, box-shadow 120ms; } .ds-input::placeholder { color: var(--faint, #6c7079); } .ds-input:hover { border-color: color-mix(in oklab, var(--line-strong, #d0d2d8) 60%, var(--muted, #5f636c)); } .ds-input:focus { outline: none; border-color: var(--accent, #5b5bd6); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent, #5b5bd6) 14%, transparent); }"
+    },
+    {
+      "name": "Navigation latérale",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Éléments de barre latérale : icône, libellé, compteur ; courant en sélection neutre.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" aria-current=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>Toutes les apps<span class=\"ds-count\">17</span></a><a class=\"ds-nav-item\"><svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"9.5\"/><path d=\"M12 7v5l3.2 2\"/></svg>Récentes</a><a class=\"ds-nav-item\"><svg viewBox=\"0 0 24 24\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4M12 17h.01\"/></svg>Incidents<span class=\"ds-count ds-count-alert\">2</span></a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 1px; width: 216px; padding: 8px; background: var(--bg-side, #f4f5f7); } .ds-nav-item { display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 8px; font: 500 13px/1 Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink-2, #393c42); border-radius: 7px; cursor: pointer; transition: background 120ms, color 120ms; } .ds-nav-item svg { width: 16px; height: 16px; fill: none; stroke: var(--faint, #6c7079); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; } .ds-nav-item:hover { background: var(--hover, #eeeff2); color: var(--ink, #1a1b1e); } .ds-nav-item[aria-current=\"true\"] { background: var(--selected, #e7e8ee); color: var(--ink, #1a1b1e); } .ds-nav-item[aria-current=\"true\"] svg { stroke: var(--ink, #1a1b1e); } .ds-nav-item:focus-visible { outline: 2px solid var(--accent, #5b5bd6); outline-offset: 2px; } .ds-count { margin-left: auto; font: 500 11.5px/1 Inter, ui-sans-serif, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: var(--faint, #6c7079); } .ds-count-alert { color: var(--down, #c9302b); }"
+    },
+    {
+      "name": "Contrôle segmenté",
+      "kind": "chip",
+      "refersTo": "segmented",
+      "description": "Bascule à options exclusives : vue Liste / Icônes, thème Système / Clair / Sombre.",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">Liste</button><button aria-pressed=\"false\">Icônes</button></div>",
+      "css": ".ds-seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--hover, #eeeff2); border-radius: 7px; } .ds-seg button { height: 24px; padding: 0 8px; font: 500 12px/1 Inter, ui-sans-serif, system-ui, sans-serif; color: var(--muted, #5f636c); background: transparent; border: 0; border-radius: 5px; cursor: pointer; transition: background 120ms, color 120ms; } .ds-seg button:hover { color: var(--ink, #1a1b1e); } .ds-seg button[aria-pressed=\"true\"] { background: var(--surface, #ffffff); color: var(--ink, #1a1b1e); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--line, #e3e4e8); } .ds-seg button:focus-visible { outline: 2px solid var(--accent, #5b5bd6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Touche de clavier",
+      "kind": "custom",
+      "refersTo": "kbd",
+      "description": "Légende de raccourci, bord inférieur épaissi.",
+      "html": "<span class=\"ds-hint\"><kbd class=\"ds-kbd\">⌘</kbd><kbd class=\"ds-kbd\">K</kbd> rechercher</span>",
+      "css": ".ds-hint { display: inline-flex; align-items: center; gap: 5px; font: 400 12px Inter, ui-sans-serif, system-ui, sans-serif; color: var(--faint, #6c7079); } .ds-kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; font: 500 11px/1 Inter, ui-sans-serif, system-ui, sans-serif; color: var(--muted, #5f636c); background: var(--surface, #ffffff); border: 1px solid var(--line, #e3e4e8); border-bottom-width: 2px; border-radius: 4px; }"
+    },
+    {
+      "name": "Icône d'app",
+      "kind": "custom",
+      "refersTo": "app-icon",
+      "description": "Signature : carré arrondi en dégradé de --app, glyphe trait blanc du sprite.",
+      "html": "<span class=\"ds-appicon\" style=\"--app: oklch(0.57 0.18 318)\"><svg viewBox=\"0 0 24 24\"><path d=\"M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z\"/><path d=\"M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5\"/></svg></span> <span class=\"ds-appicon ds-appicon-lg\" style=\"--app: oklch(0.64 0.17 45)\"><svg viewBox=\"0 0 24 24\"><rect width=\"8\" height=\"8\" x=\"3\" y=\"3\" rx=\"2\"/><path d=\"M7 11v4a2 2 0 0 0 2 2h4\"/><rect width=\"8\" height=\"8\" x=\"13\" y=\"13\" rx=\"2\"/></svg></span> <span class=\"ds-appicon ds-appicon-lg ds-down\" style=\"--app: oklch(0.68 0.15 88)\"><svg viewBox=\"0 0 24 24\"><path d=\"M3 3v16a2 2 0 0 0 2 2h16\"/><path d=\"M18 17V9M13 17V5M8 17v-3\"/></svg></span>",
+      "css": ".ds-appicon { --size: 20px; display: inline-grid; place-items: center; vertical-align: middle; width: var(--size); height: var(--size); border-radius: 5px; background: linear-gradient(180deg, color-mix(in oklab, var(--app, #888) 78%, white), var(--app, #888)); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.22); color: #ffffff; } .ds-appicon svg { width: 62%; height: 62%; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; } .ds-appicon-lg { --size: 44px; border-radius: 11px; } .ds-appicon-lg svg { stroke-width: 1.9; } .ds-down { filter: grayscale(0.85); opacity: 0.55; }"
+    },
+    {
+      "name": "Ligne de liste",
+      "kind": "card",
+      "refersTo": "list-row",
+      "description": "Ligne dense de 40 px : touche, icône, nom, rôle, état, latence, flèche ; sélection en voile indigo.",
+      "html": "<div class=\"ds-list\"><a class=\"ds-row\" style=\"--app: oklch(0.64 0.17 45)\"><span class=\"ds-k\">1</span><span class=\"ds-ic\"></span><span class=\"ds-name\">Nexus</span><span class=\"ds-role\">Workflows et agents IA de la suite</span><span class=\"ds-state ds-partial\">Démarrage partiel</span><span class=\"ds-ms\">—</span><svg class=\"ds-go\" viewBox=\"0 0 24 24\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a><a class=\"ds-row ds-sel\" style=\"--app: oklch(0.57 0.18 318)\"><span class=\"ds-k\">8</span><span class=\"ds-ic\"></span><span class=\"ds-name\">Savoir</span><span class=\"ds-role\">Cours, fiches et révisions</span><span></span><span class=\"ds-ms\">31 ms</span><svg class=\"ds-go\" viewBox=\"0 0 24 24\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a><a class=\"ds-row ds-is-down\" style=\"--app: oklch(0.68 0.15 88)\"><span class=\"ds-k\">2</span><span class=\"ds-ic\"></span><span class=\"ds-name\">Viz</span><span class=\"ds-role\">BI : jeux de données, rapports, alertes</span><span class=\"ds-state ds-dn\">Hors ligne</span><span class=\"ds-ms\">—</span><svg class=\"ds-go\" viewBox=\"0 0 24 24\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a></div>",
+      "css": ".ds-list { width: 760px; background: var(--bg, #fbfbfc); font: 400 13px/1.45 Inter, ui-sans-serif, system-ui, sans-serif; font-feature-settings: \"cv11\", \"ss03\"; color: var(--ink, #1a1b1e); } .ds-row { display: grid; grid-template-columns: 22px 20px 110px minmax(0, 1fr) 130px 52px 16px; align-items: center; gap: 12px; min-height: 40px; padding: 0 20px; border-bottom: 1px solid var(--line, #e3e4e8); cursor: pointer; transition: background 120ms; } .ds-row:hover { background: var(--hover, #eeeff2); } .ds-row.ds-sel { background: color-mix(in oklab, var(--accent, #5b5bd6) 14%, transparent); } .ds-k { font-size: 11.5px; color: var(--faint, #6c7079); text-align: center; font-variant-numeric: tabular-nums; } .ds-ic { width: 20px; height: 20px; border-radius: 5px; background: linear-gradient(180deg, color-mix(in oklab, var(--app) 78%, white), var(--app)); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.22); } .ds-name { font-weight: 500; } .ds-role { color: var(--muted, #5f636c); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-ms { text-align: right; font-size: 12px; color: var(--muted, #5f636c); font-variant-numeric: tabular-nums; } .ds-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; } .ds-state::before { content: \"\"; width: 8px; height: 8px; border-radius: 50%; } .ds-partial { color: var(--partial, #a35f00); } .ds-partial::before { background: var(--partial-dot, #e39b1b); } .ds-dn { color: var(--down, #c9302b); font-weight: 500; } .ds-dn::before { background: var(--down-dot, #e5484d); } .ds-go { width: 16px; height: 16px; fill: none; stroke: var(--faint, #6c7079); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: translateX(-3px); transition: opacity 120ms, transform 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-row.ds-sel .ds-go { opacity: 1; transform: none; stroke: var(--accent, #5b5bd6); } .ds-is-down .ds-ic { filter: grayscale(0.85); opacity: 0.55; } .ds-is-down .ds-name { color: var(--muted, #5f636c); }"
+    },
+    {
+      "name": "Message d'erreur",
+      "kind": "custom",
+      "refersTo": "error",
+      "description": "Encadré d'alerte au-dessus d'un formulaire.",
+      "html": "<p class=\"ds-error\" role=\"alert\">Identifiant ou mot de passe incorrect.</p>",
+      "css": ".ds-error { display: flex; gap: 8px; margin: 0; padding: 10px 12px; width: 300px; font: 400 13px/1.45 Inter, ui-sans-serif, system-ui, sans-serif; color: var(--down, #c9302b); background: color-mix(in oklab, var(--down, #c9302b) 9%, transparent); border: 1px solid color-mix(in oklab, var(--down, #c9302b) 30%, transparent); border-radius: 7px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "L'établi rangé",
+    "overview": "**Creative North Star: \"L'établi rangé\"**\n\nLa Suite Atelier est un outil, pas une vitrine. Chaque écran se lit comme un établi bien rangé : une barre latérale où l'on choisit, une zone principale en lignes denses où l'on agit, et le clavier qui va plus vite que la souris. Le niveau de finition visé est celui de Linear, joué franc : neutres froids, Inter à 13 px, traits fins, aucun ornement qui ne porte pas d'information.\n\nLa couleur est rare et toujours fonctionnelle. Un seul accent indigo pour la sélection, le focus et l'action principale ; les couleurs d'état n'apparaissent que lorsqu'un service ne va pas bien ; la seule couleur « décorative » admise est celle de chaque app, enfermée dans son icône. La profondeur vient des tons (barre latérale un cran plus sombre que le fond) et des filets d'un pixel, presque jamais des ombres.\n\nLe système est un fichier unique, `atelier.css`, servi par le portail avec ses icônes (`atelier-icons.svg`) et ses fontes (`/fonts/*.woff2`), en CORS ouvert : chaque app de la suite, quelle que soit sa techno, le lie ou le recopie tel quel, sans outillage. Clair et sombre sont deux jeux de jetons sur `html[data-theme]`, et le choix de l'utilisateur suit d'une app à l'autre.",
+    "keyCharacteristics": [
+      "Coquille barre latérale 232 px + barre haute 44 px + lignes de 40 px.",
+      "Inter variable auto-hébergée, base 13 px, chiffres tabulaires pour toute mesure.",
+      "Un accent indigo, des états vert/ambre/rouge seulement hors nominal.",
+      "Chaque app identifiée par sa couleur `--app` et son glyphe `app-<id>` dans un carré arrondi en dégradé.",
+      "Thème Système/Clair/Sombre partagé par cookie entre tous les sous-domaines.",
+      "Plat par défaut : tons et filets plutôt qu'ombres."
+    ],
+    "rules": [
+      {
+        "name": "La règle du témoin muet",
+        "body": "Un service en bonne santé n'affiche que sa latence (« 31 ms », ou « statique »), sans pastille ni mot ni couleur. Ambre « Démarrage partiel », rouge « Hors ligne », cercle vide « Vérification… » : la couleur d'état n'existe que pour ce qui demande l'attention. Le vert ne sert qu'au résumé global quand tout répond.",
+        "section": "colors"
+      },
+      {
+        "name": "La règle de l'accent unique",
+        "body": "L'indigo signifie « ici, maintenant » : sélection, focus, action principale. Il n'habille ni titres, ni fonds de section, ni illustrations. Une app qui adopte un accent propre (permis par PRODUCT.md) redéfinit `--accent` dans les deux thèmes ; elle n'ajoute pas une seconde couleur d'action.",
+        "section": "colors"
+      },
+      {
+        "name": "La règle de l'app par sa couleur",
+        "body": "Une app se reconnaît à deux choses, toujours ensemble : sa couleur `--app` et son glyphe `app-<id>` dans l'icône carrée en dégradé. Pas de logo bitmap, pas de couleur d'app hors de l'icône.",
+        "section": "colors"
+      },
+      {
+        "name": "La règle des chiffres alignés",
+        "body": "Toute mesure (latence, compteur, heure, « 12 sur 14 ») est en chiffres tabulaires.",
+        "section": "typography"
+      },
+      {
+        "name": "La règle de la casse de phrase",
+        "body": "Pas de capitales ni d'espacement élargi : intitulés, boutons et sections sont en casse de phrase, en français, au tutoiement.",
+        "section": "typography"
+      },
+      {
+        "name": "La règle du plat au repos",
+        "body": "Une surface au repos n'a pas d'ombre. Seul ce qui flotte réellement au-dessus du contenu (dialogue, menu) a droit au surgissement.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** lier ou recopier `atelier.css` et `atelier-icons.svg` tels quels, et précharger `/fonts/inter-latin-wght-normal.woff2`.",
+      "**Do** appliquer le thème avant l'affichage avec le script du cookie `atelier_theme`, et écrire le cookie sur `Domain=<ATELIER_DOMAIN>`.",
+      "**Do** identifier chaque app par `--app` et son glyphe `app-<id>` dans l'icône en dégradé, et ajouter le glyphe au sprite quand une app arrive.",
+      "**Do** montrer la sélection par `accent-soft` et une flèche indigo, et le courant de navigation par `selected` neutre.",
+      "**Do** laisser un service sain silencieux : latence seule, en chiffres tabulaires.",
+      "**Do** réutiliser le traitement `.is-down` unique pour tout service tombé.",
+      "**Do** tenir le pas de 4 px, les lignes de 40 px et la base de 13 px sur Mac.",
+      "**Do** garder les deux thèmes en jetons : toute nouvelle couleur reçoit une valeur claire et une valeur sombre."
+    ],
+    "donts": [
+      "**Don't** construire une grille de tuiles illustrées ou de logos néon en guise d'accueil ; la vue en icônes reste une liste disposée en grille.",
+      "**Don't** colorer un état nominal (pas de pastille verte, pas de « En ligne » par ligne).",
+      "**Don't** utiliser l'indigo comme décor, ni la couleur d'une app hors de son icône.",
+      "**Don't** inventer un autre traitement pour un service tombé, ni une autre clé de stockage du thème.",
+      "**Don't** poser d'ombre sur une surface au repos.",
+      "**Don't** employer de caractères ou d'emoji comme icônes : toute icône vient du sprite à trait ; seules les légendes de touches restent du texte.",
+      "**Don't** écrire d'intitulés en capitales espacées ni de surtitres au-dessus des titres."
+    ]
+  }
+}
