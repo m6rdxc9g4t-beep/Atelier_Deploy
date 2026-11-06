@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -8,217 +8,408 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=1">
 <meta name="apple-mobile-web-app-title" content="Suite Atelier">
 <meta name="color-scheme" content="light dark">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+/* Thème de la suite : cookie atelier_theme (system|light|dark) partagé par tous les sous-domaines. */
+(function(){
+  var m = document.cookie.match(/(?:^|; )atelier_theme=(light|dark|system)/);
+  var pref = m ? m[1] : 'system';
+  var dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.documentElement.dataset.themePref = pref;
+})();
+</script>
+<link rel="stylesheet" href="/atelier.css?v=1">
 <style>
-:root{
-  --bg:#FAF7F4; --surface:#FFFFFF; --surface-2:#F4EEE9;
-  --fg:#1E1611; --muted:#6B5D54; --faint:#A39388;
-  --line:rgba(34,20,13,.12); --grid:rgba(34,20,13,.045);
-  --up:#2F8F5B; --down:#C2410C; --partial:#B7791F;
-  --f-display:"Nunito",ui-rounded,"SF Pro Rounded","Segoe UI",system-ui,sans-serif;
-  --f-body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+/* Portail : ce qui n'appartient qu'à cette page. Le reste vient d'atelier.css. */
+.search {
+  display: flex; align-items: center; gap: 8px; height: 30px; margin: 0 0 10px; padding: 0 6px 0 9px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); color: var(--faint);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
 }
-@media (prefers-color-scheme: dark){:root{
-  --bg:#0F0C0A; --surface:#17120F; --surface-2:#1F1814;
-  --fg:#F4ECE6; --muted:#B3A398; --faint:#76665C;
-  --line:rgba(255,236,224,.11); --grid:rgba(255,236,224,.035);
-  --up:#6FD39B; --down:#FF8A5C; --partial:#F5C26B;
-}}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
-body{
-  color:var(--fg);font:15px/1.5 var(--f-body);
-  background:
-    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/32px 32px,
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/32px 32px,
-    var(--bg);
-}
-.wrap{max-width:1040px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:28px;min-height:100vh}
-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px}
-.mark{display:block;width:40px;height:40px;filter:drop-shadow(0 0 10px rgba(63,216,255,.35))}
-h1{font:900 22px/1 var(--f-display);margin:0;letter-spacing:-.01em}
-h1 span{color:var(--faint);font-weight:800}
-.who{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px}
-.who form{margin:0}
-button.ghost{font:600 13px var(--f-body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
-button.ghost:hover,button.ghost:focus-visible{color:var(--fg);border-color:var(--fg);outline:none}
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; font: 400 var(--t-base) var(--font); color: var(--ink); }
+.search input::placeholder { color: var(--faint); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search .at-kbd { border-bottom-width: 1px; }
+.side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding-top: 12px; }
+.theme { align-self: flex-start; margin-left: 4px; }
+.theme button { padding: 0 7px; }
+.me { display: flex; align-items: center; gap: 9px; padding: 4px 4px 4px 8px; border-radius: var(--r-md); }
+.avatar { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 11px; font-weight: 600; color: var(--ink); background: var(--selected); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.me #user { flex: 1; min-width: 0; font-weight: 500; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+.me form { margin: 0; }
 
-.intro h2{font:800 clamp(26px,4vw,36px)/1.1 var(--f-display);margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
-.intro p{margin:0;color:var(--muted)}
+.health { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: var(--t-small); white-space: nowrap; }
+.health b { font-weight: 500; color: var(--ink-2); }
+#refresh.is-busy .ic { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:16px}
-.app{
-  --sig:#888;position:relative;display:flex;flex-direction:column;gap:14px;min-height:190px;
-  padding:20px;border-radius:20px;text-decoration:none;color:inherit;
-  background:var(--surface);border:1px solid var(--line);
-  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
-}
-.app::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;box-shadow:0 0 0 2px var(--sig),0 10px 40px -8px color-mix(in oklab,var(--sig) 55%,transparent);opacity:0;transition:opacity .18s ease}
-.app:hover,.app:focus-visible{transform:translateY(-3px);outline:none}
-.app:hover::after,.app:focus-visible::after{opacity:1}
-.app.last{border-color:color-mix(in oklab,var(--sig) 60%,var(--line))}
-.visual{position:relative;display:grid;place-items:center;height:150px;margin:-6px -6px 0;border-radius:14px;
-  background:radial-gradient(ellipse at 50% 60%,color-mix(in oklab,var(--sig) 22%,transparent),transparent 70%),#0F0C0A}
-.visual img{max-width:88%;max-height:138px;object-fit:contain;filter:drop-shadow(0 6px 18px color-mix(in oklab,var(--sig) 35%,transparent));transition:transform .18s ease}
-.visual.is-icon img{max-height:96px;max-width:96px;border-radius:24px}
-.app:hover .visual img,.app:focus-visible .visual img{transform:scale(1.04)}
-.key{position:absolute;top:8px;right:8px;font:600 12px var(--f-mono);color:#CDBFB6;background:rgba(15,12,10,.7);border:1px solid rgba(255,236,224,.18);border-radius:6px;padding:1px 7px}
-.app h3{font:800 22px/1.1 var(--f-display);margin:0}
-.app p{margin:4px 0 0;color:var(--muted);font-size:14px}
-.foot{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:3px;font-size:13px;color:var(--muted);min-width:0}
-.state{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--faint)}
-.state[data-s="up"] .dot{background:var(--up);box-shadow:0 0 0 3px color-mix(in oklab,var(--up) 22%,transparent)}
-.state[data-s="down"] .dot{background:var(--down)}
-.state[data-s="partial"] .dot{background:var(--partial)}
-.host{font:12px var(--f-mono);color:var(--faint);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.badge{font:700 11px var(--f-body);letter-spacing:.04em;text-transform:uppercase;color:var(--sig);background:color-mix(in oklab,var(--sig) 14%,transparent);border-radius:6px;padding:2px 7px}
-@media (prefers-color-scheme: dark){.badge{color:color-mix(in oklab,var(--sig) 85%,white)}}
+/* Lignes */
+.at-row { grid-template-columns: 22px 20px minmax(110px, 160px) minmax(0, 1fr) 150px 64px 16px; }
+.k { font-size: var(--t-meta); color: var(--faint); text-align: center; font-variant-numeric: tabular-nums; }
+.name { font-weight: 500; font-size: var(--t-base); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.role { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ms { text-align: right; color: var(--muted); font-size: var(--t-small); font-variant-numeric: tabular-nums; }
+.go { color: var(--faint); opacity: 0; transform: translateX(-3px); transition: opacity var(--t-fast), transform var(--t-med) var(--ease-out); }
+.at-row.is-sel .go, .tile.is-sel .go { opacity: 1; transform: none; color: var(--accent); }
+.ext-mark { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: var(--t-small); }
+.ext-mark .ic { width: 13px; height: 13px; }
+.last { font-size: var(--t-meta); color: var(--accent); font-weight: 500; margin-left: 6px; }
 
-.group{display:flex;flex-direction:column;gap:12px}
-.group-title{font:800 13px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.group-title small{font-weight:500;letter-spacing:0;text-transform:none;color:var(--faint);font-size:13px}
-.app[aria-disabled="true"]{opacity:.55;pointer-events:none}
-.arrow{font:700 15px var(--f-body);color:var(--faint)}
-.options{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;color:var(--muted);font-size:14px}
-.options label{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
-.options input{accent-color:#E8590C;width:16px;height:16px}
-.refresh{margin-left:auto;font:12px var(--f-mono);color:var(--faint)}
-footer{margin-top:auto;color:var(--faint);font-size:13px}
-kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
-/* Téléphone : deux colonnes compactes, sans raccourcis clavier ni adresse */
-@media (max-width:560px){
-  .apps{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .app{padding:10px 10px 12px;min-height:0;gap:8px;border-radius:16px}
-  .visual{height:112px;margin:0}
-  .visual img{max-height:100px;max-width:92%}
-  .visual.is-icon img{max-height:72px;max-width:72px;border-radius:18px}
-  .app h3{font-size:17px}
-  .app p{font-size:12.5px;line-height:1.35;margin-top:2px}
-  .key,.host{display:none}
-  .foot{font-size:12px}
-  .intro h2{font-size:26px}
+/* Icônes */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 8px; padding: 14px 20px 22px; }
+.tile {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 14px 12px;
+  color: inherit; text-decoration: none; border-radius: var(--r-lg); border: 1px solid transparent;
+  transition: background var(--t-fast), border-color var(--t-fast);
 }
-@media (prefers-reduced-motion: reduce){.app,.app::after{transition:none}.app:hover{transform:none}}
+.tile:hover { background: var(--hover); }
+.tile.is-sel { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+.tile .k { position: absolute; top: 10px; right: 10px; }
+.tile .name { font-size: var(--t-strong); }
+.tile .role { white-space: normal; font-size: var(--t-small); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.7em; }
+.tile .foot { display: flex; align-items: center; gap: 8px; width: 100%; }
+.tile .foot { min-height: 18px; }
+.tile .foot .ms { text-align: left; }
+.tile .go { position: absolute; right: 12px; bottom: 12px; }
+
+.empty { padding: 56px 20px; text-align: center; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-weight: 600; font-size: var(--t-title); margin-bottom: 4px; }
+.empty .at-btn { margin-top: 14px; }
+.hint { padding: 16px 20px 28px; color: var(--faint); font-size: var(--t-small); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.hint span { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Arrivée : le contenu est visible d'emblée, seul un léger glissé l'accompagne. */
+@media (prefers-reduced-motion: no-preference) {
+  .at-main.is-ready #content { animation: arrive 360ms var(--ease-out); }
+}
+@keyframes arrive { from { transform: translateY(4px); } to { transform: none; } }
+
+/* Fenêtre étroite : la barre latérale passe en haut */
+@media (max-width: 760px) {
+  :root { --t-base: 14px; --row-h: 52px; }
+  .at-shell { grid-template-columns: 1fr; background: none; }
+  .at-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; padding: max(10px, env(safe-area-inset-top)) 14px 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .at-ws { padding: 0; flex: 1; }
+  .search { order: 3; flex-basis: 100%; height: 36px; margin: 0; }
+  .search .at-kbd { display: none; }
+  .at-nav { order: 4; flex-basis: 100%; flex-direction: row; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 0 14px; }
+  .at-nav-sec { display: none; }
+  .at-nav-item { width: auto; flex: none; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; }
+  .at-nav-item .at-count { margin-left: 2px; }
+  .at-nav-item .ic { display: none; }
+  .at-nav-item[data-filter="incidents"] { order: -1; }
+  .at-nav-item[data-filter="all"] { order: -2; }
+  .at-top h1 { display: none; }
+  .side-foot { order: 2; margin: 0; padding: 0; flex-direction: row; align-items: center; gap: 4px; }
+  .me #user { display: none; }
+  .me { padding: 0; }
+  .at-top { top: 0; padding: 0 14px; flex-wrap: wrap; }
+  .at-top .at-check, .hint, #refresh { display: none; }
+  .at-ghead { position: static; padding: 9px 14px; }
+  .at-top { position: static; padding: 6px 14px; }
+  .at-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 8px 14px; gap: 12px; }
+  .at-row .at-appicon { --size: 28px; border-radius: var(--r-md); }
+  .at-row .k, .at-row .ms, .at-row .go { display: none; }
+  .at-row .name-role { display: flex; flex-direction: column; min-width: 0; }
+  .at-row .role { font-size: var(--t-small); }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 14px 20px; }
+  .tile .k { display: none; }
+}
+@media (min-width: 761px) { .at-row .name-role { display: contents; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <img class="mark" src="/icones/logo-96.png?v=1" alt="" width="40" height="40">
-      <h1>Suite <span>Atelier</span></h1>
+{{ICONES}}
+<div class="at-shell">
+  <aside class="at-side" aria-label="Navigation de la suite">
+    <div class="at-ws"><svg aria-hidden="true"><use href="#atelier-mark"/></svg>Suite Atelier</div>
+
+    <label class="search">
+      <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+      <span class="sr-only">Rechercher une app</span>
+      <input id="q" type="search" placeholder="Ouvrir une app…" autocomplete="off" spellcheck="false">
+      <kbd class="at-kbd">⌘K</kbd>
+    </label>
+
+    <nav class="at-nav" id="filters" aria-label="Filtres">
+      <button class="at-nav-item" data-filter="all"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Toutes les apps<span class="at-count" data-count="all"></span></button>
+      <button class="at-nav-item" data-filter="recent"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Récentes<span class="at-count" data-count="recent"></span></button>
+      <button class="at-nav-item" data-filter="incidents"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Incidents<span class="at-count" data-count="incidents"></span></button>
+      <div class="at-nav-sec">Groupes</div>
+      <button class="at-nav-item" data-filter="vps"><svg class="ic" aria-hidden="true"><use href="#i-server"/></svg>Sur le serveur<span class="at-count" data-count="vps"></span></button>
+      <button class="at-nav-item" data-filter="sites"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg>Sites &amp; tests<span class="at-count" data-count="sites"></span></button>
+      <button class="at-nav-item" data-filter="online"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>En ligne<span class="at-count" data-count="online"></span></button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="at-seg theme" role="group" aria-label="Thème">
+        <button type="button" data-theme-set="system" title="Thème du système"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-monitor"/></svg><span class="sr-only">Système</span></button>
+        <button type="button" data-theme-set="light" title="Thème clair"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sun"/></svg><span class="sr-only">Clair</span></button>
+        <button type="button" data-theme-set="dark" title="Thème sombre"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-moon"/></svg><span class="sr-only">Sombre</span></button>
+      </div>
+      <div class="me">
+        <span class="avatar" aria-hidden="true" id="initial"></span>
+        <span id="user">{{UTILISATEUR}}</span>
+        <form method="post" action="/deconnexion"><button class="at-btn at-btn--ghost at-btn--icon" type="submit" title="Se déconnecter"><svg class="ic" aria-hidden="true"><use href="#i-logout"/></svg><span class="sr-only">Se déconnecter</span></button></form>
+      </div>
     </div>
-    <div class="who">
-      <span>Connecté : <strong>{{UTILISATEUR}}</strong></span>
-      <form method="post" action="/deconnexion"><button class="ghost" type="submit">Se déconnecter</button></form>
+  </aside>
+
+  <main class="at-main" id="main">
+    <header class="at-top">
+      <h1 id="title">Toutes les apps</h1>
+      <div class="at-seg" role="group" aria-label="Affichage">
+        <button type="button" data-view="list"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-list"/></svg>Liste</button>
+        <button type="button" data-view="grid"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-grid"/></svg>Icônes</button>
+      </div>
+      <span class="at-spacer"></span>
+      <label class="at-check"><input type="checkbox" id="newtab">Nouvel onglet</label>
+      <span class="health" id="health" aria-live="polite"><span class="at-state" data-s="unknown"></span>Vérification…</span>
+      <button class="at-btn at-btn--ghost at-btn--icon" id="refresh" type="button" title="Vérifier maintenant"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only">Vérifier maintenant</span></button>
+    </header>
+    <div id="content"></div>
+    <div class="hint" aria-hidden="true">
+      <span><kbd class="at-kbd">1</kbd>–<kbd class="at-kbd">0</kbd> ouvrir</span>
+      <span><kbd class="at-kbd">↑</kbd><kbd class="at-kbd">↓</kbd> choisir</span>
+      <span><kbd class="at-kbd">↵</kbd> ouvrir · <kbd class="at-kbd">⌘</kbd><kbd class="at-kbd">↵</kbd> nouvel onglet</span>
+      <span><kbd class="at-kbd">⌘K</kbd> rechercher</span>
+      <span>{{DOMAINE}}</span>
     </div>
-  </header>
-
-  <section class="intro">
-    <h2>Quelle app ouvrir&nbsp;?</h2>
-    <p>Choisis une app, ou tape son numéro au clavier. Tu restes connecté sur toutes les apps de ton serveur.</p>
-  </section>
-
-  <section class="group" aria-labelledby="g-vps">
-    <h2 class="group-title" id="g-vps">Sur ton serveur</h2>
-    <nav class="apps" id="apps" aria-label="Apps hébergées sur le VPS"></nav>
-  </section>
-
-  <section class="group" aria-labelledby="g-sites" id="g-sites-wrap">
-    <h2 class="group-title" id="g-sites">Sites &amp; tests <small>simulations, maquettes et essais</small></h2>
-    <nav class="apps" id="sites" aria-label="Sites et tests"></nav>
-  </section>
-
-  <section class="group" aria-labelledby="g-online">
-    <h2 class="group-title" id="g-online">Apps en ligne <small>avec leur propre connexion</small></h2>
-    <nav class="apps" id="online" aria-label="Apps en ligne"></nav>
-  </section>
-
-  <div class="options">
-    <label><input type="checkbox" id="newtab"> Ouvrir dans un nouvel onglet</label>
-    <span class="refresh" id="refresh" aria-live="polite">État en cours de vérification…</span>
-  </div>
-
-  <footer>{{DOMAINE}} · <kbd>1</kbd>–<kbd>9</kbd> et <kbd>0</kbd> pour ouvrir une app</footer>
+  </main>
 </div>
 
 <script>
 const APPS = /*APPS*/[];
+const DOMAIN = '{{DOMAINE}}';
+const GROUPS = [
+  { id: 'vps', title: 'Sur le serveur', note: 'derrière la connexion du portail' },
+  { id: 'sites', title: 'Sites & tests', note: 'simulations, maquettes et essais' },
+  { id: 'online', title: 'En ligne', note: 'Vercel, avec leur propre connexion' },
+];
+const TITLES = { all: 'Toutes les apps', recent: 'Récentes', incidents: 'Incidents', vps: 'Sur le serveur', sites: 'Sites & tests', online: 'En ligne' };
 const LABELS = { up: 'En ligne', down: 'Hors ligne', partial: 'Démarrage partiel', unknown: 'Vérification…' };
 
 const store = {
-  get(k){ try { return localStorage.getItem(k) } catch { return null } },
-  set(k,v){ try { localStorage.setItem(k,v) } catch {} },
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch {} },
 };
+const groupOf = (a) => (a.external ? 'online' : a.group === 'sites' ? 'sites' : 'vps');
+APPS.forEach((a, i) => { a.key = i < 10 ? (i === 9 ? '0' : String(i + 1)) : ''; a.grp = groupOf(a) });
 
-const nav = document.getElementById('apps');
-const navOnline = document.getElementById('online');
-const navSites = document.getElementById('sites');
-document.getElementById('g-sites-wrap').hidden = !APPS.some(a => a.group === 'sites');
-const newtab = document.getElementById('newtab');
+const $ = (s) => document.querySelector(s);
+const content = $('#content');
+const q = $('#q');
+const newtab = $('#newtab');
+let statuses = {};
+let filter = store.get('atelier:filter') || 'all';
+let view = store.get('atelier:view') === 'grid' ? 'grid' : 'list';
+let sel = 0;
+let visible = [];
+
+$('#initial').textContent = ($('#user').textContent.trim()[0] || '?').toUpperCase();
 newtab.checked = store.get('atelier:newtab') === '1';
-newtab.addEventListener('change', () => { store.set('atelier:newtab', newtab.checked ? '1' : '0'); render(lastStatuses) });
+newtab.addEventListener('change', () => { store.set('atelier:newtab', newtab.checked ? '1' : '0'); render() });
 
-const keyOf = (i) => (i === 9 ? '0' : String(i + 1));
-let lastStatuses = {};
+// ── Thème ──
+function setTheme(pref) {
+  const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.documentElement.dataset.themePref = pref;
+  const secure = location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `atelier_theme=${pref}; Domain=${DOMAIN}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  document.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === pref)));
+}
+document.querySelectorAll('[data-theme-set]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeSet)));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (document.documentElement.dataset.themePref === 'system') setTheme('system') });
+setTheme(document.documentElement.dataset.themePref || 'system');
 
-function tile(a, i, s, last) {
-  const el = document.createElement('a');
-  el.className = 'app' + (a.external ? ' ext' : '') + (a.id === last ? ' last' : '');
-  el.style.setProperty('--sig', a.color);
-  if (a.url) el.href = a.url; else el.setAttribute('aria-disabled', 'true');
-  if (a.external || newtab.checked) { el.target = '_blank'; el.rel = 'noopener' }
-  const host = a.url ? new URL(a.url).host : '';
-  const state = a.external
-    ? (a.url ? '<span class="state"><span class="arrow" aria-hidden="true">↗</span>S\'ouvre dans un onglet</span>' : '<span class="state">Adresse à renseigner (.env)</span>')
-    : `<span class="state" data-s="${s.state}"><span class="dot" aria-hidden="true"></span>${LABELS[s.state]}${s.ms != null ? ` · ${s.ms} ms` : ''}</span>`;
-  el.innerHTML = `
-    <div class="visual${a.icon ? ' is-icon' : ''}"><img src="/logos/${a.id}.webp?v=5" alt="" width="320" height="280" loading="lazy" decoding="async">${i < 10 ? `<span class="key" aria-hidden="true">${keyOf(i)}</span>` : ''}</div>
-    <div><h3>${a.name}</h3><p>${a.role}</p></div>
-    <div class="foot">${state}${a.id === last ? '<span class="badge">Dernière</span>' : `<span class="host">${host}</span>`}</div>`;
-  el.addEventListener('click', () => store.set('atelier:last', a.id));
-  return el;
+// ── Récentes ──
+const recents = () => (store.get('atelier:recents') || '').split(',').filter((id) => APPS.some((a) => a.id === id));
+function noteOpen(a) {
+  store.set('atelier:recents', [a.id, ...recents().filter((id) => id !== a.id)].slice(0, 6).join(','));
+  store.set('atelier:last', a.id);
 }
 
-function render(statuses = {}) {
-  lastStatuses = statuses;
+const stateOf = (a) => (a.external ? 'ext' : (statuses[a.id] || { state: 'unknown' }).state);
+const isIncident = (a) => !a.external && ['down', 'partial'].includes(stateOf(a));
+const norm = (s) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
+function selectApps() {
+  const term = norm(q.value.trim());
+  if (term) {
+    // Rang : début du nom, puis nom, puis début d'un mot du rôle.
+    const rank = (a) => {
+      const n = norm(a.name), words = norm(a.role).split(/[^a-z0-9]+/);
+      return n.startsWith(term) ? 0 : n.includes(term) ? 1 : words.some((w) => w.startsWith(term)) ? 2 : 9;
+    };
+    return APPS.map((a) => ({ a, r: rank(a) })).filter((x) => x.r < 9).sort((x, y) => x.r - y.r).map((x) => x.a);
+  }
+  if (filter === 'recent') { const r = recents(); return r.map((id) => APPS.find((a) => a.id === id)) }
+  if (filter === 'incidents') return APPS.filter(isIncident);
+  if (filter === 'all') return APPS;
+  return APPS.filter((a) => a.grp === filter);
+}
+
+function stateHtml(a, short = false) {
+  if (a.external) return a.url
+    ? `<span class="ext-mark">Vercel<svg class="ic" aria-hidden="true"><use href="#i-external"/></svg></span>`
+    : `<span class="at-state" data-s="unknown">Adresse à renseigner</span>`;
+  const s = stateOf(a);
+  if (s === 'up') return '<span></span>';
+  return `<span class="at-state" data-s="${s}">${short && s === 'partial' ? 'Partiel' : LABELS[s]}</span>`;
+}
+function msHtml(a) {
+  const s = statuses[a.id];
+  if (a.external || !s) return '';
+  if (s.state !== 'up') return '—';
+  return s.ms != null ? `${s.ms} ms` : 'statique';
+}
+const icon = (a, size = '') => `<span class="at-appicon ${size}" style="--app:${a.color}" aria-hidden="true"><svg><use href="#app-${a.id}"/></svg></span>`;
+const goIcon = (a) => `<svg class="ic go" aria-hidden="true"><use href="#i-${a.external ? 'external' : 'arrow-right'}"/></svg>`;
+const opensNew = (a) => a.external || newtab.checked;
+const attrs = (a, i) => `${a.url ? `href="${a.url}"` : 'aria-disabled="true"'} data-i="${i}" style="--app:${a.color}"${opensNew(a) ? ' target="_blank" rel="noopener"' : ''}`;
+
+function itemHtml(a, i, last) {
+  const down = stateOf(a) === 'down' ? ' is-down' : '';
+  const lastBadge = a.id === last ? '<span class="last">Dernière</span>' : '';
+  const label = `${a.name}, ${a.role}. ${a.external ? 'S’ouvre sur Vercel' : LABELS[stateOf(a)]}`;
+  if (view === 'grid') {
+    return `<a class="tile${down}" ${attrs(a, i)} aria-label="${label}">
+      <span class="k">${a.key}</span>${icon(a, 'at-appicon--lg')}
+      <span><span class="name">${a.name}</span>${lastBadge}<span class="role">${a.role}</span></span>
+      <span class="foot">${stateOf(a) === 'up' ? `<span class="ms">${msHtml(a)}</span>` : stateHtml(a, true)}</span></a>`;
+  }
+  return `<a class="at-row${down}" ${attrs(a, i)} aria-label="${label}">
+    <span class="k">${a.key}</span>${icon(a)}
+    <span class="name-role"><span class="name">${a.name}${lastBadge}</span><span class="role">${a.role}</span></span>
+    ${stateHtml(a)}<span class="ms">${msHtml(a)}</span>${goIcon(a)}</a>`;
+}
+
+function render() {
+  const term = q.value.trim();
+  visible = selectApps();
+  sel = Math.min(sel, Math.max(visible.length - 1, 0));
   const last = store.get('atelier:last');
-  nav.innerHTML = ''; navOnline.innerHTML = ''; navSites.innerHTML = '';
-  APPS.forEach((a, i) => {
-    const s = statuses[a.id] || { state: 'unknown' };
-    (a.external ? navOnline : a.group === 'sites' ? navSites : nav).appendChild(tile(a, i, s, last));
+  $('#title').textContent = term ? `Résultats pour « ${term} »` : TITLES[filter];
+  document.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-current', String(!term && b.dataset.filter === filter)));
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+
+  const counts = { all: APPS.length, recent: recents().length, incidents: APPS.filter(isIncident).length };
+  GROUPS.forEach((g) => (counts[g.id] = APPS.filter((a) => a.grp === g.id).length));
+  document.querySelectorAll('[data-count]').forEach((c) => {
+    const n = counts[c.dataset.count];
+    c.textContent = n || '';
+    c.classList.toggle('at-count--alert', c.dataset.count === 'incidents' && n > 0);
   });
+
+  if (!visible.length) {
+    content.innerHTML = term
+      ? `<div class="empty"><strong>Aucune app ne correspond à « ${term.replace(/[<>&"]/g, '')} »</strong>Cherche par nom ou par rôle : « budget », « films », « agent »…<br><button class="at-btn" type="button" data-clear>Effacer la recherche</button></div>`
+      : filter === 'incidents'
+        ? `<div class="empty"><strong>Aucun incident</strong>Toutes les apps du serveur répondent.</div>`
+        : `<div class="empty"><strong>Pas encore d’app récente</strong>Les apps que tu ouvres depuis le portail apparaîtront ici.</div>`;
+    return;
+  }
+
+  // Regroupement : par groupe pour « toutes » et « incidents », liste plate sinon.
+  const grouped = !term && (filter === 'all' || filter === 'incidents');
+  const sections = grouped
+    ? GROUPS.map((g) => ({ g, apps: visible.filter((a) => a.grp === g.id) })).filter((s) => s.apps.length)
+    : [{ g: null, apps: visible }];
+  let i = 0;
+  const order = [];
+  content.innerHTML = sections.map(({ g, apps }) => {
+    const head = g ? `<div class="at-ghead"><b>${g.title}</b><span class="at-count">${apps.length}</span><span>${g.note}</span></div>` : '';
+    const items = apps.map((a) => { order.push(a); return itemHtml(a, i++, last) }).join('');
+    return head + (view === 'grid' ? `<div class="tiles">${items}</div>` : `<div role="list">${items}</div>`);
+  }).join('');
+  visible = order;
+  paintSel(false);
 }
 
+function items() { return [...content.querySelectorAll('[data-i]')] }
+const finePointer = matchMedia('(hover: hover)').matches;
+let usedKeys = false;
+function paintSel(scroll = true) {
+  const show = finePointer || usedKeys;
+  items().forEach((el) => el.classList.toggle('is-sel', show && Number(el.dataset.i) === sel));
+  const el = content.querySelector(`[data-i="${sel}"]`);
+  if (scroll && el) el.scrollIntoView({ block: 'nearest' });
+}
+function cols() {
+  if (view !== 'grid') return 1;
+  const grid = content.querySelector('.tiles');
+  return grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').length : 1;
+}
+function open(a, forceNew = false) {
+  if (!a || !a.url) return;
+  noteOpen(a);
+  if (forceNew || opensNew(a)) window.open(a.url, '_blank', 'noopener'); else location.assign(a.url);
+}
+
+content.addEventListener('mousemove', (e) => {
+  const el = e.target.closest('[data-i]');
+  if (el && Number(el.dataset.i) !== sel) { sel = Number(el.dataset.i); paintSel(false) }
+});
+content.addEventListener('click', (e) => {
+  if (e.target.closest('[data-clear]')) { q.value = ''; render(); q.focus(); return }
+  const el = e.target.closest('[data-i]');
+  if (el) noteOpen(visible[Number(el.dataset.i)]);
+});
+
+document.querySelectorAll('[data-filter]').forEach((b) => b.addEventListener('click', () => {
+  filter = b.dataset.filter; store.set('atelier:filter', filter); q.value = ''; sel = 0; render();
+}));
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+  view = b.dataset.view; store.set('atelier:view', view); render();
+}));
+q.addEventListener('input', () => { sel = 0; render() });
+
+document.addEventListener('keydown', (e) => {
+  const inSearch = e.target === q;
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); q.focus(); q.select(); return }
+  if (e.key === '/' && !inSearch) { e.preventDefault(); q.focus(); return }
+  if (e.key === 'Escape' && inSearch) { if (q.value) { q.value = ''; render() } else q.blur(); return }
+  const step = { ArrowDown: cols(), ArrowUp: -cols(), ArrowRight: view === 'grid' ? 1 : 0, ArrowLeft: view === 'grid' ? -1 : 0 }[e.key];
+  if (step !== undefined && step !== 0 && (inSearch ? e.key.startsWith('Arrow') && (e.key === 'ArrowDown' || e.key === 'ArrowUp') : !e.target.closest('input,button,a,textarea'))) {
+    e.preventDefault(); usedKeys = true; sel = Math.max(0, Math.min(visible.length - 1, sel + step)); paintSel(); return;
+  }
+  if (e.key === 'Enter' && (inSearch || !e.target.closest('input,button,a,textarea'))) {
+    e.preventDefault(); open(visible[sel], e.metaKey || e.ctrlKey); return;
+  }
+  if (inSearch || e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input,textarea')) return;
+  if (/^[0-9]$/.test(e.key)) open(APPS.find((a) => a.key === e.key));
+});
+
+// ── État du serveur ──
+const refreshBtn = $('#refresh');
 async function refresh() {
-  const label = document.getElementById('refresh');
+  const health = $('#health');
+  refreshBtn.classList.add('is-busy');
   try {
     const res = await fetch('/api/statut', { cache: 'no-store' });
     if (res.status === 401) return location.assign('/connexion');
     const data = await res.json();
-    render(Object.fromEntries(data.apps.map(s => [s.id, s])));
-    const down = data.apps.filter(s => s.state !== 'up').length;
-    label.textContent = (down ? `${down} app(s) ou site(s) du serveur indisponible(s)` : 'Toutes les apps du serveur sont en ligne') + ` · vérifié à ${new Date(data.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    statuses = Object.fromEntries(data.apps.map((s) => [s.id, s]));
+    const total = data.apps.length;
+    const up = data.apps.filter((s) => s.state === 'up').length;
+    const worst = data.apps.some((s) => s.state === 'down') ? 'down' : up < total ? 'partial' : 'up';
+    const time = new Date(data.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    health.innerHTML = `<span class="at-state" data-s="${worst}"></span><b class="num">${up} sur ${total}</b> en ligne · <span class="num">${time}</span>`;
+    health.title = worst === 'up' ? 'Toutes les apps du serveur répondent' : `${total - up} app(s) du serveur ne répondent pas entièrement`;
+    render();
   } catch {
-    label.textContent = 'Impossible de vérifier l’état des apps';
+    health.innerHTML = `<span class="at-state" data-s="down"></span>État impossible à vérifier`;
+  } finally {
+    refreshBtn.classList.remove('is-busy');
   }
 }
-
-document.addEventListener('keydown', (e) => {
-  if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input,textarea')) return;
-  if (!/^[0-9]$/.test(e.key)) return;
-  const a = APPS[e.key === '0' ? 9 : Number(e.key) - 1];
-  if (!a || !a.url) return;
-  store.set('atelier:last', a.id);
-  if (a.external || newtab.checked) window.open(a.url, '_blank', 'noopener'); else location.assign(a.url);
-});
+refreshBtn.addEventListener('click', refresh);
 
 render();
+requestAnimationFrame(() => $('#main').classList.add('is-ready'));
 refresh();
 setInterval(() => { if (!document.hidden) refresh() }, 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh() });

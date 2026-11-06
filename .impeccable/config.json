@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-06T15:00:55.214Z",
+        "reason": "François chose the Linear-level canon direction (6 Nov 2026); Inter is that canon's face, named in the direction contract; finish reviewer judged it non-material"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "portail/public/index.html"
+        ],
+        "createdAt": "2026-11-06T15:00:55.229Z",
+        "reason": "Flag targets .at-seg segmented control (2px well, buttons carry 8px padding); finish reviewer judged it a false positive"
+      }
+    ]
+  }
+}

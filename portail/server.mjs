@@ -45,80 +45,80 @@ const passwordDigest = scryptSync(PASSWORD, salt, 32)
  */
 const HOSTED = [
   {
-    id: 'nexus', name: 'Nexus', role: 'Workflows et agents IA de la suite', color: '#E8590C', sub: 'nexus',
+    id: 'nexus', name: 'Nexus', role: 'Workflows et agents IA de la suite', color: 'oklch(0.64 0.17 45)', sub: 'nexus',
     probes: ['http://127.0.0.1:8100/health', 'http://127.0.0.1:3100/'],
   },
   {
-    id: 'viz', name: 'Viz', role: 'BI : jeux de données, rapports, alertes', color: '#F2C811', sub: 'viz',
+    id: 'viz', name: 'Viz', role: 'BI : jeux de données, rapports, alertes', color: 'oklch(0.68 0.15 88)', sub: 'viz',
     probes: ['http://127.0.0.1:8000/api/health'],
   },
   {
-    id: 'tab', name: 'Tab', role: 'Tableur et base typée', color: '#21A366', sub: 'tab',
+    id: 'tab', name: 'Tab', role: 'Tableur et base typée', color: 'oklch(0.6 0.14 150)', sub: 'tab',
     probes: [], // app statique servie par Caddy : toujours disponible si le portail l'est
   },
   {
-    id: 'projets', name: 'Projets', role: 'Projets agiles, jalons, temps passé', color: '#94D82D', sub: 'projets',
+    id: 'projets', name: 'Projets', role: 'Projets agiles, jalons, temps passé', color: 'oklch(0.64 0.16 128)', sub: 'projets',
     probes: ['http://127.0.0.1:3000/api/health'],
   },
   {
-    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: '#4DABF7', sub: 'wiki',
+    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: 'oklch(0.6 0.15 235)', sub: 'wiki',
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
-    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#38D9A9', sub: 'formulaire',
+    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: 'oklch(0.62 0.12 185)', sub: 'formulaire',
     probes: ['http://127.0.0.1:3300/api/health'],
   },
   {
-    id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: '#3B5BDB', sub: 'tresorerie',
+    id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: 'oklch(0.54 0.17 262)', sub: 'tresorerie',
     probes: ['http://127.0.0.1:5050/api/ping'],
   },
   {
-    id: 'savoir', name: 'Savoir', role: 'Cours, fiches et révisions', color: '#9B5DE5', sub: 'savoir',
+    id: 'savoir', name: 'Savoir', role: 'Cours, fiches et révisions', color: 'oklch(0.57 0.18 318)', sub: 'savoir',
     probes: ['http://127.0.0.1:5051/api/stats'],
   },
   {
-    id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: '#E64980', sub: 'cine',
+    id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: 'oklch(0.6 0.19 355)', sub: 'cine',
     probes: ['http://127.0.0.1:4000/api/health'],
   },
   {
-    id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: '#C9951D', sub: 'convert',
+    id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: 'oklch(0.62 0.11 75)', sub: 'convert',
     probes: ['http://127.0.0.1:8010/api/health'],
   },
   {
     // Site public (sans connexion) : la vitrine pour les recruteurs
-    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#2EE6A0', sub: 'portfolio',
+    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: 'oklch(0.6 0.13 165)', sub: 'portfolio',
     probes: ['http://127.0.0.1:8787/api/health'],
   },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 // Sites & tests : hébergés sur le VPS, derrière la connexion, dans une section à part du portail.
-// Pour en ajouter un : une entrée ici (+ logo public/logos/<id>.webp), un bloc Caddy, un service Docker.
+// Pour en ajouter un : une entrée ici (+ icône <symbol id="app-<id>"> dans public/atelier-icons.svg), un bloc Caddy, un service Docker.
 const SITES = [
   {
-    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: '#7C5CFF', sub: 'ops',
+    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: 'oklch(0.57 0.18 298)', sub: 'ops',
     probes: ['http://127.0.0.1:3400/api/health'],
   },
   {
-    id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: '#F59F00', sub: 'mission',
+    id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: 'oklch(0.66 0.15 60)', sub: 'mission',
     probes: ['http://127.0.0.1:3500/api/health'],
   },
   {
-    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: '#4F46E5', sub: 'datamind',
+    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: 'oklch(0.52 0.18 280)', sub: 'datamind',
     probes: ['http://127.0.0.1:3600/api/health'],
   },
 ].map((a) => ({ ...a, group: 'sites', url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
   {
-    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15AABF',
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: 'oklch(0.62 0.11 210)',
     url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
   },
   {
-    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#E03131',
+    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: 'oklch(0.59 0.2 25)',
     url: env.DATES_URL || 'https://atelier-dates.vercel.app',
   },
   {
-    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#C8B5F2',
+    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: 'oklch(0.63 0.1 305)',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
@@ -211,6 +211,12 @@ async function statuses() {
   )
 }
 
+// ── Fichiers du système de design ──────────────────────────────────────────
+const ASSETS = {
+  '/atelier.css': { file: 'atelier.css', type: 'text/css; charset=utf-8' },
+  '/atelier-icons.svg': { file: 'atelier-icons.svg', type: 'image/svg+xml' },
+}
+
 // ── Pages ───────────────────────────────────────────────────────────────────
 const pages = {}
 async function page(name) {
@@ -234,10 +240,16 @@ function send(res, status, body, headers = {}) {
 const json = (res, status, data) =>
   send(res, status, JSON.stringify(data), { 'Content-Type': 'application/json; charset=utf-8' })
 
-async function loginPage(res, { retour = '', error = '', status = 200 } = {}) {
+async function loginPage(res, { retour = '', error = '', status = 200, ident = '' } = {}) {
   const html = (await page('connexion.html'))
     .replaceAll('{{RETOUR}}', escape(retour))
-    .replaceAll('{{ERREUR}}', error ? `<p class="error" role="alert">${escape(error)}</p>` : '')
+    .replaceAll('{{ERREUR}}', error ? `<p class="at-error" role="alert">${escape(error)}</p>` : '')
+    .replaceAll('{{INVALIDE}}', error ? ' aria-invalid="true"' : '')
+    .replaceAll('{{IDENT}}', escape(ident))
+    .replaceAll('{{FOCUS_IDENT}}', ident ? '' : ' autofocus')
+    .replaceAll('{{FOCUS_MDP}}', ident ? ' autofocus' : '')
+    .replaceAll('{{DOMAINE}}', escape(DOMAIN))
+    .replace('{{ICONES}}', await page('atelier-icons.svg'))
     .replaceAll('{{UTILISATEUR}}', escape(USER))
   send(res, status, html)
 }
@@ -274,6 +286,23 @@ const server = createServer(async (req, res) => {
         return res.end(file)
       } catch {
         return send(res, 404, 'Logo introuvable')
+      }
+    }
+
+    // Système de design commun : feuille de style, icônes, police. Publics, réutilisables par
+    // toutes les apps de la suite (polices servies avec CORS pour les sous-domaines).
+    const asset = ASSETS[path] || (path.match(/^\/fonts\/[a-z0-9-]+\.woff2$/) && { file: path.slice(1), type: 'font/woff2' })
+    if (asset) {
+      try {
+        const file = await readFile(join(here, 'public', asset.file))
+        res.writeHead(200, {
+          'Content-Type': asset.type,
+          'Cache-Control': asset.type === 'font/woff2' ? 'public, max-age=31536000, immutable' : 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+        })
+        return res.end(file)
+      } catch {
+        return send(res, 404, 'Fichier introuvable')
       }
     }
 
@@ -320,13 +349,13 @@ const server = createServer(async (req, res) => {
       const form = await readBody(req)
       const retour = form.get('retour') || ''
       if (tooManyAttempts(ip)) {
-        return loginPage(res, { retour, status: 429, error: 'Trop d’essais. Réessaie dans un quart d’heure.' })
+        return loginPage(res, { retour, status: 429, error: 'Trop d’essais. Réessaie dans un quart d’heure.', ident: (form.get('utilisateur') || '').trim().slice(0, 64) })
       }
       const userOk = (form.get('utilisateur') || '').trim().toLowerCase() === USER.toLowerCase()
       const passOk = timingSafeEqual(scryptSync(form.get('mot_de_passe') || '', salt, 32), passwordDigest)
       if (!userOk || !passOk) {
         noteFailure(ip)
-        return loginPage(res, { retour, status: 401, error: 'Identifiant ou mot de passe incorrect.' })
+        return loginPage(res, { retour, status: 401, error: 'Identifiant ou mot de passe incorrect.', ident: (form.get('utilisateur') || '').trim().slice(0, 64) })
       }
       attempts.delete(ip)
       res.writeHead(303, {
@@ -356,6 +385,7 @@ const server = createServer(async (req, res) => {
         .replace('/*APPS*/[]', JSON.stringify(APPS.map(({ probes, ...a }) => a)))
         .replaceAll('{{UTILISATEUR}}', escape(s.u))
         .replaceAll('{{DOMAINE}}', escape(DOMAIN))
+        .replace('{{ICONES}}', await page('atelier-icons.svg'))
       return send(res, 200, html)
     }
 
