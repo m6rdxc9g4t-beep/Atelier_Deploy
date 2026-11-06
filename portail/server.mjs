@@ -113,10 +113,6 @@ const VITRINE = [
     id: 'demo-prevision', icon: 'demo-prevision', name: 'Prévision de ventes', role: 'Démo · CSV → prévision avec intervalles',
     color: '#4a5468', path: '/demos/prevision-ventes', probes: PORTFOLIO_PROBE,
   },
-  {
-    id: 'demo-datamind', icon: 'datamind', name: 'DataMind (démo)', role: 'Démo · exploration de données, sans IA en public',
-    color: '#6967e1', path: '/projets/datamind', probes: PORTFOLIO_PROBE,
-  },
 ]
   .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
   .concat([
