@@ -121,6 +121,28 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
 - **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `datamind/` (jeux de données et analyses de DataMind), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
+## Portfolio à une adresse Netlify
+
+Le Portfolio reste hébergé sur le VPS, mais tu peux donner aux recruteurs une adresse propre, par exemple `https://francois-pichon.netlify.app`.
+Netlify n'héberge rien : il relaie chaque requête vers `portfolio.<domaine>` (réécriture 200, `netlify/portfolio/netlify.toml`), et l'adresse Netlify reste affichée.
+Les requêtes relayées sont **signées** : le Portfolio reconnaît ainsi l'adresse réelle de chaque visiteur (limites du formulaire de contact et de DataMind, adresse notée avec chaque message).
+
+1. Sur le VPS, mets le kit à jour puis le Portfolio (le secret `PORTFOLIO_PROXY_SECRET` est créé dans `.env` s'il manque), et affiche le secret :
+   ```bash
+   sudo ./update.sh portfolio
+   sudo grep PORTFOLIO_PROXY_SECRET .env
+   ```
+2. Sur [app.netlify.com](https://app.netlify.com) : *Add new project* → *Import an existing project* → GitHub → `Atelier_Deploy`.
+   Dossier de base (*Base directory*) : `netlify/portfolio`. Laisse la commande de build vide, puis déploie.
+3. Dans le projet Netlify : *Project configuration* → *Environment variables* → ajoute `PORTFOLIO_PROXY_SECRET` avec la valeur de l'étape 1,
+   puis *Deploys* → *Trigger deploy* → *Deploy project* (la signature n'est prise en compte qu'au déploiement suivant).
+4. *Project configuration* → *Change project name* → par exemple `francois-pichon` : l'adresse devient `https://francois-pichon.netlify.app`.
+5. Vérifie : ouvre l'adresse Netlify, envoie un message de test depuis la page Contact, puis sur le VPS
+   `sudo tail -n 1 data/portfolio/messages.jsonl` doit montrer **ton** adresse IP, pas celle d'un serveur Netlify.
+
+L'ancienne adresse `portfolio.<domaine>` continue de marcher. Le jour où le VPS a un vrai domaine, remplace l'adresse dans `netlify/portfolio/netlify.toml`.
+Limite de Netlify : une requête relayée qui dure plus de 26 s est coupée (sans effet sur le Portfolio, dont les réponses sont rapides).
+
 ## DataMind
 
 Agent d'analyse de données, dans la section **Sites & tests** du portail (dépôt public `Agent_Data`, web app TypeScript : Fastify + DuckDB, React). On dépose un CSV, un Excel, un JSON ou un Parquet, on pose ses questions, et l'agent écrit des requêtes SQL qu'il **exécute réellement** sur les données, avec graphiques, segmentation, modèle prédictif et prévision.

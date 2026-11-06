@@ -80,7 +80,7 @@ compose() { docker compose --env-file .env "$@"; }
 # Génère les secrets absents de .env (utile aussi après l'ajout d'une app sur un VPS déjà installé).
 ensure_secrets() {
   local key
-  for key in SESSION_SECRET POSTGRES_PASSWORD ATELIER_IMPORT_TOKEN APPS_SECRET_KEY; do
+  for key in SESSION_SECRET POSTGRES_PASSWORD ATELIER_IMPORT_TOKEN APPS_SECRET_KEY PORTFOLIO_PROXY_SECRET; do
     if [ -z "$(env_get "$key")" ]; then env_set "$key" "$(openssl rand -hex 32)"; ok "$key généré"; fi
   done
 }

@@ -1,0 +1,21 @@
+# Adresse publique du Portfolio sur Netlify, contenu servi par le VPS.
+#
+# Netlify ne construit rien et n'héberge rien : il relaie toutes les requêtes (réécriture 200) vers
+# le Portfolio du VPS. L'adresse affichée reste celle de Netlify (ex. https://francois-pichon.netlify.app).
+#
+# Chaque requête relayée est signée (en-tête x-nf-sign) avec la variable PORTFOLIO_PROXY_SECRET définie
+# dans Netlify (Site configuration → Environment variables). Le Portfolio vérifie cette signature avec la
+# même valeur (NETLIFY_PROXY_SECRET, venue de PORTFOLIO_PROXY_SECRET dans le .env du VPS) pour connaître
+# l'adresse réelle de chaque visiteur (limites d'envoi du formulaire de contact et de DataMind).
+#
+# Le jour où le VPS a un vrai nom de domaine : remplacer l'adresse ci-dessous, puis redéployer.
+
+[build]
+  publish = "public"
+
+[[redirects]]
+  from = "/*"
+  to = "https://portfolio.atelier.141-227-149-233.sslip.io/:splat"
+  status = 200
+  force = true
+  signed = "PORTFOLIO_PROXY_SECRET"
