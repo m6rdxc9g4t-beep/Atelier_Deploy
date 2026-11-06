@@ -69,7 +69,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
-| Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` |
+| Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` (une app après l’autre pour ménager le disque : compter 30 à 45 min ; il faut au moins 3 Go libres) |
 | Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
