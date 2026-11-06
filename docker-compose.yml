@@ -185,6 +185,8 @@ services:
       <<: *tz
       # Agent IA de la démo DataMind : clé dédiée et facultative (le site est public, vide = désactivé).
       ANTHROPIC_API_KEY: ${PORTFOLIO_ANTHROPIC_API_KEY:-}
+      # Relais Netlify (netlify/portfolio) : secret partagé pour reconnaître l'adresse réelle des visiteurs.
+      NETLIFY_PROXY_SECRET: ${PORTFOLIO_PROXY_SECRET:-}
     volumes:
       - ./data/portfolio:/data
     healthcheck:
