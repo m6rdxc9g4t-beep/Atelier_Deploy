@@ -139,7 +139,7 @@ const SITES = [
 
 const ONLINE = [
   {
-    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#8a5fb8',
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#15aabf',
     url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
   },
   {
@@ -147,7 +147,7 @@ const ONLINE = [
     url: env.DATES_URL || 'https://atelier-dates.vercel.app',
   },
   {
-    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#3a6c97',
+    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#9b84dc',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))

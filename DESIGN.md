@@ -54,9 +54,9 @@ colors:
   app-ops: "#895bd5"
   app-mission: "#b55d00"
   app-datamind: "#6967e1"
-  app-suivi: "#8a5fb8"
+  app-suivi: "#15aabf"
   app-dates: "#db373a"
-  app-cuisine: "#3a6c97"
+  app-cuisine: "#9b84dc"
 typography:
   headline:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
