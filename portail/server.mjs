@@ -37,7 +37,7 @@ const salt = randomBytes(16)
 const passwordDigest = scryptSync(PASSWORD, salt, 32)
 
 /**
- * Les apps du portail.
+ * Les apps du portail. `color` = signature de l'app (Atelier_Projets/design-system/brand/atelier-brand.css, --atelier-sig-<id>).
  * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
  * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
  * Dates, Suivi et Cuisine sont des apps en ligne : le portail ouvre leur adresse Vercel.
@@ -45,48 +45,48 @@ const passwordDigest = scryptSync(PASSWORD, salt, 32)
  */
 const HOSTED = [
   {
-    id: 'nexus', name: 'Nexus', role: 'Workflows et agents IA de la suite', color: 'oklch(0.64 0.17 45)', sub: 'nexus',
+    id: 'nexus', name: 'Nexus', role: 'Workflows et agents IA de la suite', color: '#c84f00', sub: 'nexus',
     probes: ['http://127.0.0.1:8100/health', 'http://127.0.0.1:3100/'],
   },
   {
-    id: 'viz', name: 'Viz', role: 'BI : jeux de données, rapports, alertes', color: 'oklch(0.68 0.15 88)', sub: 'viz',
+    id: 'viz', name: 'Viz', role: 'BI : jeux de données, rapports, alertes', color: '#996c00', sub: 'viz',
     probes: ['http://127.0.0.1:8000/api/health'],
   },
   {
-    id: 'tab', name: 'Tab', role: 'Tableur et base typée', color: 'oklch(0.6 0.14 150)', sub: 'tab',
+    id: 'tab', name: 'Tab', role: 'Tableur et base typée', color: '#1c8742', sub: 'tab',
     probes: [], // app statique servie par Caddy : toujours disponible si le portail l'est
   },
   {
-    id: 'projets', name: 'Projets', role: 'Projets agiles, jalons, temps passé', color: 'oklch(0.64 0.16 128)', sub: 'projets',
+    id: 'projets', name: 'Projets', role: 'Projets agiles, jalons, temps passé', color: '#568100', sub: 'projets',
     probes: ['http://127.0.0.1:3000/api/health'],
   },
   {
-    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: 'oklch(0.6 0.15 235)', sub: 'wiki',
+    id: 'wiki', name: 'Wiki', role: 'Pages, procédures et notes de la suite', color: '#007cbb', sub: 'wiki',
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
-    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: 'oklch(0.62 0.12 185)', sub: 'formulaire',
+    id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#008478', sub: 'formulaire',
     probes: ['http://127.0.0.1:3300/api/health'],
   },
   {
-    id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: 'oklch(0.54 0.17 262)', sub: 'tresorerie',
+    id: 'tresorerie', name: 'Trésorerie', role: 'Comptes, budgets, objectifs', color: '#3c72da', sub: 'tresorerie',
     probes: ['http://127.0.0.1:5050/api/ping'],
   },
   {
-    id: 'savoir', name: 'Savoir', role: 'Cours, fiches et révisions', color: 'oklch(0.57 0.18 318)', sub: 'savoir',
+    id: 'savoir', name: 'Savoir', role: 'Cours, fiches et révisions', color: '#a853c1', sub: 'savoir',
     probes: ['http://127.0.0.1:5051/api/stats'],
   },
   {
-    id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: 'oklch(0.6 0.19 355)', sub: 'cine',
+    id: 'cine', name: 'Ciné', role: 'Films et séries en streaming', color: '#cd3d83', sub: 'cine',
     probes: ['http://127.0.0.1:4000/api/health'],
   },
   {
-    id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: 'oklch(0.62 0.11 75)', sub: 'convert',
+    id: 'convert', name: 'Convert', role: 'Relevés et fichiers en tables pour Tab', color: '#9d6d1c', sub: 'convert',
     probes: ['http://127.0.0.1:8010/api/health'],
   },
   {
     // Site public (sans connexion) : la vitrine pour les recruteurs
-    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: 'oklch(0.6 0.13 165)', sub: 'portfolio',
+    id: 'portfolio', name: 'Portfolio', role: 'Projets d’économétrie, CV, contact', color: '#4a5468', sub: 'portfolio',
     probes: ['http://127.0.0.1:8787/api/health'],
   },
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
@@ -95,30 +95,30 @@ const HOSTED = [
 // Pour en ajouter un : une entrée ici (+ icône <symbol id="app-<id>"> dans public/atelier-icons.svg), un bloc Caddy, un service Docker.
 const SITES = [
   {
-    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: 'oklch(0.57 0.18 298)', sub: 'ops',
+    id: 'ops', name: 'Ops Lab', role: 'Transport simulé, piloté par un agent IA', color: '#895bd5', sub: 'ops',
     probes: ['http://127.0.0.1:3400/api/health'],
   },
   {
-    id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: 'oklch(0.66 0.15 60)', sub: 'mission',
+    id: 'mission', name: 'Mission', role: 'Prospects, devis, factures Malt, relances', color: '#b55d00', sub: 'mission',
     probes: ['http://127.0.0.1:3500/api/health'],
   },
   {
-    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: 'oklch(0.52 0.18 280)', sub: 'datamind',
+    id: 'datamind', name: 'DataMind', role: 'Agent IA d’analyse de données', color: '#6967e1', sub: 'datamind',
     probes: ['http://127.0.0.1:3600/api/health'],
   },
 ].map((a) => ({ ...a, group: 'sites', url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 const ONLINE = [
   {
-    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: 'oklch(0.62 0.11 210)',
+    id: 'suivi', name: 'Suivi', role: 'Tâches du jour, habitudes, dépenses', color: '#008295',
     url: env.SUIVI_URL || 'https://atelier-suivi-bay.vercel.app',
   },
   {
-    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: 'oklch(0.59 0.2 25)',
+    id: 'dates', name: 'Dates', role: 'Notre petit monde, à deux', color: '#db373a',
     url: env.DATES_URL || 'https://atelier-dates.vercel.app',
   },
   {
-    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: 'oklch(0.63 0.1 305)',
+    id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#8568a7',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
