@@ -40,23 +40,23 @@ colors:
   dark-partial: "#f0b44c"
   dark-down: "#ff6b6b"
   dark-mark-bg: "#2a2c33"
-  app-nexus: "oklch(0.64 0.17 45)"
-  app-viz: "oklch(0.68 0.15 88)"
-  app-tab: "oklch(0.6 0.14 150)"
-  app-projets: "oklch(0.64 0.16 128)"
-  app-wiki: "oklch(0.6 0.15 235)"
-  app-formulaire: "oklch(0.62 0.12 185)"
-  app-tresorerie: "oklch(0.54 0.17 262)"
-  app-savoir: "oklch(0.57 0.18 318)"
-  app-cine: "oklch(0.6 0.19 355)"
-  app-convert: "oklch(0.62 0.11 75)"
-  app-portfolio: "oklch(0.6 0.13 165)"
-  app-ops: "oklch(0.57 0.18 298)"
-  app-mission: "oklch(0.66 0.15 60)"
-  app-datamind: "oklch(0.52 0.18 280)"
-  app-suivi: "oklch(0.62 0.11 210)"
-  app-dates: "oklch(0.59 0.2 25)"
-  app-cuisine: "oklch(0.63 0.1 305)"
+  app-nexus: "#c84f00"
+  app-viz: "#996c00"
+  app-tab: "#1c8742"
+  app-projets: "#568100"
+  app-wiki: "#007cbb"
+  app-formulaire: "#008478"
+  app-tresorerie: "#3c72da"
+  app-savoir: "#a853c1"
+  app-cine: "#cd3d83"
+  app-convert: "#9d6d1c"
+  app-portfolio: "#4a5468"
+  app-ops: "#895bd5"
+  app-mission: "#b55d00"
+  app-datamind: "#6967e1"
+  app-suivi: "#008295"
+  app-dates: "#db373a"
+  app-cuisine: "#8568a7"
 typography:
   headline:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -217,14 +217,14 @@ Le système est un fichier unique, `atelier.css`, servi par le portail avec ses 
 
 ## Colors
 
-Neutres gris-bleu froids, un indigo pour agir, trois couleurs d'état qui se taisent quand tout va bien, et une palette d'apps en OKLCH à luminosité homogène.
+Neutres gris-bleu froids, un indigo pour agir, trois couleurs d'état qui se taisent quand tout va bien, et une palette d'apps à contraste homogène (chacune ≥ 4,5:1 avec du blanc).
 
 ### Primary
 - **Indigo d'atelier** (`accent`, clair / `dark-accent`, sombre) : sélection, anneau de focus (2 px, décalage 2 px), bouton principal, case cochée, flèche de la ligne sélectionnée, marque « Dernière ». Texte posé dessus : `accent-ink` (blanc en clair, quasi-noir en sombre).
 - **Voile indigo** (`accent-soft`, l'accent à 14 % dans oklab) : fond de la ligne ou tuile sélectionnée, halo de 3 px des champs en focus. La sélection de texte prend l'accent à 30 %.
 
 ### Secondary
-- **Couleurs d'app** (`app-<id>`, OKLCH, luminosité 0.52 à 0.68, chroma 0.10 à 0.20) : posées par `style="--app: …"` sur l'icône, la ligne ou la tuile. Elles vivent dans `portail/server.mjs` (HOSTED, SITES, ONLINE), source normative ; elles ne colorent que l'icône d'app, jamais du texte ni un fond de ligne. PRODUCT.md confirme qu'elles ne sont pas figées.
+- **Couleurs d'app** (`app-<id>`, chacune ≥ 4,5:1 avec du texte blanc) : la source normative est `Atelier_Projets/design-system/brand/atelier-brand.css` (`--atelier-sig-<id>`), recopiée dans `portail/server.mjs` (HOSTED, SITES, ONLINE). Sur le portail, elles ne colorent que l'icône d'app, jamais du texte ni un fond de ligne ; dans chaque app, la signature devient l'accent (bouton principal, sélection, focus). PRODUCT.md confirme qu'elles ne sont pas figées.
 
 ### Tertiary
 - **États** : vert `up`/`up-dot`, ambre `partial`/`partial-dot`, rouge `down`/`down-dot`. La variante `-dot` sert à la pastille de 8 px, la variante pleine au texte (contraste lisible). En sombre, une seule valeur par état (`dark-up`, `dark-partial`, `dark-down`) sert aux deux.

@@ -577,257 +577,87 @@
       "app-nexus": {
         "role": "secondary",
         "displayName": "App Nexus",
-        "canonical": "oklch(0.64 0.17 45)",
-        "tonalRamp": [
-          "oklch(0.150 0.056 45.0)",
-          "oklch(0.264 0.112 45.0)",
-          "oklch(0.379 0.149 45.0)",
-          "oklch(0.493 0.168 45.0)",
-          "oklch(0.607 0.168 45.0)",
-          "oklch(0.721 0.149 45.0)",
-          "oklch(0.836 0.112 45.0)",
-          "oklch(0.950 0.056 45.0)"
-        ]
+        "canonical": "#c84f00"
       },
       "app-viz": {
         "role": "secondary",
         "displayName": "App Viz",
-        "canonical": "oklch(0.68 0.15 88)",
-        "tonalRamp": [
-          "oklch(0.150 0.049 88.0)",
-          "oklch(0.264 0.099 88.0)",
-          "oklch(0.379 0.131 88.0)",
-          "oklch(0.493 0.148 88.0)",
-          "oklch(0.607 0.148 88.0)",
-          "oklch(0.721 0.131 88.0)",
-          "oklch(0.836 0.099 88.0)",
-          "oklch(0.950 0.049 88.0)"
-        ]
+        "canonical": "#996c00"
       },
       "app-tab": {
         "role": "secondary",
         "displayName": "App Tab",
-        "canonical": "oklch(0.6 0.14 150)",
-        "tonalRamp": [
-          "oklch(0.150 0.046 150.0)",
-          "oklch(0.264 0.092 150.0)",
-          "oklch(0.379 0.123 150.0)",
-          "oklch(0.493 0.138 150.0)",
-          "oklch(0.607 0.138 150.0)",
-          "oklch(0.721 0.123 150.0)",
-          "oklch(0.836 0.092 150.0)",
-          "oklch(0.950 0.046 150.0)"
-        ]
+        "canonical": "#1c8742"
       },
       "app-projets": {
         "role": "secondary",
         "displayName": "App Projets",
-        "canonical": "oklch(0.64 0.16 128)",
-        "tonalRamp": [
-          "oklch(0.150 0.053 128.0)",
-          "oklch(0.264 0.105 128.0)",
-          "oklch(0.379 0.140 128.0)",
-          "oklch(0.493 0.158 128.0)",
-          "oklch(0.607 0.158 128.0)",
-          "oklch(0.721 0.140 128.0)",
-          "oklch(0.836 0.105 128.0)",
-          "oklch(0.950 0.053 128.0)"
-        ]
+        "canonical": "#568100"
       },
       "app-wiki": {
         "role": "secondary",
         "displayName": "App Wiki",
-        "canonical": "oklch(0.6 0.15 235)",
-        "tonalRamp": [
-          "oklch(0.150 0.049 235.0)",
-          "oklch(0.264 0.099 235.0)",
-          "oklch(0.379 0.131 235.0)",
-          "oklch(0.493 0.148 235.0)",
-          "oklch(0.607 0.148 235.0)",
-          "oklch(0.721 0.131 235.0)",
-          "oklch(0.836 0.099 235.0)",
-          "oklch(0.950 0.049 235.0)"
-        ]
+        "canonical": "#007cbb"
       },
       "app-formulaire": {
         "role": "secondary",
         "displayName": "App Formulaire",
-        "canonical": "oklch(0.62 0.12 185)",
-        "tonalRamp": [
-          "oklch(0.150 0.039 185.0)",
-          "oklch(0.264 0.079 185.0)",
-          "oklch(0.379 0.105 185.0)",
-          "oklch(0.493 0.118 185.0)",
-          "oklch(0.607 0.118 185.0)",
-          "oklch(0.721 0.105 185.0)",
-          "oklch(0.836 0.079 185.0)",
-          "oklch(0.950 0.039 185.0)"
-        ]
+        "canonical": "#008478"
       },
       "app-tresorerie": {
         "role": "secondary",
         "displayName": "App Tresorerie",
-        "canonical": "oklch(0.54 0.17 262)",
-        "tonalRamp": [
-          "oklch(0.150 0.056 262.0)",
-          "oklch(0.264 0.112 262.0)",
-          "oklch(0.379 0.149 262.0)",
-          "oklch(0.493 0.168 262.0)",
-          "oklch(0.607 0.168 262.0)",
-          "oklch(0.721 0.149 262.0)",
-          "oklch(0.836 0.112 262.0)",
-          "oklch(0.950 0.056 262.0)"
-        ]
+        "canonical": "#3c72da"
       },
       "app-savoir": {
         "role": "secondary",
         "displayName": "App Savoir",
-        "canonical": "oklch(0.57 0.18 318)",
-        "tonalRamp": [
-          "oklch(0.150 0.059 318.0)",
-          "oklch(0.264 0.118 318.0)",
-          "oklch(0.379 0.158 318.0)",
-          "oklch(0.493 0.178 318.0)",
-          "oklch(0.607 0.178 318.0)",
-          "oklch(0.721 0.158 318.0)",
-          "oklch(0.836 0.118 318.0)",
-          "oklch(0.950 0.059 318.0)"
-        ]
+        "canonical": "#a853c1"
       },
       "app-cine": {
         "role": "secondary",
         "displayName": "App Cine",
-        "canonical": "oklch(0.6 0.19 355)",
-        "tonalRamp": [
-          "oklch(0.150 0.062 355.0)",
-          "oklch(0.264 0.125 355.0)",
-          "oklch(0.379 0.167 355.0)",
-          "oklch(0.493 0.187 355.0)",
-          "oklch(0.607 0.187 355.0)",
-          "oklch(0.721 0.167 355.0)",
-          "oklch(0.836 0.125 355.0)",
-          "oklch(0.950 0.062 355.0)"
-        ]
+        "canonical": "#cd3d83"
       },
       "app-convert": {
         "role": "secondary",
         "displayName": "App Convert",
-        "canonical": "oklch(0.62 0.11 75)",
-        "tonalRamp": [
-          "oklch(0.150 0.036 75.0)",
-          "oklch(0.264 0.072 75.0)",
-          "oklch(0.379 0.096 75.0)",
-          "oklch(0.493 0.108 75.0)",
-          "oklch(0.607 0.108 75.0)",
-          "oklch(0.721 0.096 75.0)",
-          "oklch(0.836 0.072 75.0)",
-          "oklch(0.950 0.036 75.0)"
-        ]
+        "canonical": "#9d6d1c"
       },
       "app-portfolio": {
         "role": "secondary",
         "displayName": "App Portfolio",
-        "canonical": "oklch(0.6 0.13 165)",
-        "tonalRamp": [
-          "oklch(0.150 0.043 165.0)",
-          "oklch(0.264 0.085 165.0)",
-          "oklch(0.379 0.114 165.0)",
-          "oklch(0.493 0.128 165.0)",
-          "oklch(0.607 0.128 165.0)",
-          "oklch(0.721 0.114 165.0)",
-          "oklch(0.836 0.085 165.0)",
-          "oklch(0.950 0.043 165.0)"
-        ]
+        "canonical": "#4a5468"
       },
       "app-ops": {
         "role": "secondary",
         "displayName": "App Ops",
-        "canonical": "oklch(0.57 0.18 298)",
-        "tonalRamp": [
-          "oklch(0.150 0.059 298.0)",
-          "oklch(0.264 0.118 298.0)",
-          "oklch(0.379 0.158 298.0)",
-          "oklch(0.493 0.178 298.0)",
-          "oklch(0.607 0.178 298.0)",
-          "oklch(0.721 0.158 298.0)",
-          "oklch(0.836 0.118 298.0)",
-          "oklch(0.950 0.059 298.0)"
-        ]
+        "canonical": "#895bd5"
       },
       "app-mission": {
         "role": "secondary",
         "displayName": "App Mission",
-        "canonical": "oklch(0.66 0.15 60)",
-        "tonalRamp": [
-          "oklch(0.150 0.049 60.0)",
-          "oklch(0.264 0.099 60.0)",
-          "oklch(0.379 0.131 60.0)",
-          "oklch(0.493 0.148 60.0)",
-          "oklch(0.607 0.148 60.0)",
-          "oklch(0.721 0.131 60.0)",
-          "oklch(0.836 0.099 60.0)",
-          "oklch(0.950 0.049 60.0)"
-        ]
+        "canonical": "#b55d00"
       },
       "app-datamind": {
         "role": "secondary",
         "displayName": "App Datamind",
-        "canonical": "oklch(0.52 0.18 280)",
-        "tonalRamp": [
-          "oklch(0.150 0.059 280.0)",
-          "oklch(0.264 0.118 280.0)",
-          "oklch(0.379 0.158 280.0)",
-          "oklch(0.493 0.178 280.0)",
-          "oklch(0.607 0.178 280.0)",
-          "oklch(0.721 0.158 280.0)",
-          "oklch(0.836 0.118 280.0)",
-          "oklch(0.950 0.059 280.0)"
-        ]
+        "canonical": "#6967e1"
       },
       "app-suivi": {
         "role": "secondary",
         "displayName": "App Suivi",
-        "canonical": "oklch(0.62 0.11 210)",
-        "tonalRamp": [
-          "oklch(0.150 0.036 210.0)",
-          "oklch(0.264 0.072 210.0)",
-          "oklch(0.379 0.096 210.0)",
-          "oklch(0.493 0.108 210.0)",
-          "oklch(0.607 0.108 210.0)",
-          "oklch(0.721 0.096 210.0)",
-          "oklch(0.836 0.072 210.0)",
-          "oklch(0.950 0.036 210.0)"
-        ]
+        "canonical": "#008295"
       },
       "app-dates": {
         "role": "secondary",
         "displayName": "App Dates",
-        "canonical": "oklch(0.59 0.2 25)",
-        "tonalRamp": [
-          "oklch(0.150 0.066 25.0)",
-          "oklch(0.264 0.131 25.0)",
-          "oklch(0.379 0.175 25.0)",
-          "oklch(0.493 0.197 25.0)",
-          "oklch(0.607 0.197 25.0)",
-          "oklch(0.721 0.175 25.0)",
-          "oklch(0.836 0.131 25.0)",
-          "oklch(0.950 0.066 25.0)"
-        ]
+        "canonical": "#db373a"
       },
       "app-cuisine": {
         "role": "secondary",
         "displayName": "App Cuisine",
-        "canonical": "oklch(0.63 0.1 305)",
-        "tonalRamp": [
-          "oklch(0.150 0.033 305.0)",
-          "oklch(0.264 0.066 305.0)",
-          "oklch(0.379 0.088 305.0)",
-          "oklch(0.493 0.099 305.0)",
-          "oklch(0.607 0.099 305.0)",
-          "oklch(0.721 0.088 305.0)",
-          "oklch(0.836 0.066 305.0)",
-          "oklch(0.950 0.033 305.0)"
-        ]
+        "canonical": "#8568a7"
       }
     },
     "typographyMeta": {
