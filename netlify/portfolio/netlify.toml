@@ -6,7 +6,7 @@
 # Chaque requête relayée est signée (en-tête x-nf-sign) avec la variable PORTFOLIO_PROXY_SECRET définie
 # dans Netlify (Site configuration → Environment variables). Le Portfolio vérifie cette signature avec la
 # même valeur (NETLIFY_PROXY_SECRET, venue de PORTFOLIO_PROXY_SECRET dans le .env du VPS) pour connaître
-# l'adresse réelle de chaque visiteur (limites d'envoi du formulaire de contact et de DataMind).
+# l'adresse réelle de chaque visiteur (limite d'envoi du formulaire de contact).
 #
 # Le jour où le VPS a un vrai nom de domaine : remplacer l'adresse ci-dessous, puis redéployer.
 

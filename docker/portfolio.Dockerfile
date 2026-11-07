@@ -26,6 +26,11 @@ COPY apps/atelier_portefolio/shared/package.json shared/
 COPY apps/atelier_portefolio/server/package.json server/
 COPY apps/atelier_portefolio/client/package.json client/
 RUN npm ci --no-audit --no-fund
+# Bouton « Essayer la démo » de /projets/datamind : la démo publique de DataMind (service datamind-demo).
+# Déclaré après npm ci pour garder le cache des dépendances quand le domaine change.
+ARG ATELIER_DOMAIN
+ARG PROTO=https
+ENV VITE_DATAMIND_DEMO_URL=${PROTO}://demo-datamind.${ATELIER_DOMAIN}
 COPY apps/atelier_portefolio/ ./
 COPY --from=dvf /app/client/public/data/dvf ./client/public/data/dvf
 RUN npm run build && npm prune --omit=dev

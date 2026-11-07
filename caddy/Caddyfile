@@ -6,6 +6,7 @@
 #   tab.{$ATELIER_DOMAIN}       Atelier Tab    (fichiers statiques ; /ollama/ = IA du serveur pour l'assistant)
 #   convert.{$ATELIER_DOMAIN}   Atelier Convert (:8010, sert aussi son interface ; OCR Tesseract)
 #   datamind.{$ATELIER_DOMAIN}  DataMind       (:3600, agent d'analyse de données, sert aussi son interface)
+#   demo-datamind.{$ATELIER_DOMAIN} démo publique de DataMind (:3601 ; mode démo, sans connexion, « Vitrine pro »)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
 #   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
 #   formulaire.{$ATELIER_DOMAIN} Atelier Formulaire (:3300 ; réponse par lien public sans connexion)
@@ -142,6 +143,28 @@
 	handle {
 		import connexion
 		reverse_proxy 127.0.0.1:3600 {
+			flush_interval -1
+		}
+	}
+}
+
+# Démo publique de DataMind (Vitrine pro) : PUBLIQUE, sans `import connexion`. Même app que datamind.… en mode démo
+# (jeux d'exemple seulement, aucune écriture, IA du serveur limitée par visiteur : voir docker-compose.yml).
+# Caddy remplace X-Forwarded-For par l'adresse réelle du visiteur (une valeur venue d'Internet n'est jamais relayée) :
+# c'est sur elle que l'app compte les questions de chaque visiteur.
+{$SITE_SCHEME}demo-datamind.{$ATELIER_DOMAIN} {
+	import securite
+	# Pas d'import de fichier en démo : seules de petites requêtes JSON passent.
+	request_body /api/* {
+		max_size 1MB
+	}
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3601
+	}
+	handle {
+		reverse_proxy 127.0.0.1:3601 {
+			header_up X-Forwarded-For {remote_host}
 			flush_interval -1
 		}
 	}

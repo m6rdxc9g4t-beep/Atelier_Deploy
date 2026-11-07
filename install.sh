@@ -72,7 +72,7 @@ DOMAIN="$(env_get ATELIER_DOMAIN)"
 step "Vérification du DNS"
 ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)
 dns_ok=1
-for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" convert."$DOMAIN" datamind."$DOMAIN" projets."$DOMAIN" \
+for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" convert."$DOMAIN" datamind."$DOMAIN" demo-datamind."$DOMAIN" projets."$DOMAIN" \
             tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" dates."$DOMAIN" suivi."$DOMAIN" portfolio."$DOMAIN" \
             ops."$DOMAIN" mission."$DOMAIN"; do
   got=$(dig +short A "$host" | tail -n1)
@@ -100,6 +100,7 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
 
   Portail   https://$DOMAIN
   DataMind  https://datamind.$DOMAIN    (agent d'analyse de données)
+            https://demo-datamind.$DOMAIN (démo publique, sans connexion)
   Portfolio https://portfolio.$DOMAIN   (public, sans connexion)
   Ops Lab   https://ops.$DOMAIN         (Sites & tests)
   Mission   https://mission.$DOMAIN     (Sites & tests)

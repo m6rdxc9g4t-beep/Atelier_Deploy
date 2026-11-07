@@ -87,7 +87,7 @@ const HOSTED = [
 ].map((a) => ({ ...a, url: `${SCHEME}://${a.sub}.${DOMAIN}/` }))
 
 // Vitrine pro : ce que François montre aux recruteurs et aux clients. Tout y est PUBLIC (sans connexion)
-// et sans IA payante. `share` = lien public à copier depuis le portail.
+// et sans IA payante (la démo de DataMind n'a que l'IA du serveur). `share` = lien public à copier depuis le portail.
 // Le Portfolio et ses démos peuvent avoir une adresse publique propre (PORTFOLIO_PUBLIC_URL, ex. le relais
 // Netlify https://francois-pichon.netlify.app) ; sinon portfolio.<domaine>.
 const PORTFOLIO_BASE = (env.PORTFOLIO_PUBLIC_URL || `${SCHEME}://portfolio.${DOMAIN}`).replace(/\/$/, '')
@@ -116,6 +116,12 @@ const VITRINE = [
 ]
   .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
   .concat([
+    {
+      // DataMind en direct : service datamind-demo (même image que la tuile privée de Sites & tests), en mode démo :
+      // jeux d'exemple, aucune écriture, IA du serveur limitée par visiteur, Claude coupé. Public par Caddy.
+      id: 'demo-datamind', icon: 'datamind', name: 'DataMind', role: 'Démo en direct · agent d’analyse, jeux d’exemple',
+      color: '#6967e1', url: `${SCHEME}://demo-datamind.${DOMAIN}/`, probes: ['http://127.0.0.1:3601/api/health'],
+    },
     {
       // Ops Lab : simulation qui tourne dans le navigateur, rendue publique par Caddy.
       id: 'ops', name: 'Ops Lab', role: 'Démo · TMS simulé, piloté par un agent IA', color: '#895bd5',

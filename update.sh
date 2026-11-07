@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Met à jour les apps (dernier commit de leur branche), reconstruit et relance.
 # Usage :  sudo ./update.sh            toutes les apps
-#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, datamind, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)
+#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, datamind (+ sa démo publique), projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -33,7 +33,9 @@ case "${1:-all}" in
   portail) services=(portail caddy) ;;
   cine|savoir|tresorerie|wiki|formulaire|convert) services=("$1") ;;
   dates|suivi) die "$1 ne tourne plus sur le VPS : elle est sur Vercel, qui se met à jour tout seul à chaque commit." ;;
-  datamind) services=(datamind caddy portail) ;;    # DataMind (Agent_Data) : Caddy et le portail connaissent son adresse et sa tuile
+  # DataMind (Agent_Data) : l'image est construite par datamind, puis la démo publique (datamind-demo, même image)
+  # est relancée sur la nouvelle version ; Caddy et le portail connaissent leurs adresses et leurs tuiles.
+  datamind) services=(datamind datamind-demo caddy portail) ;;
   portfolio) services=(portfolio caddy portail) ;;  # Caddy et le portail connaissent son adresse et sa tuile
   ops)     services=(ops caddy portail) ;;    # Sites & tests : Agent Ops Lab (Caddy et le portail connaissent son adresse)
   mission) services=(mission caddy portail) ;; # Sites & tests : Atelier Mission (idem)
@@ -57,7 +59,8 @@ step "Reconstruction"
 nettoyer
 ok "espace libre : $(libre_go) Go"
 if [ ${#services[@]} -eq 0 ]; then
-  mapfile -t services < <(compose config --services)
+  # L'ordre de compose varie : datamind-demo (image construite par datamind) passe en dernier.
+  mapfile -t services < <(compose config --services | grep -vx datamind-demo; echo datamind-demo)
 fi
 for service in "${services[@]}"; do
   [ "$(libre_go)" -ge 3 ] || die "moins de 3 Go libres sur le disque : libère de la place (df -h /, sudo docker system df) puis relance"

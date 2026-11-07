@@ -112,6 +112,8 @@ services:
   datamind:
     <<: *app
     build: { <<: *build, dockerfile: docker/datamind.Dockerfile }
+    # Nom fixe : la démo publique (datamind-demo) réutilise cette image, sans en construire une deuxième.
+    image: atelier-datamind
     environment:
       <<: [*tz, *ia]
       HOST: 127.0.0.1
@@ -127,6 +129,41 @@ services:
       - ./data/datamind:/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3600/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+
+  # Vitrine pro — démo publique de DataMind (https://demo-datamind.<domaine>, sans connexion) : la MÊME image que
+  # datamind (construite par lui, jamais ici), lancée en mode démo : 16 jeux d'exemple copiés au démarrage dans un
+  # tmpfs, rien d'autre n'est écrit, sessions isolées par visiteur, IA du serveur seulement (aucun jeton ni clé Claude),
+  # DATAMIND_DEMO_QUESTIONS_PAR_HEURE questions par heure et par visiteur, une à la fois.
+  # Réseau de l'hôte : Caddy arrive de 127.0.0.1, seule origine dont l'app croit X-Forwarded-For (quota par visiteur).
+  datamind-demo:
+    <<: *app
+    image: atelier-datamind
+    pull_policy: never
+    environment:
+      <<: [*tz, *ia]
+      HOST: 127.0.0.1
+      PORT: "3601"
+      DATA_DIR: /data
+      DATAMIND_DEMO: "1"
+      DATAMIND_DEMO_QUESTIONS_PAR_HEURE: ${DATAMIND_DEMO_QUESTIONS_PAR_HEURE:-10}
+      # Lien « Portfolio » de la démo : adresse publique du Portfolio (relais Netlify), sinon portfolio.<domaine>.
+      DATAMIND_DEMO_RETOUR: ${PORTFOLIO_PUBLIC_URL:-${PROTO:-https}://portfolio.${ATELIER_DOMAIN}}
+      DATAMIND_INSTANCE_LABEL: Démo publique
+      DATAMIND_ENGINE: ollama
+      OLLAMA_NUM_CTX: "8192"
+    # Données éphémères : rien sur le disque, tout disparaît au redémarrage (utilisateur node, uid 1000).
+    tmpfs:
+      - /data:size=128m,uid=1000,gid=1000,mode=0700
+    # Service public : mémoire et processus bornés, aucun privilège.
+    mem_limit: 768m
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3601/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 20s
@@ -193,8 +230,6 @@ services:
         DVF_DEPARTEMENTS: ${DVF_DEPARTEMENTS:-49,62,59,44,35}
     environment:
       <<: *tz
-      # Agent IA de la démo DataMind : clé dédiée et facultative (le site est public, vide = désactivé).
-      ANTHROPIC_API_KEY: ${PORTFOLIO_ANTHROPIC_API_KEY:-}
       # Relais Netlify (netlify/portfolio) : secret partagé pour reconnaître l'adresse réelle des visiteurs.
       NETLIFY_PROXY_SECRET: ${PORTFOLIO_PROXY_SECRET:-}
     volumes:
