@@ -5,41 +5,41 @@ colors:
   accent: "#5b5bd6"
   accent-ink: "#ffffff"
   accent-soft: "color-mix(in oklab, #5b5bd6 14%, transparent)"
-  bg: "#fbfbfc"
-  bg-side: "#f4f5f7"
-  surface: "#ffffff"
-  hover: "#eeeff2"
-  selected: "#e7e8ee"
-  line: "#e3e4e8"
-  line-strong: "#d0d2d8"
-  ink: "#1a1b1e"
-  ink-2: "#393c42"
-  muted: "#5f636c"
-  faint: "#6c7079"
-  up: "#1a8a4c"
-  up-dot: "#22a35b"
-  partial: "#a35f00"
-  partial-dot: "#e39b1b"
-  down: "#c9302b"
+  bg: "#f8f4ec"
+  bg-side: "#f1ebdf"
+  surface: "#fffdf8"
+  hover: "#efe8db"
+  selected: "#e6ddcc"
+  line: "#e4dac8"
+  line-strong: "#cfc2a9"
+  ink: "#1f1b16"
+  ink-2: "#3c362e"
+  muted: "#5f574b"
+  faint: "#6b6255"
+  up: "#14743f"
+  up-dot: "#209855"
+  partial: "#9a5700"
+  partial-dot: "#b37a15"
+  down: "#b92b27"
   down-dot: "#e5484d"
-  mark-bg: "#1a1b1e"
+  mark-bg: "#1f1b16"
   dark-accent: "#8285ff"
-  dark-accent-ink: "#0f1012"
-  dark-bg: "#0f1012"
-  dark-bg-side: "#131416"
-  dark-surface: "#17181b"
-  dark-hover: "#1c1d21"
-  dark-selected: "#24252b"
-  dark-line: "#24262b"
-  dark-line-strong: "#33353c"
-  dark-ink: "#e8e9ec"
-  dark-ink-2: "#c8cad0"
-  dark-muted: "#969aa3"
-  dark-faint: "#868a94"
+  dark-accent-ink: "#0b1220"
+  dark-bg: "#0b1220"
+  dark-bg-side: "#0e1626"
+  dark-surface: "#121b2d"
+  dark-hover: "#172238"
+  dark-selected: "#1f2c46"
+  dark-line: "#1f2a40"
+  dark-line-strong: "#2d3b57"
+  dark-ink: "#e6eaf2"
+  dark-ink-2: "#ccd3df"
+  dark-muted: "#a3aec2"
+  dark-faint: "#8b97ad"
   dark-up: "#4cc38a"
   dark-partial: "#f0b44c"
   dark-down: "#ff6b6b"
-  dark-mark-bg: "#2a2c33"
+  dark-mark-bg: "#1f2c46"
   app-nexus: "#c84f00"
   app-viz: "#996c00"
   app-tab: "#1c8742"
@@ -106,6 +106,7 @@ rounded:
   sm: "5px"
   md: "7px"
   lg: "10px"
+  xl: "12px"
 spacing:
   s1: "4px"
   s2: "8px"
@@ -189,6 +190,11 @@ components:
     size: "20px"
   app-icon-lg:
     size: "44px"
+  kpi-card:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.xl}"
+    padding: "14px 16px"
   error:
     textColor: "{colors.down}"
     rounded: "{rounded.md}"
@@ -201,7 +207,7 @@ components:
 
 **Creative North Star: "L'établi rangé"**
 
-La Suite Atelier est un outil, pas une vitrine. Chaque écran se lit comme un établi bien rangé : une barre latérale où l'on choisit, une zone principale en lignes denses où l'on agit, et le clavier qui va plus vite que la souris. Le niveau de finition visé est celui de Linear, joué franc : neutres froids, Inter à 13 px, traits fins, aucun ornement qui ne porte pas d'information.
+La Suite Atelier est un outil, pas une vitrine. Chaque écran se lit comme un établi bien rangé : une barre latérale où l'on choisit, une zone principale en lignes denses où l'on agit, et le clavier qui va plus vite que la souris. Le niveau de finition visé est celui de Linear, joué franc : crème en clair, bleu nuit en sombre, Inter à 13 px, traits fins, aucun ornement qui ne porte pas d'information.
 
 La couleur est rare et toujours fonctionnelle. Un seul accent indigo pour la sélection, le focus et l'action principale ; les couleurs d'état n'apparaissent que lorsqu'un service ne va pas bien ; la seule couleur « décorative » admise est celle de chaque app, enfermée dans son icône. La profondeur vient des tons (barre latérale un cran plus sombre que le fond) et des filets d'un pixel, presque jamais des ombres.
 
@@ -217,7 +223,7 @@ Le système est un fichier unique, `atelier.css`, servi par le portail avec ses 
 
 ## Colors
 
-Neutres gris-bleu froids, un indigo pour agir, trois couleurs d'état qui se taisent quand tout va bien, et une palette d'apps à contraste homogène (chacune ≥ 4,5:1 avec du blanc).
+Une structure crème en clair et bleu nuit en sombre (mêmes valeurs que `--atelier-*` de la marque commune, §2 et §3 ; Dates, Suivi et Cuisine gardent leurs fonds teintés, §3 bis), un indigo pour agir, trois couleurs d'état qui se taisent quand tout va bien, et une palette d'apps à contraste homogène (chacune ≥ 4,5:1 avec du blanc).
 
 ### Primary
 - **Indigo d'atelier** (`accent`, clair / `dark-accent`, sombre) : sélection, anneau de focus (2 px, décalage 2 px), bouton principal, case cochée, flèche de la ligne sélectionnée, marque « Dernière ». Texte posé dessus : `accent-ink` (blanc en clair, quasi-noir en sombre).
@@ -282,17 +288,17 @@ Sous 760 px (règle aujourd'hui écrite dans la page du portail, pas dans `ateli
 Le système est plat par défaut. La profondeur se lit par paliers de ton (`bg-side` sous `bg`, `surface` au-dessus) et par des filets de 1 px, jamais par des ombres portées sur des surfaces au repos. Les seules ombres livrées sont des micro-ombres de matière : le segment pressé, le relief intérieur de l'icône d'app, et le halo de focus des champs. Une ombre de surgissement (`--shadow-pop`) et un panneau (`.at-panel`) sont déclarés pour les dialogues mais aucune surface livrée ne les exerce encore ; la page de connexion est posée à plat sur le fond.
 
 ### Shadow Vocabulary
-- **Segment pressé** (`box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--line)`) : l'option active d'un contrôle segmenté.
+- **Segment pressé** (`box-shadow: 0 1px 2px rgb(40 30 15 / 0.05), 0 0 0 1px var(--line)`) : l'option active d'un contrôle segmenté.
 - **Relief d'icône** (`box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.22)`) : bord et reflet de l'icône d'app.
 - **Halo de focus** (`box-shadow: 0 0 0 3px var(--accent-soft)`) : champ ou recherche en focus, avec bord passé à l'accent.
-- **Surgissement** (`box-shadow: 0 1px 2px rgb(16 17 20 / 0.06), 0 8px 24px -8px rgb(16 17 20 / 0.18)` en clair ; `0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -10px rgb(0 0 0 / 0.7)` en sombre) : réservé aux panneaux flottants et dialogues, provisoire tant qu'aucun ne l'a exercé.
+- **Surgissement** (`box-shadow: 0 1px 2px rgb(40 30 15 / 0.07), 0 8px 24px -8px rgb(40 30 15 / 0.2)` en clair ; `0 1px 2px rgb(0 0 0 / 0.45), 0 12px 32px -10px rgb(2 6 18 / 0.75)` en sombre, comme `--atelier-glow-strong`) : réservé aux panneaux flottants et dialogues, provisoire tant qu'aucun ne l'a exercé.
 
 ### Named Rules
 **La règle du plat au repos.** Une surface au repos n'a pas d'ombre. Seul ce qui flotte réellement au-dessus du contenu (dialogue, menu) a droit au surgissement.
 
 ## Shapes
 
-Des coins doucement arrondis, sur une échelle courte : 4 px pour les touches et cases, 5 px pour les petites icônes d'app et les options de segmenté, 7 px pour boutons, champs et éléments de navigation, 10 px pour tuiles et panneaux. L'icône d'app suit sa taille (5 px à 20 px, 7 px à 28 px, 11 px à 44 px). Les lignes de liste n'ont pas de coins : elles vont d'un bord à l'autre, séparées par des filets. Le cercle n'est admis que pour les pastilles d'état et l'avatar. Les touches de clavier ont un bord inférieur de 2 px, comme une vraie touche.
+Des coins doucement arrondis, sur une échelle courte : 4 px pour les touches et cases, 5 px pour les petites icônes d'app et les options de segmenté, 7 px pour boutons, champs et éléments de navigation, 10 px pour tuiles et panneaux, 12 px pour les cartes de chiffres (`--atelier-radius-xl`). L'icône d'app suit sa taille (5 px à 20 px, 7 px à 28 px, 11 px à 44 px). Les lignes de liste n'ont pas de coins : elles vont d'un bord à l'autre, séparées par des filets. Le cercle n'est admis que pour les pastilles d'état et l'avatar. Les touches de clavier ont un bord inférieur de 2 px, comme une vraie touche.
 
 Les icônes d'interface sont des traits sur une grille de 24, dérivés de Lucide (licence ISC), rendus à 16 px (14 px en version petite), trait 1.75, extrémités rondes, en `currentColor`, via le sprite `atelier-icons.svg` (`i-*`).
 
@@ -328,6 +334,9 @@ Sobres et précis : on les remarque quand on les cherche.
 - **Sélection:** fond `accent-soft` et flèche de fin qui passe à l'indigo en glissant de 3 px (200 ms, `cubic-bezier(0.16, 1, 0.3, 1)`). La sélection suit à la fois le clavier et la souris. En tuile, la sélection ajoute un bord indigo à 35 %.
 - **En-tête de groupe:** collant sous la barre haute, fond `bg-side`, titre 600 `ink` + compteur + note `muted`.
 
+### Cartes de chiffres (KPI)
+Un chiffre clé (total, compteur, solde, synthèse) se pose dans une carte arrondie : composant `.atelier-kpi` de la marque commune (`__label` Label-sm `muted`, `__value` 24 px en 600 et chiffres tabulaires, `__note` Meta `faint`), fond `surface`, bord 1 px `line`, coins de 12 px, sans ombre. Plusieurs chiffres forment une rangée de cartes espacées de 8 px, jamais une bande découpée par des filets. Les tableaux et les listes restent des tableaux et des listes. Le portail n'a pas de carte de chiffres.
+
 ### État d'un service
 Pastille de 8 px suivie d'un libellé Label-sm. `partial` : texte et pastille ambre ; `down` : texte rouge en 500 ; `unknown` : cercle vide `faint` ; `up` : pastille verte, réservée au résumé global ; `ext` : pas de pastille (les apps externes affichent « Vercel ↗ »).
 
@@ -350,7 +359,8 @@ Le choix vit dans le cookie `atelier_theme` (`system`, `light` ou `dark`), posé
 - **Do** laisser un service sain silencieux : latence seule, en chiffres tabulaires.
 - **Do** réutiliser le traitement `.is-down` unique pour tout service tombé.
 - **Do** tenir le pas de 4 px, les lignes de 40 px et la base de 13 px sur Mac.
-- **Do** garder les deux thèmes en jetons : toute nouvelle couleur reçoit une valeur claire et une valeur sombre.
+- **Do** garder les deux thèmes en jetons : toute nouvelle couleur reçoit une valeur claire (sur crème) et une valeur sombre (sur bleu nuit) ; un fond fixe hors CSS (`theme-color`, fenêtre de bureau, e-mail) vaut `#f8f4ec` ou `#0b1220`.
+- **Do** poser les chiffres clés dans des cartes `.atelier-kpi` arrondies (12 px), en rangée espacée.
 
 ### Don't:
 - **Don't** construire une grille de tuiles illustrées ou de logos néon en guise d'accueil ; la vue en icônes reste une liste disposée en grille.
