@@ -3,7 +3,7 @@
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
-- **Vitrine pro**, hébergée sur le VPS et **publique** (sans connexion) : le Portfolio, ses démos interactives (observatoire immobilier, e-commerce temps réel, labo A/B et causal, prévision de ventes, DataMind sans IA) et **Ops Lab**. Chaque entrée du portail a un bouton « Copier le lien public » (adresse `PORTFOLIO_PUBLIC_URL`, par ex. le relais Netlify). Les démos tournent dans le navigateur du visiteur : rien ne coûte au serveur, aucune IA payante.
+- **Vitrine pro**, hébergée sur le VPS et **publique** (sans connexion) : le Portfolio, ses démos interactives (observatoire immobilier, e-commerce temps réel, labo A/B et causal, prévision de ventes), **DataMind en direct** (la vraie app en mode démo, voir « DataMind ») et **Ops Lab**. Chaque entrée du portail a un bouton « Copier le lien public » (adresse `PORTFOLIO_PUBLIC_URL`, par ex. le relais Netlify). Les démos du Portfolio et Ops Lab tournent dans le navigateur du visiteur ; la démo de DataMind n'a que l'IA du serveur. Aucune IA payante.
 - **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **DataMind** (agent d'analyse de données, l'app complète avec son IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
 - **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
 
@@ -25,6 +25,7 @@ https://portfolio.atelier.mondomaine.fr  Portfolio (public)
 https://ops.atelier.mondomaine.fr        Ops Lab (Sites & tests)
 https://mission.atelier.mondomaine.fr    Atelier Mission (Sites & tests)
 https://datamind.atelier.mondomaine.fr   DataMind (Sites & tests)
+https://demo-datamind.atelier.mondomaine.fr  DataMind, démo publique (Vitrine pro)
 ```
 
 Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
@@ -70,7 +71,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` (une app après l’autre pour ménager le disque : compter 30 à 45 min ; il faut au moins 3 Go libres) |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind`, `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind` (+ sa démo publique), `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
@@ -93,6 +94,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ viz.…      ──▶ Viz :8000           (API + interface, DuckDB)
                     ├─ convert.…  ──▶ Convert :8010       (API + interface, OCR Tesseract)
                     ├─ datamind.… ──▶ DataMind :3600      (Fastify + DuckDB, interface React ; SSE) ──▶ Ollama
+                    ├─ demo-datamind.… ──▶ DataMind démo :3601 (même image, public, sans écriture) ──▶ Ollama
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
                     ├─ wiki.…     ──▶ Wiki :3200          (Fastify, SQLite + pièces jointes)
@@ -114,7 +116,7 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 
 - **Tout écoute sur 127.0.0.1.** Viz et Nexus n'acceptent de parler aux autres apps de la suite que sur `127.0.0.1` (contrat `atelier-node/1`). Les conteneurs partagent donc le réseau de l'hôte, et seul Caddy ouvre les ports 80 et 443.
 - **Connexion unique.** Caddy demande au portail (`forward_auth`) si chaque requête vient d'une personne connectée. Le cookie de session est posé sur `atelier.mondomaine.fr` et ses sous-domaines. Les apps n'ont pas de login propre : sans le portail, elles seraient ouvertes à tous.
-- **Le Portfolio, public.** `portfolio.…` ne passe pas par la connexion du portail : c'est un site vitrine, sans données privées. Seuls les messages du formulaire de contact sont enregistrés, dans `data/portfolio/messages.jsonl`. Sa démo DataMind n'utilise que `PORTFOLIO_ANTHROPIC_API_KEY` (vide = agent désactivé), jamais la clé des autres apps.
+- **Le Portfolio, public.** `portfolio.…` ne passe pas par la connexion du portail : c'est un site vitrine, sans données privées. Seuls les messages du formulaire de contact sont enregistrés, dans `data/portfolio/messages.jsonl`. Il n'appelle aucune IA : sa page DataMind mène à la démo publique (`demo-datamind.…`), dont l'adresse est fixée à la construction (`docker/portfolio.Dockerfile`).
 - **Sites & tests.** Une section du portail pour les simulations et maquettes, derrière la même connexion. **Ops Lab** (`ops.…`, dépôt public `agent-ops-lab`) fait tourner toute sa simulation dans le navigateur : rien n'est stocké sur le serveur, la partie est sauvegardée dans le navigateur de chaque appareil. **Mission** (`mission.…`, dépôt public `Atelier_Mission`) garde ses données sur le serveur (`data/mission/`) : il lit le temps saisi dans Projets et écrit les encaissements dans Trésorerie, tous deux en `127.0.0.1` sur ce VPS ; Brevo (relances) et SUPER PDP (facture électronique) ne servent qu'en mode « En ligne » de l'app, avec `MISSION_BREVO_API_KEY` et `MISSION_SUPERPDP_*` dans `.env`. Pour ajouter un autre site : une entrée dans `SITES` (`portail/server.mjs`) et son icône `<symbol id="app-<id>">` dans `portail/public/atelier-icons.svg`, un bloc dans `caddy/Caddyfile`, un service dans `docker-compose.yml` (+ son Dockerfile dans `docker/`), une ligne dans `APPS` (`scripts/lib.sh`) et un cas dans `update.sh`.
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
@@ -125,7 +127,7 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 
 Le Portfolio reste hébergé sur le VPS, mais tu peux donner aux recruteurs une adresse propre, par exemple `https://francois-pichon.netlify.app`.
 Netlify n'héberge rien : il relaie chaque requête vers `portfolio.<domaine>` (réécriture 200, `netlify/portfolio/netlify.toml`), et l'adresse Netlify reste affichée.
-Les requêtes relayées sont **signées** : le Portfolio reconnaît ainsi l'adresse réelle de chaque visiteur (limites du formulaire de contact et de DataMind, adresse notée avec chaque message).
+Les requêtes relayées sont **signées** : le Portfolio reconnaît ainsi l'adresse réelle de chaque visiteur (limite du formulaire de contact, adresse notée avec chaque message).
 
 1. Sur le VPS, mets le kit à jour puis le Portfolio (le secret `PORTFOLIO_PROXY_SECRET` est créé dans `.env` s'il manque), et affiche le secret :
    ```bash
@@ -151,17 +153,27 @@ Agent d'analyse de données, dans la section **Sites & tests** du portail (dép�
 - **Sinon** : l'IA du serveur (`OLLAMA_MODEL`), ou Claude par clé API si `ANTHROPIC_API_KEY` est renseignée. `DATAMIND_ENGINE` force le moteur proposé, `DATAMIND_CLAUDE_MODEL` le modèle Claude.
 - **Données** : jeux de données (Parquet) et analyses (JSON) dans `data/datamind/`, compris dans les sauvegardes.
 - **Sécurité** : les requêtes de l'IA sont en lecture seule, sur une base en mémoire sans accès aux fichiers ; les outils de Claude Code (fichiers, commandes, web) sont désactivés ; l'app est derrière la connexion du portail.
-- Installer ou mettre à jour : `sudo ./update.sh datamind`.
+- Installer ou mettre à jour : `sudo ./update.sh datamind` (reconstruit l'image, puis relance aussi la démo publique).
+
+### Démo publique (`https://demo-datamind.<domaine>`)
+
+La même app, en **mode démo**, ouverte à tous depuis la section **Vitrine pro** du portail et le bouton « Essayer la démo » de la page DataMind du Portfolio.
+
+- **Même image** que `datamind` (`atelier-datamind`) : rien de plus à construire ni à stocker. Service `datamind-demo`, `127.0.0.1:3601`, réseau de l'hôte comme les autres.
+- **Mode démo** (`DATAMIND_DEMO=1`) : les jeux d'exemple seulement, aucun import ni écriture, une session par visiteur ; son lien « Portfolio » ramène à `PORTFOLIO_PUBLIC_URL` (sinon `portfolio.<domaine>`).
+- **IA du serveur seulement** : ni jeton du forfait, ni clé Anthropic dans ce service. `DATAMIND_DEMO_QUESTIONS_PAR_HEURE` (`.env`, 10 par défaut) questions par heure et par visiteur, une à la fois. Caddy pose `X-Forwarded-For` (l'adresse réelle) et l'app ne le lit que depuis `127.0.0.1` : chaque visiteur a son propre quota.
+- **Données éphémères** : les jeux d'exemple sont copiés au démarrage dans un `tmpfs` de 128 Mo ; rien sur le disque, rien dans les sauvegardes. Mémoire bornée à 768 Mo.
+- **Ollama partagé** : une seule requête à la fois sur le serveur. Une question de visiteur peut faire attendre tes propres apps (et inversement) ; baisse le quota, ou arrête la démo (`sudo docker compose stop datamind-demo`), si c'est gênant.
 
 ## IA du serveur (Ollama)
 
-Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, DataMind, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
+Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, DataMind (et sa démo publique), Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
 
 - **Un seul modèle pour tout le monde** (`OLLAMA_MODEL` dans `.env`), choisi à l'installation selon la mémoire du serveur : `llama3.1:8b` à partir de 10 Go, `llama3.2:3b` à partir de 5 Go, `llama3.2:1b` en dessous. Il est téléchargé une fois (2 à 5 Go) et reste en mémoire 30 minutes après la dernière demande.
 - **Lent sans carte graphique** : une réponse prend de quelques secondes à quelques minutes. Les délais des apps sont réglés à 10 minutes.
 - **Tab** joint l'IA par `https://tab.<domaine>/ollama/`, derrière la connexion du portail. Seules les routes de conversation passent : personne ne peut télécharger ou supprimer de modèle depuis Internet.
 - **Wiki** (« Rédiger avec l'IA ») et **Formulaire** (« Créer avec l'IA ») proposent un brouillon que tu relis avant d'enregistrer.
-- **Claude reste possible** dans Nexus, Viz, Convert et DataMind avec `ANTHROPIC_API_KEY` ; sans clé, Nexus utilise l'IA du serveur.
+- **Claude reste possible** dans Nexus, Viz, Convert et DataMind avec `ANTHROPIC_API_KEY` (jamais dans la démo publique de DataMind) ; sans clé, Nexus utilise l'IA du serveur.
 
 ## À savoir
 
