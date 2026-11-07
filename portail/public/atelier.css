@@ -56,54 +56,57 @@
   --t-med: 200ms;
 
   color-scheme: light;
-  --bg: #fbfbfc;
-  --bg-side: #f4f5f7;
-  --surface: #ffffff;
-  --hover: #eeeff2;
-  --selected: #e7e8ee;
-  --line: #e3e4e8;
-  --line-strong: #d0d2d8;
-  --ink: #1a1b1e;
-  --ink-2: #393c42;
-  --muted: #5f636c;
-  --faint: #6c7079;
+  /* Structure : crème, mêmes valeurs que la marque commune (Atelier_Projets/design-system/brand, §2). */
+  --bg: #f8f4ec;
+  --bg-side: #f1ebdf;
+  --surface: #fffdf8;
+  --hover: #efe8db;
+  --selected: #e6ddcc;
+  --line: #e4dac8;
+  --line-strong: #cfc2a9;
+  --ink: #1f1b16;
+  --ink-2: #3c362e;
+  --muted: #5f574b;
+  --faint: #6b6255;
   --accent: #5b5bd6;
   --accent-ink: #ffffff;
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
-  --up: #1a8a4c;
-  --up-dot: #22a35b;
-  --partial: #a35f00;
-  --partial-dot: #e39b1b;
-  --down: #c9302b;
+  /* États : texte = --atelier-up / warn / down ; pastilles ≥ 3:1 sur la crème. */
+  --up: #14743f;
+  --up-dot: #209855;
+  --partial: #9a5700;
+  --partial-dot: #b37a15;
+  --down: #b92b27;
   --down-dot: #e5484d;
-  --shadow-pop: 0 1px 2px rgb(16 17 20 / 0.06), 0 8px 24px -8px rgb(16 17 20 / 0.18);
+  --shadow-pop: 0 1px 2px rgb(40 30 15 / 0.07), 0 8px 24px -8px rgb(40 30 15 / 0.2);
   --icon-glyph: #ffffff;
-  --mark-bg: #1a1b1e;
+  --mark-bg: #1f1b16;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f1012;
-  --bg-side: #131416;
-  --surface: #17181b;
-  --hover: #1c1d21;
-  --selected: #24252b;
-  --line: #24262b;
-  --line-strong: #33353c;
-  --ink: #e8e9ec;
-  --ink-2: #c8cad0;
-  --muted: #969aa3;
-  --faint: #868a94;
+  /* Structure : bleu nuit, mêmes valeurs que la marque commune (§3). */
+  --bg: #0b1220;
+  --bg-side: #0e1626;
+  --surface: #121b2d;
+  --hover: #172238;
+  --selected: #1f2c46;
+  --line: #1f2a40;
+  --line-strong: #2d3b57;
+  --ink: #e6eaf2;
+  --ink-2: #ccd3df;
+  --muted: #a3aec2;
+  --faint: #8b97ad;
   --accent: #8285ff;
-  --accent-ink: #0f1012;
+  --accent-ink: #0b1220;
   --up: #4cc38a;
   --up-dot: #4cc38a;
   --partial: #f0b44c;
   --partial-dot: #f0b44c;
   --down: #ff6b6b;
   --down-dot: #ff6b6b;
-  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -10px rgb(0 0 0 / 0.7);
-  --mark-bg: #2a2c33;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 32px -10px rgb(2 6 18 / 0.75);
+  --mark-bg: #1f2c46;
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
@@ -180,7 +183,7 @@ a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; 
   transition: background var(--t-fast), color var(--t-fast);
 }
 .at-seg button:hover { color: var(--ink); }
-.at-seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--line); }
+.at-seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(40 30 15 / 0.05), 0 0 0 1px var(--line); }
 
 /* Case à cocher */
 .at-check { display: inline-flex; align-items: center; gap: var(--s2); color: var(--muted); font-size: var(--t-small); cursor: pointer; white-space: nowrap; }

@@ -17,6 +17,24 @@
         ],
         "createdAt": "2026-11-06T15:00:55.229Z",
         "reason": "Flag targets .at-seg segmented control (2px well, buttons carry 8px padding); finish reviewer judged it a false positive"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "portail/public/index.html"
+        ],
+        "createdAt": "2026-11-07T00:47:11.706Z",
+        "reason": "user confirmed: François a demandé le 7 nov. 2026 crème en clair et bleu nuit en sombre pour toute la suite"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "portail/public/connexion.html"
+        ],
+        "createdAt": "2026-11-07T00:47:11.720Z",
+        "reason": "user confirmed: François a demandé le 7 nov. 2026 crème en clair et bleu nuit en sombre pour toute la suite"
       }
     ]
   }
