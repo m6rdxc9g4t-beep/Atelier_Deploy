@@ -128,6 +128,30 @@ const VITRINE = [
     id: 'demo-modelisation', icon: 'demo-modelisation', name: 'Modélisation de données', role: 'Démo · schéma relationnel, normalisation, DDL',
     color: '#4a5468', path: '/demos/modelisation-donnees', probes: PORTFOLIO_PROBE,
   },
+  {
+    id: 'demo-segmentation', icon: 'demo-segmentation', name: 'Segmentation clients', role: 'Démo · RFM et k-means, portrait des segments',
+    color: '#4a5468', path: '/demos/segmentation-clients', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-elasticite', icon: 'demo-elasticite', name: 'Élasticité-prix', role: 'Démo · régression log-log, prix optimal',
+    color: '#4a5468', path: '/demos/elasticite-prix', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-churn', icon: 'demo-churn', name: 'Score de churn', role: 'Démo · régression logistique, ROC, seuil au coût',
+    color: '#4a5468', path: '/demos/score-churn', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-regression', icon: 'demo-regression', name: 'Labo de régression', role: 'Démo · MCO, erreurs robustes, diagnostics',
+    color: '#4a5468', path: '/demos/labo-regression', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-attribution', icon: 'demo-attribution', name: 'Attribution marketing', role: 'Démo · heuristiques, Markov, Shapley',
+    color: '#4a5468', path: '/demos/attribution-marketing', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-pipeline', icon: 'demo-pipeline', name: 'Pipeline de données', role: 'Démo · DAG SQL, tests de données, lignage',
+    color: '#4a5468', path: '/demos/pipeline-donnees', probes: PORTFOLIO_PROBE,
+  },
 ]
   .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
   .concat([
