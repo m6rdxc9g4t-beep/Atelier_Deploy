@@ -112,6 +112,21 @@ const VITRINE = [
   {
     id: 'demo-prevision', icon: 'demo-prevision', name: 'Prévision de ventes', role: 'Démo · CSV → prévision avec intervalles',
     color: '#4a5468', path: '/demos/prevision-ventes', probes: PORTFOLIO_PROBE,
+  },  {
+    id: 'demo-sql', icon: 'demo-sql', name: 'SQL Lab', role: 'Démo · base SQLite dans le navigateur, 9 défis corrigés',
+    color: '#4a5468', path: '/demos/sql-lab', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-qualite', icon: 'demo-qualite', name: 'Qualité des données', role: 'Démo · profil d’un CSV, score et nettoyage',
+    color: '#4a5468', path: '/demos/qualite-donnees', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-dashboard', icon: 'demo-dashboard', name: 'Tableau de bord', role: 'Démo · KPI filtrables, cohortes de fidélité',
+    color: '#4a5468', path: '/demos/tableau-de-bord', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-modelisation', icon: 'demo-modelisation', name: 'Modélisation de données', role: 'Démo · schéma relationnel, normalisation, DDL',
+    color: '#4a5468', path: '/demos/modelisation-donnees', probes: PORTFOLIO_PROBE,
   },
 ]
   .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
