@@ -152,6 +152,14 @@ const VITRINE = [
     id: 'demo-pipeline', icon: 'demo-pipeline', name: 'Pipeline de données', role: 'Démo · DAG SQL, tests de données, lignage',
     color: '#4a5468', path: '/demos/pipeline-donnees', probes: PORTFOLIO_PROBE,
   },
+  {
+    id: 'demo-impact', icon: 'demo-impact', name: 'Impact sans groupe témoin', role: 'Démo · contrôle synthétique, placebos',
+    color: '#4a5468', path: '/demos/impact-sans-temoin', probes: PORTFOLIO_PROBE,
+  },
+  {
+    id: 'demo-survie', icon: 'demo-survie', name: 'Durée de vie client', role: 'Démo · Kaplan-Meier, Cox, valeur vie',
+    color: '#4a5468', path: '/demos/duree-vie-client', probes: PORTFOLIO_PROBE,
+  },
 ]
   .map((a) => ({ ...a, url: `${PORTFOLIO_BASE}${a.path}` }))
   .concat([
