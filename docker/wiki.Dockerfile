@@ -35,6 +35,8 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/backend/package.json ./backend/
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/frontend/dist ./frontend/dist
+# Exemples de la suite : lus dans /app/exemples-suite (à côté de backend/)
+COPY --from=build /app/exemples-suite ./exemples-suite
 
 ENV HOST=127.0.0.1 \
     PORT=3200 \

@@ -22,12 +22,15 @@ COPY apps/atelier_viz/backend/requirements.txt ./
 RUN pip install -r requirements.txt
 COPY apps/atelier_viz/backend/ ./
 COPY apps/atelier_viz/samples /opt/viz/samples
+# Exemples de la suite (histoires fictives communes, générées par exemples/generer.py)
+COPY apps/atelier_viz/exemples-suite /opt/viz/exemples-suite
 COPY --from=front /src/dist /opt/viz/frontend
 
 ENV APP_ENV=production \
     DATA_DIR=/data \
     FRONTEND_DIST=/opt/viz/frontend \
     SAMPLES_DIR=/opt/viz/samples \
+    EXEMPLES_DIR=/opt/viz/exemples-suite \
     SERVE_FRONTEND=true \
     SECRETS_BACKEND=file \
     SYSTEM_NOTIFICATIONS=false \
