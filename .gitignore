@@ -3,3 +3,5 @@ apps/
 data/
 *.log
 logs/
+exemples/dist/
+__pycache__/

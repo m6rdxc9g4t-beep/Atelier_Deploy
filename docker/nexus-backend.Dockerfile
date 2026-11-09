@@ -22,12 +22,16 @@ RUN pip install -r requirements.txt
 COPY apps/atelier_nexus/backend/ ./
 RUN rm -f .env
 COPY --from=tab /src/dist-desktop/atelier-mcp.mjs /opt/atelier-tab/atelier-mcp.mjs
+# Exemples de la suite : ceux de Tab à côté de son serveur MCP (load_suite_example), ceux de Nexus
+COPY --from=tab /src/exemples-suite /opt/atelier-tab/exemples-suite
+COPY apps/atelier_nexus/exemples-suite /opt/nexus/exemples-suite
 
 ENV APP_ENV=production \
     HOME=/data/nexus \
     TAB_MCP_COMMAND="node /opt/atelier-tab/atelier-mcp.mjs" \
     TAB_DATA_DIR=/data/atelier_tab \
     TAB_EXPORTS_DIR=/data/atelier_tab/exports \
+    EXEMPLES_DIR=/opt/nexus/exemples-suite \
     DATA_VIA_BASE_URL=http://127.0.0.1:8000/api \
     PROJETS_BASE_URL=http://127.0.0.1:3000/api
 

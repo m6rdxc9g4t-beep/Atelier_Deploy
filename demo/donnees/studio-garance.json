@@ -1,0 +1,386 @@
+{
+  "_lisez_moi": "Jeu de données fictif « Studio Garance » de la suite Atelier. Source unique : outils/fabriquer.py en tire les PDF et le CSV, kit.py le charge dans les apps.",
+  "nom": "Studio Garance",
+  "marque": "(démo)",
+  "banque": {
+    "nom": "BANQUE EXEMPLE",
+    "agence": "Agence Arles République — 4 rue de la République, 13200 Arles",
+    "titulaire": "STUDIO GARANCE — EI",
+    "compte": "Compte professionnel n° 00098765432"
+  },
+  "releves": [
+    {
+      "mois": "2026-08",
+      "libelle": "août 2026",
+      "fichier": "releve_2026-08.pdf",
+      "solde_initial": 2776.65,
+      "solde_final": 3462.45,
+      "operations": [
+        {
+          "date": "2026-08-01",
+          "libelle": "PRLV SEPA SCI DES TANNEURS LOYER ATELIER",
+          "debit": 1150,
+          "credit": 0,
+          "categorie": "Locaux"
+        },
+        {
+          "date": "2026-08-04",
+          "libelle": "PRLV SEPA ADOBE CREATIVE CLOUD",
+          "debit": 71.99,
+          "credit": 0,
+          "categorie": "Logiciels"
+        },
+        {
+          "date": "2026-08-06",
+          "libelle": "VIR SEPA RECU MAISON VAUCLAIR FACT 2026-031",
+          "debit": 0,
+          "credit": 1800,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-08-08",
+          "libelle": "PRLV SEPA ORANGE PRO",
+          "debit": 54.99,
+          "credit": 0,
+          "categorie": "Télécom"
+        },
+        {
+          "date": "2026-08-12",
+          "libelle": "CARTE BOESNER FOURNITURES ARLES",
+          "debit": 186.3,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-08-16",
+          "libelle": "PRLV SEPA URSSAF",
+          "debit": 640,
+          "credit": 0,
+          "categorie": "Charges sociales"
+        },
+        {
+          "date": "2026-08-18",
+          "libelle": "CARTE LDLC PRO DISQUE SSD",
+          "debit": 389,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-08-20",
+          "libelle": "VIR SEPA RECU CAFE LISIERE FACT 2026-033",
+          "debit": 0,
+          "credit": 1800,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-08-22",
+          "libelle": "CARTE SNCF CONNECT",
+          "debit": 124,
+          "credit": 0,
+          "categorie": "Déplacements"
+        },
+        {
+          "date": "2026-08-25",
+          "libelle": "CARTE BRASSERIE DU FORUM",
+          "debit": 58.4,
+          "credit": 0,
+          "categorie": "Repas"
+        },
+        {
+          "date": "2026-08-26",
+          "libelle": "PRLV SEPA IONOS HEBERGEMENT",
+          "debit": 182.32,
+          "credit": 0,
+          "categorie": "Logiciels"
+        },
+        {
+          "date": "2026-08-27",
+          "libelle": "PRLV SEPA ASSURANCE RC PRO",
+          "debit": 48.2,
+          "credit": 0,
+          "categorie": "Assurances"
+        },
+        {
+          "date": "2026-08-29",
+          "libelle": "FRAIS TENUE DE COMPTE",
+          "debit": 9,
+          "credit": 0,
+          "categorie": "Banque"
+        }
+      ]
+    },
+    {
+      "mois": "2026-09",
+      "libelle": "septembre 2026",
+      "fichier": "releve_2026-09.pdf",
+      "solde_initial": 3462.45,
+      "solde_final": 4210.35,
+      "operations": [
+        {
+          "date": "2026-09-01",
+          "libelle": "PRLV SEPA SCI DES TANNEURS LOYER ATELIER",
+          "debit": 1150,
+          "credit": 0,
+          "categorie": "Locaux"
+        },
+        {
+          "date": "2026-09-04",
+          "libelle": "PRLV SEPA ADOBE CREATIVE CLOUD",
+          "debit": 71.99,
+          "credit": 0,
+          "categorie": "Logiciels"
+        },
+        {
+          "date": "2026-09-05",
+          "libelle": "VIR SEPA RECU LES HALLES D ARLES FACT 2026-034",
+          "debit": 0,
+          "credit": 2350,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-09-09",
+          "libelle": "PRLV SEPA ORANGE PRO",
+          "debit": 54.99,
+          "credit": 0,
+          "categorie": "Télécom"
+        },
+        {
+          "date": "2026-09-11",
+          "libelle": "CARTE BOESNER FOURNITURES ARLES",
+          "debit": 212.8,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-09-15",
+          "libelle": "VIR SEPA EMIS ECOLE ESTIENNE FORMATION",
+          "debit": 450,
+          "credit": 0,
+          "categorie": "Formation"
+        },
+        {
+          "date": "2026-09-16",
+          "libelle": "PRLV SEPA URSSAF",
+          "debit": 640,
+          "credit": 0,
+          "categorie": "Charges sociales"
+        },
+        {
+          "date": "2026-09-17",
+          "libelle": "CARTE LDLC PRO ECRAN 27 POUCES",
+          "debit": 304.22,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-09-19",
+          "libelle": "VIR SEPA RECU MAISON VAUCLAIR FACT 2026-036",
+          "debit": 0,
+          "credit": 1800,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-09-22",
+          "libelle": "CARTE SNCF CONNECT",
+          "debit": 156.4,
+          "credit": 0,
+          "categorie": "Déplacements"
+        },
+        {
+          "date": "2026-09-24",
+          "libelle": "CARTE IMPRIMERIE DU RHONE",
+          "debit": 268,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-09-26",
+          "libelle": "PRLV SEPA ASSURANCE RC PRO",
+          "debit": 48.2,
+          "credit": 0,
+          "categorie": "Assurances"
+        },
+        {
+          "date": "2026-09-29",
+          "libelle": "FRAIS TENUE DE COMPTE",
+          "debit": 9,
+          "credit": 0,
+          "categorie": "Banque"
+        },
+        {
+          "date": "2026-09-30",
+          "libelle": "CARTE BRASSERIE DU FORUM",
+          "debit": 36.5,
+          "credit": 0,
+          "categorie": "Repas"
+        }
+      ]
+    },
+    {
+      "mois": "2026-10",
+      "libelle": "octobre 2026",
+      "fichier": "releve_2026-10.pdf",
+      "solde_initial": 4210.35,
+      "solde_final": 6605.87,
+      "operations": [
+        {
+          "date": "2026-10-01",
+          "libelle": "PRLV SEPA SCI DES TANNEURS LOYER ATELIER",
+          "debit": 1150,
+          "credit": 0,
+          "categorie": "Locaux"
+        },
+        {
+          "date": "2026-10-02",
+          "libelle": "VIR SEPA RECU MAISON VAUCLAIR FACT 2026-038",
+          "debit": 0,
+          "credit": 2400,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-10-04",
+          "libelle": "PRLV SEPA ADOBE CREATIVE CLOUD",
+          "debit": 71.99,
+          "credit": 0,
+          "categorie": "Logiciels"
+        },
+        {
+          "date": "2026-10-07",
+          "libelle": "CARTE BOESNER FOURNITURES ARLES",
+          "debit": 238.4,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-10-09",
+          "libelle": "PRLV SEPA ORANGE PRO",
+          "debit": 54.99,
+          "credit": 0,
+          "categorie": "Télécom"
+        },
+        {
+          "date": "2026-10-12",
+          "libelle": "VIR SEPA RECU LES HALLES D ARLES FACT 2026-039",
+          "debit": 0,
+          "credit": 1850,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-10-14",
+          "libelle": "CARTE IMPRIMERIE DU RHONE",
+          "debit": 312,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-10-16",
+          "libelle": "PRLV SEPA URSSAF",
+          "debit": 640,
+          "credit": 0,
+          "categorie": "Charges sociales"
+        },
+        {
+          "date": "2026-10-19",
+          "libelle": "CARTE SNCF CONNECT",
+          "debit": 89.5,
+          "credit": 0,
+          "categorie": "Déplacements"
+        },
+        {
+          "date": "2026-10-21",
+          "libelle": "CARTE BOESNER FOURNITURES ARLES",
+          "debit": 157.6,
+          "credit": 0,
+          "categorie": "Matériel"
+        },
+        {
+          "date": "2026-10-23",
+          "libelle": "VIR SEPA RECU CAFE LISIERE FACT 2026-041",
+          "debit": 0,
+          "credit": 960,
+          "categorie": "Ventes"
+        },
+        {
+          "date": "2026-10-27",
+          "libelle": "PRLV SEPA ASSURANCE RC PRO",
+          "debit": 48.2,
+          "credit": 0,
+          "categorie": "Assurances"
+        },
+        {
+          "date": "2026-10-29",
+          "libelle": "FRAIS TENUE DE COMPTE",
+          "debit": 9,
+          "credit": 0,
+          "categorie": "Banque"
+        },
+        {
+          "date": "2026-10-30",
+          "libelle": "CARTE BRASSERIE DU FORUM",
+          "debit": 42.8,
+          "credit": 0,
+          "categorie": "Repas"
+        }
+      ]
+    }
+  ],
+  "tresorerie": {
+    "compte": "Compte pro Studio Garance (démo)",
+    "type_compte": "checking",
+    "budgets_mois": "2026-10",
+    "budgets": {
+      "Locaux": 1500,
+      "Matériel": 600,
+      "Logiciels": 80,
+      "Déplacements": 150,
+      "Repas": 100,
+      "Télécom": 80
+    }
+  },
+  "tab": {
+    "espace": "Studio Garance (démo)",
+    "projet": "Compta 2026"
+  },
+  "viz": {
+    "jeu": "Studio Garance — opérations août-oct. 2026 (démo)",
+    "cle": "demo:studio-garance:operations",
+    "alerte": {
+      "nom": "Matériel du mois (démo)",
+      "categorie": "Matériel",
+      "depuis": "2026-10-01",
+      "seuil": 600
+    }
+  },
+  "projets": {
+    "projet": "Gestion 2026 — Studio Garance (démo)",
+    "phase": "Clôtures mensuelles",
+    "epic": "Octobre 2026",
+    "story": "Suivi des budgets",
+    "taches": [
+      {
+        "titre": "Rapprocher le relevé d’octobre",
+        "statut": "DONE",
+        "heures": 0.75,
+        "commentaire": "Relevé converti dans Convert, soldes justes."
+      },
+      {
+        "titre": "Catégoriser les opérations d’octobre dans Tab",
+        "statut": "DONE",
+        "heures": 0.5,
+        "commentaire": "Colonne Catégorie ajoutée."
+      }
+    ],
+    "alerte_tache": {
+      "titre": "Alerte « Matériel du mois (démo) » : 708,00 € (seuil 600,00 €)",
+      "priorite": "HIGH"
+    },
+    "jalon": {
+      "nom": "Clôture d’octobre",
+      "date": "2026-11-06"
+    }
+  },
+  "wiki": {
+    "espace": "Studio Garance (démo)",
+    "description": "Exemple guidé de la suite Atelier : procédures et clôtures mensuelles d’un studio fictif."
+  }
+}

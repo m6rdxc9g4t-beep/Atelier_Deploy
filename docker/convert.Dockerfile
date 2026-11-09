@@ -26,12 +26,15 @@ COPY apps/atelier_convert/backend/requirements.txt ./
 RUN pip install -r requirements.txt
 COPY apps/atelier_convert/backend/ ./
 COPY apps/atelier_convert/samples /opt/convert/samples
+# Exemples de la suite (histoires fictives communes, générées par exemples/generer.py)
+COPY apps/atelier_convert/exemples-suite /opt/convert/exemples-suite
 COPY --from=front /src/dist /opt/convert/frontend
 
 ENV APP_ENV=production \
     DATA_DIR=/data \
     FRONTEND_DIST=/opt/convert/frontend \
     SAMPLES_DIR=/opt/convert/samples \
+    CONVERT_EXEMPLES_DIR=/opt/convert/exemples-suite \
     SERVE_FRONTEND=true \
     CONVERT_OCR_TESSERACT=/usr/bin/tesseract \
     ATELIER_TAB_DATA_DIR=/data-tab
