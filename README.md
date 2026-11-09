@@ -79,6 +79,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |
 | Redémarrer une app | `sudo docker compose restart projets` |
+| Charger l'exemple guidé (données fictives « Studio Garance » dans Convert, Tab, Viz, Trésorerie, Nexus, Projets, Wiki) | `sudo ./demo/charger.sh` ; l'enlever : `sudo ./demo/charger.sh retirer` (voir [`demo/README.md`](demo/README.md)) |
 | Sauvegarder | `sudo ./backup.sh` → `backups/atelier-AAAAMMJJ-HHMM.tar.gz` |
 | Sauvegarder chaque nuit | `echo "30 3 * * * root $(pwd)/backup.sh >/dev/null" \| sudo tee /etc/cron.d/atelier-backup` |
 | Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` |
