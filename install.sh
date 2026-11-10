@@ -59,9 +59,9 @@ ask ACME_EMAIL "E-mail pour les certificats HTTPS"
 ask GITHUB_CLONE_TOKEN "Jeton GitHub (lecture des dépôts privés)" secret
 ask ANTHROPIC_API_KEY "Clé API Anthropic (Entrée pour passer)" secret
 
-for key in PORTAL_PASSWORD; do
-  [ -n "$(env_get $key)" ] || { env_set $key "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "$key généré"; }
-done
+if [ -z "$(env_get PORTAL_PASSWORD)" ]; then
+  env_set PORTAL_PASSWORD "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "PORTAL_PASSWORD généré"
+fi
 ensure_secrets
 ensure_ia
 

@@ -2,9 +2,10 @@
 # Fonctions communes à install.sh, update.sh, auto-update.sh, backup.sh et restore.sh.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT"
+cd "$ROOT" || exit 1
 
 # Couleurs seulement dans un terminal : les journaux (cron) restent lisibles.
+# shellcheck disable=SC2034  # dim sert au récapitulatif d'install.sh
 if [ -t 1 ]; then
   bold=$'\e[1m'; dim=$'\e[2m'; red=$'\e[31m'; green=$'\e[32m'; yellow=$'\e[33m'; reset=$'\e[0m'
 else
@@ -146,10 +147,10 @@ ensure_ia() {
 
 # Télécharge le modèle dans le service ollama (plusieurs Go la première fois, rien ensuite).
 pull_model() {
-  local model i
+  local model
   model="$(env_get OLLAMA_MODEL)"; model="${model:-llama3.1:8b}"
   compose up -d ollama >/dev/null
-  for i in $(seq 1 30); do
+  for _ in $(seq 1 30); do
     compose exec -T ollama ollama list >/dev/null 2>&1 && break
     sleep 2
   done
