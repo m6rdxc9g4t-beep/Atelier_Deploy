@@ -53,7 +53,7 @@ fi
 
 if command -v node >/dev/null 2>&1; then
   etape "Portail (node --check)" node --check portail/server.mjs
-  if compgen -G "portail/tests/*.test.mjs" >/dev/null; then etape "Portail (node --test)" node --test portail/tests/; fi
+  if compgen -G "portail/tests/*.test.mjs" >/dev/null; then etape "Portail (node --test)" node --test portail/tests/*.test.mjs; fi
 else
   saute "Portail" "node introuvable"
 fi

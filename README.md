@@ -87,7 +87,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Savoir si la dernière sauvegarde a réussi | `sudo tail -n 3 logs/backup.log` (une ligne `ok` ou `ÉCHEC` par passage) |
 | Vérifier qu'une sauvegarde est lisible | `sudo ./backup.sh verifier` (la dernière) ou `sudo ./backup.sh verifier backups/atelier-….tar.gz` : relit l'archive en entier, sans rien arrêter |
 | Restaurer une sauvegarde | `sudo ./restore.sh` liste les archives ; `sudo ./restore.sh backups/atelier-….tar.gz` restaure (voir « Sauvegarder et restaurer ») |
-| Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` |
+| Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` : tous les appareils sont déconnectés et doivent se reconnecter avec le nouveau |
 | Déployer une autre branche | `BRANCH_NEXUS=ma-branche` dans `.env`, puis `sudo ./update.sh nexus` |
 | Changer de modèle d'IA | `OLLAMA_MODEL=…` dans `.env` (ex. `llama3.1:8b`, `llama3.2:3b`, `qwen3:8b`), puis `sudo ./update.sh` |
 | Retélécharger le modèle d'IA | `sudo ./update.sh ia` |

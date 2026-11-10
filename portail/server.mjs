@@ -214,7 +214,10 @@ const PROBED = [...HOSTED, ...VITRINE, ...SITES]
 
 // ── Session signée (HMAC-SHA256), sans stockage côté serveur ────────────────
 const b64 = (buf) => Buffer.from(buf).toString('base64url')
-const sign = (data) => createHmac('sha256', SECRET).update(data).digest('base64url')
+// La clé de signature dépend du secret ET du mot de passe : changer PORTAL_PASSWORD (ou PORTAL_USER) rend
+// invalides toutes les sessions déjà ouvertes, sur tous les appareils.
+const KEY = createHmac('sha256', SECRET).update(`session:${USER}:${PASSWORD}`).digest()
+const sign = (data) => createHmac('sha256', KEY).update(data).digest('base64url')
 
 function makeToken(user) {
   const payload = b64(JSON.stringify({ u: user, exp: Date.now() + SESSION_DAYS * 864e5 }))
@@ -265,12 +268,19 @@ function safeReturn(raw) {
 
 // ── Limite d'essais de connexion : 8 échecs par IP sur 15 min ───────────────
 const attempts = new Map()
+const recentFailures = (ip, now = Date.now()) => (attempts.get(ip) || []).filter((t) => now - t < 15 * 60e3)
 function tooManyAttempts(ip) {
-  const now = Date.now()
-  const list = (attempts.get(ip) || []).filter((t) => now - t < 15 * 60e3)
-  attempts.set(ip, list)
+  const list = recentFailures(ip)
+  // Une adresse sans échec récent ne reste pas en mémoire.
+  if (list.length) attempts.set(ip, list)
+  else attempts.delete(ip)
   return list.length >= 8
 }
+// Les adresses qui ne reviennent jamais sont oubliées au bout d'un quart d'heure (table bornée sous une attaque répartie).
+setInterval(() => {
+  const now = Date.now()
+  for (const ip of attempts.keys()) if (!recentFailures(ip, now).length) attempts.delete(ip)
+}, 15 * 60e3).unref()
 const noteFailure = (ip) => attempts.set(ip, [...(attempts.get(ip) || []), Date.now()])
 
 // ── Sondes d'état ───────────────────────────────────────────────────────────
