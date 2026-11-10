@@ -1,4 +1,4 @@
-# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki… derrière Caddy.
+# Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Hub… derrière Caddy.
 # Section « Sites & tests » du portail : Agent Ops Lab (service ops) et Atelier Mission (service mission).
 # Cuisine, Dates et Suivi vivent sur Vercel uniquement : le portail les ouvre là-bas.
 #
@@ -197,6 +197,29 @@ services:
       - ./data/wiki:/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3200/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+
+  # Atelier Hub : une fiche par projet. Lit Projets, Wiki, Viz, Convert et Nexus en 127.0.0.1 (lecture seule)
+  # et l'index de Tab (fichiers du MCP de Tab) ; les liens ouvrent les sous-domaines de la suite.
+  hub:
+    <<: *app
+    build: { <<: *build, dockerfile: docker/hub.Dockerfile }
+    environment:
+      <<: *tz
+      ALLOWED_HOSTS: hub.${ATELIER_DOMAIN}
+      PROJETS_URL: ${PROTO:-https}://projets.${ATELIER_DOMAIN}
+      WIKI_URL: ${PROTO:-https}://wiki.${ATELIER_DOMAIN}
+      VIZ_URL: ${PROTO:-https}://viz.${ATELIER_DOMAIN}
+      CONVERT_URL: ${PROTO:-https}://convert.${ATELIER_DOMAIN}
+      NEXUS_URL: ${PROTO:-https}://nexus.${ATELIER_DOMAIN}
+      TAB_URL: ${PROTO:-https}://tab.${ATELIER_DOMAIN}
+    volumes:
+      - ./data/hub:/data
+      - ./data/atelier_tab/exports:/tab-exports:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3700/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 20s

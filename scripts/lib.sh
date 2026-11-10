@@ -36,6 +36,7 @@ APPS=(
   "agent_data|Agent_Data|BRANCH_DATAMIND"
   "atelier_projets|Atelier_Projets|BRANCH_PROJETS"
   "atelier_wiki|Atelier_Wiki|BRANCH_WIKI"
+  "atelier_hub|Atelier_Hub|BRANCH_HUB"
   "atelier_formulaire|Atelier_Formulaire|BRANCH_FORMULAIRE"
   "atelier_cine|Atelier_Cine|BRANCH_CINE"
   "atelier-savoir|Atelier-Savoir|BRANCH_SAVOIR"
@@ -88,7 +89,7 @@ ensure_secrets() {
 # Dossiers de données et de médias (créés avant Docker pour en garder la propriété).
 ensure_dirs() {
   mkdir -p data/viz data/convert data/projets data/nexus data/atelier_tab/exports \
-           data/cine data/savoir data/tresorerie data/wiki data/formulaire data/portfolio data/mission data/datamind media/films media/series
+           data/cine data/savoir data/tresorerie data/wiki data/hub data/formulaire data/portfolio data/mission data/datamind media/films media/series
   # Le portfolio tourne sous l'utilisateur node (uid 1000) : il écrit ses messages de contact dans data/portfolio.
   chown 1000:1000 data/portfolio
   # Mission aussi (utilisateur node) : sa base SQLite vit dans data/mission.

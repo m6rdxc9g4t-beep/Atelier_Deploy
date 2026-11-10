@@ -2,7 +2,7 @@
 
 La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à ouvrir. Une seule connexion vaut pour toutes les apps du serveur, en HTTPS.
 
-- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné.
+- **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Hub, Formulaire, Trésorerie, Savoir, Ciné.
 - **Vitrine pro**, hébergée sur le VPS et **publique** (sans connexion) : le Portfolio, ses démos interactives (observatoire immobilier, e-commerce temps réel, labo A/B et causal, prévision de ventes, SQL Lab, qualité des données, tableau de bord, modélisation de données, segmentation clients, élasticité-prix, score de churn, labo de régression, attribution marketing, pipeline de données, impact sans groupe témoin, durée de vie client), **DataMind en direct** (la vraie app en mode démo, voir « DataMind ») et **Ops Lab**. Chaque entrée du portail a un bouton « Copier le lien public » (adresse `PORTFOLIO_PUBLIC_URL`, par ex. le relais Netlify). Les démos du Portfolio et Ops Lab tournent dans le navigateur du visiteur ; la démo de DataMind n'a que l'IA du serveur. Aucune IA payante.
 - **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **DataMind** (agent d'analyse de données, l'app complète avec son IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
 - **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
@@ -15,6 +15,7 @@ https://convert.atelier.mondomaine.fr    Atelier Convert
 https://tab.atelier.mondomaine.fr        Atelier Tab
 https://projets.atelier.mondomaine.fr    Atelier Projets
 https://wiki.atelier.mondomaine.fr       Atelier Wiki
+https://hub.atelier.mondomaine.fr        Atelier Hub (une fiche par projet)
 https://formulaire.atelier.mondomaine.fr Atelier Formulaire
 https://tresorerie.atelier.mondomaine.fr Atelier Trésorerie
 https://savoir.atelier.mondomaine.fr     Atelier Savoir
@@ -71,7 +72,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
 | Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` (une app après l’autre pour ménager le disque : compter 30 à 45 min ; il faut au moins 3 Go libres) |
-| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind` (+ sa démo publique), `projets`, `wiki`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
+| Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind` (+ sa démo publique), `projets`, `wiki`, `hub`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) |
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status` |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
@@ -100,6 +101,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ tab.…      ──▶ fichiers statiques  (interface web de Tab)
                     ├─ projets.…  ──▶ fichiers statiques + /api ──▶ Projets :3000 (SQLite)
                     ├─ wiki.…     ──▶ Wiki :3200          (Fastify, SQLite + pièces jointes)
+                    ├─ hub.…      ──▶ Hub :3700           (Fastify, SQLite) ──▶ Projets, Wiki, Viz, Convert, Nexus en 127.0.0.1, index de Tab
                     ├─ formulaire.… ──▶ Formulaire :3300  (Fastify, SQLite ; /r/* public)
                     ├─ tresorerie.… ──▶ Trésorerie :5050  (Flask, SQLite)
                     ├─ savoir.…   ──▶ Savoir :5051        (Flask, SQLite + fichiers)
@@ -123,7 +125,7 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
-- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `datamind/` (jeux de données et analyses de DataMind), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+- **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `hub/` (`hub.db` : fiches projet, rattachements, sources), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `datamind/` (jeux de données et analyses de DataMind), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
 
 ## Portfolio à une adresse Netlify
 
@@ -190,6 +192,8 @@ Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert t
 - **Ciné et l'espace disque.** Les vidéos occupent vite des dizaines de Go : vérifie la place libre avec `df -h` avant de les copier.
 - **Cuisine, Dates et Suivi** restent sur Vercel uniquement : leurs notifications iPhone, liens par e-mail et apps installées sur l'écran d'accueil dépendent de leur adresse Vercel. Le portail se contente de les ouvrir dans un onglet.
 - **Wiki et Nexus.** Le Wiki est un nœud `atelier-node/1` (manifeste sur `http://127.0.0.1:3200/api/atelier/manifest` : chercher, lire, créer, compléter des pages). Nexus ne le connaît pas encore : il faudra lui ajouter `WIKI_BASE_URL=http://127.0.0.1:3200/api` pour que ses workflows s'en servent.
+
+- **Atelier Hub.** Une fiche par projet (`hub.…`) : avancement et temps passé (Projets), pages (Wiki), tables (Tab), rapports (Viz), conversions (Convert), agents (Nexus) et sources. Il lit ces apps en `127.0.0.1`, en lecture seule, et l'index de Tab dans `data/atelier_tab/exports` (les tables écrites par le MCP de Tab et par Convert, pas celles du Tab de ton navigateur). Les liens ouvrent les sous-domaines de la suite. Installer ou mettre à jour : `sudo ./update.sh hub`.
 
 - **Formulaire et Nexus / Viz.** Formulaire est aussi un nœud `atelier-node/1` (`http://127.0.0.1:3300/api/atelier/manifest` : lire les formulaires et les réponses, envoyer une réponse) et publie ses réponses au format des jeux de données d'Atelier Projets (`/api/exports/datasets`), que Viz sait lire.
 
