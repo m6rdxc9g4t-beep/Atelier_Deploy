@@ -64,13 +64,21 @@ git_auth() {
   fi
 }
 
+# sync_apps                         toutes les apps passent au dernier commit de leur branche
+# sync_apps --seulement [dossier…]  seuls ces dossiers avancent ; les autres ne sont que clonés s'ils manquent
+#                                   (l'image de Caddy contient Tab et Projets, celle de Nexus le MCP de Tab).
+# Le code d'une app n'avance que si ses services sont reconstruits dans la foulée : sinon l'interface servie par
+# Caddy et l'API en service ne seraient plus de la même version, et auto-update.sh croirait l'app à jour.
 sync_apps() {
-  local owner; owner="$(env_get GITHUB_OWNER)"; owner="${owner:-m6rdxc9g4t-beep}"
+  local owner entry dir repo branch_var branch seulement=0
+  if [ "${1:-}" = "--seulement" ]; then seulement=1; shift; fi
+  owner="$(env_get GITHUB_OWNER)"; owner="${owner:-m6rdxc9g4t-beep}"
   mkdir -p apps
   for entry in "${APPS[@]}"; do
     IFS='|' read -r dir repo branch_var <<<"$entry"
-    local branch; branch="$(env_get "$branch_var")"; branch="${branch:-main}"
+    branch="$(env_get "$branch_var")"; branch="${branch:-main}"
     if [ -d "apps/$dir/.git" ]; then
+      if [ "$seulement" -eq 1 ] && [[ " $* " != *" $dir "* ]]; then continue; fi
       git_auth -C "apps/$dir" fetch --depth 1 origin "$branch" -q || die "Impossible de mettre à jour $repo"
       git -C "apps/$dir" checkout -q -B "$branch" FETCH_HEAD
       git -C "apps/$dir" reset -q --hard FETCH_HEAD

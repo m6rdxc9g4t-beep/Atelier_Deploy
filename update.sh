@@ -19,30 +19,36 @@ if [ -z "${ATELIER_KIT_A_JOUR:-}" ]; then
     warn "kit de déploiement : récupération impossible, on continue avec la version locale"
   fi
 fi
-ensure_secrets
-ensure_ia
-sync_apps
-ensure_dirs
 
+# Services à reconstruire et dépôts dont le code avance, pour la cible demandée.
+depots=()
 case "${1:-all}" in
   all)     services=() ;;
-  nexus)   services=(nexus-backend nexus-frontend) ;;
-  viz)     services=(viz) ;;
-  tab)     services=(caddy nexus-backend) ;;   # Tab est servi par Caddy, et son MCP vit dans Nexus
-  projets) services=(projets caddy) ;;        # l'interface de Projets est servie par Caddy
+  nexus)   services=(nexus-backend nexus-frontend); depots=(atelier_nexus) ;;
+  viz)     services=(viz); depots=(atelier_viz) ;;
+  tab)     services=(caddy nexus-backend); depots=(atelier-tab) ;;   # Tab est servi par Caddy, et son MCP vit dans Nexus
+  projets) services=(projets caddy); depots=(atelier_projets) ;;     # l'interface de Projets est servie par Caddy
   portail) services=(portail caddy) ;;
-  cine|savoir|tresorerie|wiki|formulaire|convert) services=("$1") ;;
+  cine|wiki|formulaire|convert) services=("$1"); depots=("atelier_$1") ;;
+  savoir)  services=(savoir); depots=(atelier-savoir) ;;
+  tresorerie) services=(tresorerie); depots=(atelier_tr-sorerie) ;;
   dates|suivi) die "$1 ne tourne plus sur le VPS : elle est sur Vercel, qui se met à jour tout seul à chaque commit." ;;
   # DataMind (Agent_Data) : l'image est construite par datamind, puis la démo publique (datamind-demo, même image)
   # est relancée sur la nouvelle version ; Caddy et le portail connaissent leurs adresses et leurs tuiles.
-  datamind) services=(datamind datamind-demo caddy portail) ;;
-  portfolio) services=(portfolio caddy portail) ;;  # Caddy et le portail connaissent son adresse et sa tuile
-  ops)     services=(ops caddy portail) ;;    # Sites & tests : Agent Ops Lab (Caddy et le portail connaissent son adresse)
-  mission) services=(mission caddy portail) ;; # Sites & tests : Atelier Mission (idem)
-  hub)     services=(hub caddy portail) ;;    # Atelier Hub : Caddy et le portail connaissent son adresse et sa tuile
+  datamind) services=(datamind datamind-demo caddy portail); depots=(agent_data) ;;
+  portfolio) services=(portfolio caddy portail); depots=(atelier_portefolio) ;;  # Caddy et le portail connaissent son adresse et sa tuile
+  ops)     services=(ops caddy portail); depots=(agent-ops-lab) ;;    # Sites & tests : Agent Ops Lab (Caddy et le portail connaissent son adresse)
+  mission) services=(mission caddy portail); depots=(atelier_mission) ;; # Sites & tests : Atelier Mission (idem)
+  hub)     services=(hub caddy portail); depots=(atelier_hub) ;;      # Atelier Hub : Caddy et le portail connaissent son adresse et sa tuile
   ia|ollama) services=(ollama) ;;             # IA du serveur : télécharge le modèle choisi dans .env
   *) die "App inconnue : $1 (nexus, viz, tab, convert, datamind, projets, wiki, hub, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)" ;;
 esac
+
+ensure_secrets
+ensure_ia
+# Une cible ne fait avancer que son propre code : celui des autres apps attend leur reconstruction.
+if [ "${1:-all}" = all ]; then sync_apps; else sync_apps --seulement "${depots[@]}"; fi
+ensure_dirs
 
 # Le disque du VPS est petit (40 Go) : une reconstruction garde l'ancienne image (en service) à côté de la
 # nouvelle, plus le cache de construction. Tout reconstruire d'un coup demande donc plus de 10 Go libres.
@@ -74,5 +80,7 @@ step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
 nettoyer
+# Une mise à jour réussie efface l'échec noté par auto-update.sh pour cette app (ou pour toutes).
+case "${1:-all}" in all) rm -f "$ROOT"/logs/echec-* ;; *) rm -f "$ROOT/logs/echec-$1" ;; esac
 ok "terminé"
 compose ps

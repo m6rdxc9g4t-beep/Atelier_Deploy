@@ -86,7 +86,10 @@ CRON
     if [ -f "$CRON_FILE" ]; then ok "active (toutes les 5 minutes)"; else warn "inactive (sudo ./auto-update.sh install)"; fi
     for app in $(tracked_apps); do
       read -r remote local_sha <<<"$(shas "$app")"
-      if [ "$remote" = "$local_sha" ]; then ok "$app : à jour (${local_sha:0:7})"
+      echec=""; [ ! -f "$ROOT/logs/echec-$app" ] || read -r echec _ <"$ROOT/logs/echec-$app" || true
+      if [ -n "$echec" ] && [ "$echec" = "$remote" ]; then
+        warn "$app : ÉCHEC de la mise à jour vers ${remote:0:7} (journal ci-dessous ; nouvel essai : sudo ./update.sh $app)"
+      elif [ "$remote" = "$local_sha" ]; then ok "$app : à jour (${local_sha:0:7})"
       else warn "$app : installé ${local_sha:0:7}, publié ${remote:0:7}"; fi
     done
     if [ -f "$LOG" ]; then echo; tail -n 8 "$LOG"; fi
