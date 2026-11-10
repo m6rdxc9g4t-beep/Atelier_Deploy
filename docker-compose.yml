@@ -5,6 +5,7 @@
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
 # elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
 # Seul Caddy ouvre les ports 80 et 443 au monde.
+# Exception : les sites publics qui n'appellent aucune app (Portfolio, Ops Lab) sont isolés sur leur propre réseau.
 #
 # Lancer :  docker compose up -d --build        Journal :  docker compose logs -f <service>
 #
@@ -31,14 +32,30 @@ x-ia: &ia
   OLLAMA_TIMEOUT_SECONDS: "600"
   OLLAMA_TIMEOUT_MS: "600000"
 
+x-journal: &journal
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
 x-app: &app
   network_mode: host
   restart: unless-stopped
   environment: &tz
     TZ: ${TZ:-Europe/Paris}
-  logging:
-    driver: json-file
-    options: { max-size: "10m", max-file: "3" }
+  logging: *journal
+
+# Sites publics (Portfolio, Ops Lab) : ouverts à tout Internet sans la connexion du portail. Ils ne partagent donc pas
+# le réseau de l'hôte, où les apps privées répondent sans connexion sur 127.0.0.1 : une faille dans l'un d'eux ne
+# donnerait accès ni à Trésorerie, ni au Wiki, ni à Ollama, ni à PostgreSQL. Réseau à part (« vitrine »), port publié
+# sur 127.0.0.1 seulement (Caddy et les sondes du portail l'appellent comme avant), aucun privilège, mémoire et
+# processus bornés.
+x-vitrine: &vitrine
+  restart: unless-stopped
+  networks: [vitrine]
+  logging: *journal
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 256
+  mem_limit: 512m
 
 services:
   caddy:
@@ -266,7 +283,7 @@ services:
 
   # Portfolio : site public (vitrine pour les recruteurs), sans la connexion du portail.
   portfolio:
-    <<: *app
+    <<: *vitrine
     build:
       <<: *build
       dockerfile: docker/portfolio.Dockerfile
@@ -278,8 +295,11 @@ services:
         DVF_DEPARTEMENTS: ${DVF_DEPARTEMENTS:-49,62,59,44,35}
     environment:
       <<: *tz
+      # Dans son conteneur, le serveur écoute sur toutes les interfaces ; l'hôte ne publie le port que sur 127.0.0.1.
+      HOST: 0.0.0.0
       # Relais Netlify (netlify/portfolio) : secret partagé pour reconnaître l'adresse réelle des visiteurs.
       NETLIFY_PROXY_SECRET: ${PORTFOLIO_PROXY_SECRET:-}
+    ports: ["127.0.0.1:8787:8787"]
     volumes:
       - ./data/portfolio:/data
     healthcheck:
@@ -289,11 +309,15 @@ services:
       start_period: 20s
       start_interval: 2s
 
-  # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
-  # Agent Ops Lab : TMS simulé piloté par un agent IA (tout tourne dans le navigateur).
+  # Agent Ops Lab : TMS simulé piloté par un agent IA (tout tourne dans le navigateur), public comme le Portfolio.
   ops:
-    <<: *app
+    <<: *vitrine
     build: { <<: *build, dockerfile: docker/ops.Dockerfile }
+    environment:
+      <<: *tz
+      # Next.js autonome lit HOSTNAME : toutes les interfaces du conteneur, port publié sur 127.0.0.1 seulement.
+      HOSTNAME: 0.0.0.0
+    ports: ["127.0.0.1:3400:3400"]
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3400/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
@@ -301,6 +325,7 @@ services:
       start_period: 20s
       start_interval: 2s
 
+  # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
   # Atelier Mission : mini-CRM freelance (prospects, devis, factures, relances), API + interface sur :3500.
   # Lit le temps dans Projets (127.0.0.1:3000) et écrit les encaissements dans Trésorerie (127.0.0.1:5050).
   # Brevo et SUPER PDP : identifiants facultatifs, utilisés seulement en mode « En ligne » de l'app.
@@ -454,6 +479,10 @@ services:
       timeout: 10s
       start_period: 20s
       start_interval: 2s
+
+networks:
+  # Réseau des sites publics : sans PostgreSQL (réseau par défaut) et hors du réseau de l'hôte.
+  vitrine:
 
 volumes:
   caddy_data:
