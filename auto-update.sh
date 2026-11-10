@@ -42,22 +42,39 @@ shas() {
   echo "${remote:-?} ${local_sha:-?}"
 }
 
+# Essais accordés à un même commit avant d'attendre le suivant.
+ESSAIS_MAX=3
+
 check() {
-  local app remote local_sha
+  local app remote local_sha echec essais
   for app in $(tracked_apps); do
     if ! app_entry "$app" >/dev/null; then warn "$app : app inconnue (AUTO_UPDATE_APPS)"; continue; fi
     read -r remote local_sha <<<"$(shas "$app")"
     if [ "$remote" = "?" ]; then warn "$app : GitHub injoignable, on réessaiera"; continue; fi
-    [ "$remote" = "$local_sha" ] && continue
-    # Une version qui a déjà échoué n'est pas retentée toutes les 5 minutes : on attend le commit suivant.
-    if [ "$(cat "$ROOT/logs/echec-$app" 2>/dev/null)" = "$remote" ]; then continue; fi
-    printf '%s  %s : %s → %s, mise à jour\n' "$(date '+%F %T')" "$app" "${local_sha:0:7}" "${remote:0:7}"
+    # Échec noté pour ce commit : « commit essais » dans logs/echec-<app> (le code, lui, a déjà avancé).
+    echec=""; essais=0
+    [ ! -f "$ROOT/logs/echec-$app" ] || read -r echec essais <"$ROOT/logs/echec-$app" || true
+    if [ "$echec" = "$remote" ]; then
+      # Un échec peut être passager (registre npm injoignable, disque plein) : le même commit est retenté aux passages
+      # suivants, puis laissé de côté jusqu'au commit suivant (ou jusqu'à un sudo ./update.sh <app>).
+      [[ "$essais" =~ ^[0-9]+$ ]] || essais=1
+      [ "$essais" -lt "$ESSAIS_MAX" ] || continue
+    else
+      essais=0
+      [ "$remote" = "$local_sha" ] && continue
+    fi
+    printf '%s  %s : %s → %s, mise à jour (essai %s/%s)\n' "$(date '+%F %T')" "$app" "${local_sha:0:7}" "${remote:0:7}" "$((essais + 1))" "$ESSAIS_MAX"
     if ./update.sh "$app"; then
       printf '%s  %s : à jour (%s)\n' "$(date '+%F %T')" "$app" "${remote:0:7}"
       rm -f "$ROOT/logs/echec-$app"
     else
-      printf '%s  %s : ÉCHEC de la mise à jour (voir ci-dessus) ; ce commit ne sera pas retenté\n' "$(date '+%F %T')" "$app"
-      mkdir -p "$ROOT/logs"; echo "$remote" >"$ROOT/logs/echec-$app"
+      essais=$((essais + 1))
+      mkdir -p "$ROOT/logs"; echo "$remote $essais" >"$ROOT/logs/echec-$app"
+      if [ "$essais" -lt "$ESSAIS_MAX" ]; then
+        printf '%s  %s : ÉCHEC de la mise à jour (voir ci-dessus), essai %s/%s ; nouvel essai au prochain passage\n' "$(date '+%F %T')" "$app" "$essais" "$ESSAIS_MAX"
+      else
+        printf '%s  %s : ÉCHEC de la mise à jour (voir ci-dessus), essai %s/%s ; ce commit ne sera plus retenté (sudo ./update.sh %s pour réessayer)\n' "$(date '+%F %T')" "$app" "$essais" "$ESSAIS_MAX" "$app"
+      fi
     fi
   done
   return 0

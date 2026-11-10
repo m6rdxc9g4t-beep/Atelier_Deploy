@@ -7,6 +7,10 @@
 # Seul Caddy ouvre les ports 80 et 443 au monde.
 #
 # Lancer :  docker compose up -d --build        Journal :  docker compose logs -f <service>
+#
+# Chaque service construit ici a une sonde (healthcheck) : update.sh attend qu'elle réponde avant d'annoncer une app
+# « à jour », et remet l'image précédente sinon. start_interval (sondes toutes les 2 s pendant le démarrage)
+# demande Docker 25 ou plus récent, ce que update.sh vérifie.
 
 name: atelier
 
@@ -52,6 +56,13 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on: [portail]
+    # API d'administration de Caddy (127.0.0.1:2019, jamais exposée) : répond dès que la configuration est chargée.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      start_interval: 2s
 
   portail:
     <<: *app
@@ -69,6 +80,12 @@ services:
       DATES_URL: ${DATES_URL:-}
       # Vitrine pro : adresse publique du Portfolio et de ses démos (ex. relais Netlify), vide = portfolio.<domaine>.
       PORTFOLIO_PUBLIC_URL: ${PORTFOLIO_PUBLIC_URL:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9000/sante').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      start_interval: 2s
 
   viz:
     <<: *app
@@ -87,6 +104,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 30s
+      start_interval: 2s
 
   convert:
     <<: *app
@@ -105,6 +123,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 30s
+      start_interval: 2s
 
   # Sites & tests — DataMind (dépôt Agent_Data) : agent d'analyse de données, API Fastify + DuckDB et interface React
   # sur 127.0.0.1:3600. Claude avec ton forfait (DATAMIND_CLAUDE_OAUTH_TOKEN, sans clé API, usage personnel),
@@ -132,6 +151,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Vitrine pro — démo publique de DataMind (https://demo-datamind.<domaine>, sans connexion) : la MÊME image que
   # datamind (construite par lui, jamais ici), lancée en mode démo : 16 jeux d'exemple copiés au démarrage dans un
@@ -167,6 +187,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   projets:
     <<: *app
@@ -185,6 +206,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 60s
+      start_interval: 2s
 
   wiki:
     <<: *app
@@ -200,6 +222,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Atelier Hub : une fiche par projet. Lit Projets, Wiki, Viz, Convert et Nexus en 127.0.0.1 (lecture seule)
   # et l'index de Tab (fichiers du MCP de Tab) ; les liens ouvrent les sous-domaines de la suite.
@@ -223,6 +246,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   formulaire:
     <<: *app
@@ -238,6 +262,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Portfolio : site public (vitrine pour les recruteurs), sans la connexion du portail.
   portfolio:
@@ -262,6 +287,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
   # Agent Ops Lab : TMS simulé piloté par un agent IA (tout tourne dans le navigateur).
@@ -273,6 +299,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Atelier Mission : mini-CRM freelance (prospects, devis, factures, relances), API + interface sur :3500.
   # Lit le temps dans Projets (127.0.0.1:3000) et écrit les encaissements dans Trésorerie (127.0.0.1:5050).
@@ -295,6 +322,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   nexus-backend:
     <<: *app
@@ -324,11 +352,18 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 40s
+      start_interval: 2s
 
   nexus-frontend:
     <<: *app
     build: { <<: *build, dockerfile: docker/nexus-frontend.Dockerfile }
     depends_on: [nexus-backend]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/').then(r=>process.exit(r.status<500?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      start_interval: 2s
 
   cine:
     <<: *app
@@ -347,6 +382,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   savoir:
     <<: *app
@@ -361,6 +397,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   tresorerie:
     <<: *app
@@ -375,6 +412,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   postgres:
     image: pgvector/pgvector:pg17
@@ -415,6 +453,7 @@ services:
       interval: 30s
       timeout: 10s
       start_period: 20s
+      start_interval: 2s
 
 volumes:
   caddy_data:

@@ -12,6 +12,8 @@
 #   DOCKER_FAIL_ON="build ops"     fait échouer tout appel qui contient ce texte
 #   DOCKER_FAIL_ONCE="build ops"   idem, une seule fois (panne passagère)
 #   DOCKER_SLEEP_ON="build" DOCKER_SLEEP=2   ralentit ces appels
+#   DOCKER_VERSION=24.0.7          version annoncée du moteur
+#   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement)
 #   $SIM/en-marche                 services « en marche » (un par ligne) rendus par `compose ps --services`
 # Réglages du faux tar : TAR_FAIL=1 (échec, comme un disque plein), TAR_SLEEP=2 (archive lente).
 # Faux df : DF_LIBRE_KO=1024 (espace libre annoncé, en Ko).
@@ -47,7 +49,7 @@ case "$args" in
   *"exec -T postgres pg_dump"*) echo "-- faux export de la base de Nexus" ;;
   *"exec -T postgres psql"*) cat > "$SIM/psql.recu" ;;
   "info --format"*) echo "de40ad0" ;;
-  "version --format"*) echo "29.0.0" ;;
+  "version --format"*) echo "${DOCKER_VERSION:-29.0.0}" ;;
   "image inspect"*) [ -z "${DOCKER_SANS_IMAGE:-}" ] || exit 1 ;;
 esac
 exit 0
@@ -89,7 +91,7 @@ CONF
   export GIT_CONFIG_GLOBAL="$SIM/gitconfig" GIT_CONFIG_NOSYSTEM=1 PATH="$SIM/bin:$PATH"
   # Le kit simulé n'est pas un dépôt git : update.sh ne cherche pas à se mettre à jour lui-même.
   export ATELIER_KIT_A_JOUR=1 ATELIER_VERROU_FICHIER="$SIM/atelier.lock"
-  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE TAR_FAIL TAR_SLEEP DF_LIBRE_KO
+  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE DOCKER_VERSION TAR_FAIL TAR_SLEEP DF_LIBRE_KO
   local repo
   for repo in "${DEPOTS_SIMULES[@]}"; do
     git init -q --bare "$SIM/remotes/m6rdxc9g4t-beep/$repo.git"

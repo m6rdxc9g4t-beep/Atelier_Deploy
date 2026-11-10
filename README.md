@@ -71,9 +71,9 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 
 | Je veux… | Commande (dans `Atelier_Deploy/`) |
 |---|---|
-| Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` (une app après l’autre pour ménager le disque : compter 30 à 45 min ; il faut au moins 3 Go libres) |
+| Mettre à jour toutes les apps (dernier commit de `main`) | `sudo ./update.sh` (une app après l’autre pour ménager le disque : compter 30 à 45 min ; il faut au moins 3 Go libres). Chaque app n'est dite « à jour » qu'une fois repartie et sa sonde verte ; sinon sa version précédente est remise en service, les autres apps continuent, et le script finit en erreur en nommant celles qui n'ont pas pu être mises à jour. |
 | Mettre à jour une seule app | `sudo ./update.sh viz` (ou `nexus`, `tab`, `convert`, `datamind` (+ sa démo publique), `projets`, `wiki`, `hub`, `formulaire`, `tresorerie`, `savoir`, `cine`, `portfolio`, `ops`, `mission`, `portail`) : seul le code de cette app avance, les autres restent à la version en service |
-| Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status` |
+| Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status`. Un commit dont la mise à jour échoue est retenté 3 fois (une panne de réseau passe), puis laissé de côté jusqu'au commit suivant. |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
 | Changer l'adresse de Cuisine, Suivi ou Dates | `CUISINE_URL`, `SUIVI_URL` ou `DATES_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
@@ -205,5 +205,7 @@ Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert t
 | Le navigateur signale un certificat invalide | Le DNS ne pointe pas encore vers le VPS. Vérifie avec `dig +short viz.atelier.mondomaine.fr`, puis `sudo docker compose logs caddy`. |
 | « 403 FORBIDDEN_HOST » dans Projets ou Viz | `ATELIER_DOMAIN` dans `.env` ne correspond pas à l'adresse tapée. Corrige-le, puis `sudo docker compose up -d --build`. |
 | Une tuile du portail reste « Hors ligne » | `sudo docker compose logs -f <app>` : souvent une migration ou une variable manquante. |
+| `update.sh` finit par « non mis à jour : <app> » | La nouvelle version n'a pas pu être construite, ou n'a pas redémarré (son journal est affiché juste au-dessus) : l'app tourne toujours sur sa version précédente. Corrige (souvent une migration ou une variable manquante), puis `sudo ./update.sh <app>`. Une migration de base déjà appliquée n'est pas défaite par ce retour arrière. |
+| `update.sh` : « Docker … est trop ancien » | Les sondes de démarrage demandent Docker 25 ou plus récent : `curl -fsSL https://get.docker.com \| sudo sh`, puis relance. |
 | La construction s'arrête sans message (« Killed ») | Manque de mémoire : vérifie que le swap est actif (`swapon --show`). |
 | Nexus : « Migrations non appliquées » | PostgreSQL pas prêt au premier démarrage. `sudo docker compose restart nexus-backend`. |

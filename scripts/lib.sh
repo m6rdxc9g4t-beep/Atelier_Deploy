@@ -110,6 +110,83 @@ verifier_archive() {
   grep -qE ' data/$' "$2" && grep -qE ' \.env$' "$2"
 }
 
+# ── Construction et lancement, un service à la fois ─────────────────────────
+# Le disque du VPS est petit (40 Go) : une reconstruction garde l'ancienne image (en service) à côté de la
+# nouvelle, plus le cache de construction. Tout reconstruire d'un coup demande donc plus de 10 Go libres.
+# On reconstruit une app à la fois : construire, relancer, supprimer l'ancienne image et le cache, puis la suivante.
+libre_go() { echo $(( $(libre_ko "$ROOT") / 1048576 )); }
+nettoyer() {
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -af >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
+}
+
+# Avant de toucher aux conteneurs : Docker répond et connaît ce que docker-compose.yml lui demande.
+verifier_docker() {
+  local version majeur
+  version="$(docker version --format '{{.Server.Version}}' 2>/dev/null)" || die "Docker ne répond pas (sudo systemctl status docker)."
+  majeur="${version%%.*}"
+  if ! [[ "$majeur" =~ ^[0-9]+$ ]] || [ "$majeur" -lt 25 ]; then
+    die "Docker $version est trop ancien (il faut la version 25 ou une plus récente). Mets-le à jour : curl -fsSL https://get.docker.com | sudo sh, puis relance."
+  fi
+}
+
+# Image construite par compose pour un service (projet « atelier ») ; rien pour un service sans construction.
+image_de() { case "$1" in ollama|postgres|datamind-demo) ;; *) echo "atelier-$1" ;; esac; }
+
+# Délai laissé à un service pour répondre à sa sonde après son lancement (secondes).
+ATTENTE_SERVICE=300
+
+# Construit un service, le relance et attend qu'il réponde à sa sonde. Rend 1 si la nouvelle version n'est pas en
+# service : construction impossible (rien n'a été touché), ou redémarrage raté (l'image précédente, gardée le temps de
+# l'essai, est alors remise en service).
+deployer() {
+  local service="$1" image precedent=0
+  image="$(image_de "$service")"
+  [ "$(libre_go)" -ge 3 ] || die "moins de 3 Go libres sur le disque : libère de la place (df -h /, sudo docker system df) puis relance"
+  if [ -n "$image" ] && docker image inspect "$image:latest" >/dev/null 2>&1; then
+    if docker tag "$image:latest" "$image:precedent"; then precedent=1; fi
+  fi
+  if ! compose build "$service"; then
+    [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || true
+    warn "$service : construction impossible (voir ci-dessus) ; la version en service n'a pas été touchée"
+    return 1
+  fi
+  if compose up -d --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
+    [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || true
+    return 0
+  fi
+  warn "$service ne redémarre pas. Dernières lignes de son journal :"
+  compose logs --no-color --tail 30 "$service" 2>&1 | sed 's/^/    /' || true
+  if [ "$precedent" -eq 0 ]; then
+    warn "$service : pas de version précédente à remettre en service (sudo docker compose logs $service)"
+  else
+    docker tag "$image:precedent" "$image:latest" || true
+    if compose up -d --no-build --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
+      docker rmi "$image:precedent" >/dev/null 2>&1 || true
+      warn "$service : la nouvelle version ne démarre pas, la version précédente a été remise en service."
+      warn "Une migration de base déjà appliquée n'est pas défaite : vérifie l'app avant de corriger et de relancer."
+    else
+      warn "$service : ni la nouvelle version ni la précédente ne démarrent (sudo docker compose logs $service)."
+      warn "L'image précédente reste disponible sous le nom $image:precedent."
+    fi
+  fi
+  return 1
+}
+
+# Déploie les services donnés, un par un. Un service en échec n'arrête pas les suivants : ils sont listés dans RATES,
+# et la fonction rend 1 s'il y en a.
+RATES=()
+deployer_services() {
+  local service
+  RATES=()
+  for service in "$@"; do
+    if deployer "$service"; then ok "$service à jour et en service (espace libre : $(libre_go) Go)"
+    else RATES+=("$service"); fi
+    nettoyer
+  done
+  [ ${#RATES[@]} -eq 0 ]
+}
+
 # Génère les secrets absents de .env (utile aussi après l'ajout d'une app sur un VPS déjà installé).
 ensure_secrets() {
   local key

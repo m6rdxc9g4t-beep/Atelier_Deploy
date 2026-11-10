@@ -50,36 +50,26 @@ ensure_ia
 if [ "${1:-all}" = all ]; then sync_apps; else sync_apps --seulement "${depots[@]}"; fi
 ensure_dirs
 
-# Le disque du VPS est petit (40 Go) : une reconstruction garde l'ancienne image (en service) à côté de la
-# nouvelle, plus le cache de construction. Tout reconstruire d'un coup demande donc plus de 10 Go libres.
-# On reconstruit une app à la fois : construire, relancer, supprimer l'ancienne image et le cache, puis la suivante.
-libre_go() { df -Pk "$ROOT" | awk 'NR==2 { printf "%d", $4 / 1048576 }'; }
-nettoyer() {
-  docker image prune -f >/dev/null 2>&1 || true
-  docker builder prune -af >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
-}
-
 # Données DVF de l'observatoire immobilier (Portfolio) : retéléchargées au plus une fois par mois.
 export DVF_CACHE_KEY="${DVF_CACHE_KEY:-$(date +%Y-%m)}"
 
 step "Reconstruction"
+verifier_docker
 nettoyer
 ok "espace libre : $(libre_go) Go"
 if [ ${#services[@]} -eq 0 ]; then
   # L'ordre de compose varie : datamind-demo (image construite par datamind) passe en dernier.
   mapfile -t services < <(compose config --services | grep -vx datamind-demo; echo datamind-demo)
 fi
-for service in "${services[@]}"; do
-  [ "$(libre_go)" -ge 3 ] || die "moins de 3 Go libres sur le disque : libère de la place (df -h /, sudo docker system df) puis relance"
-  compose build "$service"
-  compose up -d "$service"
-  nettoyer
-  ok "$service à jour (espace libre : $(libre_go) Go)"
-done
+deployer_services "${services[@]}" || true
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
 nettoyer
+if [ ${#RATES[@]} -gt 0 ]; then
+  compose ps
+  die "non mis à jour : ${RATES[*]} (voir plus haut ; les autres services demandés sont à jour)"
+fi
 # Une mise à jour réussie efface l'échec noté par auto-update.sh pour cette app (ou pour toutes).
 case "${1:-all}" in all) rm -f "$ROOT"/logs/echec-* ;; *) rm -f "$ROOT/logs/echec-$1" ;; esac
 ok "terminé"
