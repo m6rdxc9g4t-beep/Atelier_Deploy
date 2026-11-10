@@ -82,8 +82,9 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Redémarrer une app | `sudo docker compose restart projets` |
 | Exemples de la suite (9 histoires fictives à suivre d'une app à l'autre) | Panneau **Exemples de la suite** de chaque app (voir [`exemples/README.md`](exemples/README.md)) |
 | Charger l'exemple guidé (données fictives « Studio Garance » dans Convert, Tab, Viz, Trésorerie, Nexus, Projets, Wiki) | `sudo ./demo/charger.sh` ; l'enlever : `sudo ./demo/charger.sh retirer` (voir [`demo/README.md`](demo/README.md)) |
-| Sauvegarder | `sudo ./backup.sh` → `backups/atelier-AAAAMMJJ-HHMM.tar.gz` |
-| Sauvegarder chaque nuit | `echo "30 3 * * * root $(pwd)/backup.sh >/dev/null" \| sudo tee /etc/cron.d/atelier-backup` |
+| Sauvegarder | `sudo ./backup.sh` → `backups/atelier-AAAAMMJJ-HHMM.tar.gz` (données, `.env` et base de Nexus ; l'archive est relue en entier avant d'être gardée, les 14 dernières sont conservées). Viz, Projets, Savoir, Trésorerie, Wiki, Hub, Formulaire et Mission s'arrêtent quelques secondes, le temps de la copie. |
+| Sauvegarder chaque nuit | `echo "30 3 * * * root $(pwd)/backup.sh >> $(pwd)/logs/backup.log 2>&1" \| sudo tee /etc/cron.d/atelier-backup` |
+| Savoir si la dernière sauvegarde a réussi | `sudo tail -n 3 logs/backup.log` (une ligne `ok` ou `ÉCHEC` par passage) |
 | Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` |
 | Déployer une autre branche | `BRANCH_NEXUS=ma-branche` dans `.env`, puis `sudo ./update.sh nexus` |
 | Changer de modèle d'IA | `OLLAMA_MODEL=…` dans `.env` (ex. `llama3.1:8b`, `llama3.2:3b`, `qwen3:8b`), puis `sudo ./update.sh` |

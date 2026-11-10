@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Fonctions communes à install.sh, update.sh et backup.sh.
+# Fonctions communes à install.sh, update.sh, auto-update.sh, backup.sh et restore.sh.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-bold=$'\e[1m'; dim=$'\e[2m'; red=$'\e[31m'; green=$'\e[32m'; yellow=$'\e[33m'; reset=$'\e[0m'
+# Couleurs seulement dans un terminal : les journaux (cron) restent lisibles.
+if [ -t 1 ]; then
+  bold=$'\e[1m'; dim=$'\e[2m'; red=$'\e[31m'; green=$'\e[32m'; yellow=$'\e[33m'; reset=$'\e[0m'
+else
+  bold=''; dim=''; red=''; green=''; yellow=''; reset=''
+fi
 step() { printf '\n%s▸ %s%s\n' "$bold" "$*" "$reset"; }
 ok()   { printf '  %s✓%s %s\n' "$green" "$reset" "$*"; }
 warn() { printf '  %s!%s %s\n' "$yellow" "$reset" "$*"; }
@@ -77,6 +82,24 @@ sync_apps() {
 }
 
 compose() { docker compose --env-file .env "$@"; }
+
+# Espace libre (en Ko) sur le disque qui porte un dossier.
+libre_ko() { df -Pk "$1" | awk 'NR==2 { print $4 }'; }
+
+# Un journal ne grossit pas sans fin : au-delà de 5 Mo, son contenu passe dans <journal>.1 (un seul ancien gardé).
+# Copie puis remise à zéro : le cron, qui écrit en ajout (>>), continue dans le même fichier.
+tourner_journal() {
+  [ -f "$1" ] || return 0
+  [ "$(stat -c %s "$1")" -gt 5242880 ] || return 0
+  cp -f "$1" "$1.1" && : > "$1"
+}
+
+# Contrôle une archive de sauvegarde : lisible jusqu'au bout, avec data/ et .env.
+# La liste détaillée de son contenu (tar -tv) est écrite dans le fichier donné en second.
+verifier_archive() {
+  tar -tvzf "$1" > "$2" 2>/dev/null || return 1
+  grep -qE ' data/$' "$2" && grep -qE ' \.env$' "$2"
+}
 
 # Génère les secrets absents de .env (utile aussi après l'ajout d'une app sur un VPS déjà installé).
 ensure_secrets() {
