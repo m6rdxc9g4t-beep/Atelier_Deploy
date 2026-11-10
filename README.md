@@ -23,7 +23,7 @@ https://cine.atelier.mondomaine.fr       Atelier Ciné
 https://dates.atelier.mondomaine.fr      → redirige vers Atelier Dates (Vercel)
 https://suivi.atelier.mondomaine.fr      → redirige vers Atelier Suivi (Vercel)
 https://portfolio.atelier.mondomaine.fr  Portfolio (public)
-https://ops.atelier.mondomaine.fr        Ops Lab (Sites & tests)
+https://ops.atelier.mondomaine.fr        Ops Lab (public, Vitrine pro)
 https://mission.atelier.mondomaine.fr    Atelier Mission (Sites & tests)
 https://datamind.atelier.mondomaine.fr   DataMind (Sites & tests)
 https://demo-datamind.atelier.mondomaine.fr  DataMind, démo publique (Vitrine pro)
@@ -31,13 +31,13 @@ https://demo-datamind.atelier.mondomaine.fr  DataMind, démo publique (Vitrine p
 
 Pas de nom de domaine ? `atelier.<IP-avec-tirets>.sslip.io` (par exemple `atelier.141-227-149-233.sslip.io`) fonctionne sans aucune configuration DNS.
 
-## Installation (≈ 30 minutes, dont 15 de construction)
+## Installation (≈ 45 minutes, dont 30 à 45 de construction)
 
 ### 1. Ce qu'il te faut
 
-- Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** conseillés pour les 10 apps (le script ajoute du swap en dessous de 6 Go).
+- Un VPS OVH sous Debian 12/13 ou Ubuntu 24.04, **4 Go de RAM** au moins pour l'ensemble (une vingtaine de services, IA du serveur comprise ; le script ajoute du swap en dessous de 6 Go) et 40 Go de disque.
 - Un nom de domaine (chez OVH ou ailleurs).
-- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Convert`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*. (`Agent_Data`, `Atelier_Portefolio`, `agent-ops-lab` et `Atelier_Mission` sont publics : rien à ajouter.)
+- Un **jeton GitHub** en lecture seule pour cloner tes dépôts privés : GitHub → Settings → Developer settings → *Fine-grained tokens* → *Generate new token*. Accès : `Atelier_Deploy`, `Atelier_Nexus`, `Atelier_Viz`, `atelier-tab`, `Atelier_Convert`, `Atelier_Projets`, `Atelier_Wiki`, `Atelier_Hub`, `Atelier_Formulaire`, `Atelier_Cine`, `Atelier-Savoir`, `Atelier_Tr-sorerie`. Permission : *Contents : Read-only*. (`Agent_Data`, `Atelier_Portefolio`, `agent-ops-lab` et `Atelier_Mission` sont publics : rien à ajouter.)
 - Facultatif : une clé API Anthropic pour les agents de Nexus et l'assistant de Viz.
 
 ### 2. DNS
@@ -60,7 +60,7 @@ cd Atelier_Deploy
 sudo ./install.sh
 ```
 
-Le script installe Docker, te demande le domaine, ton e-mail, le jeton GitHub et la clé Anthropic, génère le mot de passe du portail, clone les apps, les construit et les lance. À la fin, il affiche l'adresse du portail et ton mot de passe : **note-le**, il reste aussi dans `.env`.
+Le script installe Docker, te demande le domaine, ton e-mail, le jeton GitHub et la clé Anthropic, génère le mot de passe du portail, clone les apps, puis les construit et les lance une par une (pour ménager la mémoire et le disque), en attendant que chacune réponde. À la fin, il affiche l'adresse du portail et ton mot de passe : **note-le**, il reste aussi dans `.env`.
 
 Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 
@@ -111,7 +111,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                     ├─ cine.…     ──▶ Ciné :4000          (Express, vidéos de media/ en flux)
                     ├─ dates.…, suivi.… ──▶ redirection vers Vercel
                     ├─ portfolio.… ──▶ Portfolio :8787    (Express + React, public, sans connexion)
-                    ├─ ops.…      ──▶ Ops Lab :3400       (Next.js autonome ; section Sites & tests)
+                    ├─ ops.…      ──▶ Ops Lab :3400       (Next.js autonome, public, sans connexion)
                     ├─ mission.…  ──▶ Mission :3500       (Fastify, SQLite ; Sites & tests) ──▶ Projets, Trésorerie en 127.0.0.1
                     └─ nexus.…    ──▶ Nexus interface :3100 + /api ──▶ Nexus API :8100
                                                              ├─▶ PostgreSQL :5433
@@ -125,7 +125,8 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Les sites publics sont isolés.** Le Portfolio et Ops Lab sont ouverts à tout Internet, sans la connexion du portail, et n'appellent aucune app : ils tournent sur un réseau Docker à part (`vitrine`), sans privilège, mémoire bornée, leur port publié sur `127.0.0.1` seulement pour Caddy. Une faille dans l'un d'eux ne donne donc pas accès aux apps privées, qui répondent sans connexion sur le `127.0.0.1` de l'hôte. Vérifier après une mise à jour : `curl -s http://127.0.0.1:8787/api/health` et `curl -s http://127.0.0.1:3400/api/health` répondent, et `sudo docker compose exec portfolio node -e "fetch('http://127.0.0.1:5050/api/ping').then(()=>process.exit(1),()=>process.exit(0))" && echo isolé` affiche « isolé ». La démo publique de DataMind reste sur le réseau de l'hôte (elle a besoin d'Ollama), bornée elle aussi.
 - **Connexion unique.** Caddy demande au portail (`forward_auth`) si chaque requête vient d'une personne connectée. Le cookie de session est posé sur `atelier.mondomaine.fr` et ses sous-domaines. Les apps n'ont pas de login propre : sans le portail, elles seraient ouvertes à tous.
 - **Le Portfolio, public.** `portfolio.…` ne passe pas par la connexion du portail : c'est un site vitrine, sans données privées. Seuls les messages du formulaire de contact sont enregistrés, dans `data/portfolio/messages.jsonl`. Il n'appelle aucune IA : sa page DataMind mène à la démo publique (`demo-datamind.…`), dont l'adresse est fixée à la construction (`docker/portfolio.Dockerfile`).
-- **Sites & tests.** Une section du portail pour les simulations et maquettes, derrière la même connexion. **Ops Lab** (`ops.…`, dépôt public `agent-ops-lab`) fait tourner toute sa simulation dans le navigateur : rien n'est stocké sur le serveur, la partie est sauvegardée dans le navigateur de chaque appareil. **Mission** (`mission.…`, dépôt public `Atelier_Mission`) garde ses données sur le serveur (`data/mission/`) : il lit le temps saisi dans Projets et écrit les encaissements dans Trésorerie, tous deux en `127.0.0.1` sur ce VPS ; Brevo (relances) et SUPER PDP (facture électronique) ne servent qu'en mode « En ligne » de l'app, avec `MISSION_BREVO_API_KEY` et `MISSION_SUPERPDP_*` dans `.env`. Pour ajouter un autre site : une entrée dans `SITES` (`portail/server.mjs`) et son icône `<symbol id="app-<id>">` dans `portail/public/atelier-icons.svg`, un bloc dans `caddy/Caddyfile`, un service dans `docker-compose.yml` (+ son Dockerfile dans `docker/`), une ligne dans `APPS` (`scripts/lib.sh`) et un cas dans `update.sh` (ses services et son dépôt). Avant de committer : `./tests/lancer.sh` (voir « Vérifier le kit ») ; le Caddyfile est de toute façon validé à la construction de l'image de Caddy, et une faute garde l'ancien Caddy en service.
+- **Ops Lab, public lui aussi.** `ops.…` (dépôt public `agent-ops-lab`, section Vitrine pro) fait tourner toute sa simulation dans le navigateur : rien n'est stocké sur le serveur, la partie est sauvegardée dans le navigateur de chaque appareil.
+- **Sites & tests.** Une section du portail pour les simulations et maquettes, derrière la même connexion. **Mission** (`mission.…`, dépôt public `Atelier_Mission`) garde ses données sur le serveur (`data/mission/`) : il lit le temps saisi dans Projets et écrit les encaissements dans Trésorerie, tous deux en `127.0.0.1` sur ce VPS ; Brevo (relances par e-mail) ne sert qu'en mode « En ligne » de l'app, avec `MISSION_BREVO_API_KEY` dans `.env`. Pour ajouter un autre site : une entrée dans `SITES` (`portail/server.mjs`) et son icône `<symbol id="app-<id>">` dans `portail/public/atelier-icons.svg`, un bloc dans `caddy/Caddyfile`, un service dans `docker-compose.yml` (+ son Dockerfile dans `docker/`), une ligne dans `APPS` (`scripts/lib.sh`) et un cas dans `update.sh` (ses services et son dépôt). Avant de committer : `./tests/lancer.sh` (voir « Vérifier le kit ») ; le Caddyfile est de toute façon validé à la construction de l'image de Caddy, et une faute garde l'ancien Caddy en service.
 - **Sondes publiques.** Seules les adresses `/api/health` répondent sans connexion. Elles ne disent que « ok » et servent au sélecteur de suite intégré à chaque app.
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.

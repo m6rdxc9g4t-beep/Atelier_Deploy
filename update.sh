@@ -64,17 +64,11 @@ esac
 if [ "${1:-all}" = all ]; then sync_apps; else sync_apps --seulement "${depots[@]}"; fi
 ensure_dirs
 
-# Données DVF de l'observatoire immobilier (Portfolio) : retéléchargées au plus une fois par mois.
-export DVF_CACHE_KEY="${DVF_CACHE_KEY:-$(date +%Y-%m)}"
-
 step "Reconstruction"
 verifier_docker
 nettoyer
 ok "espace libre : $(libre_go) Go"
-if [ ${#services[@]} -eq 0 ]; then
-  # L'ordre de compose varie : datamind-demo (image construite par datamind) passe en dernier.
-  mapfile -t services < <(compose config --services | grep -vx datamind-demo; echo datamind-demo)
-fi
+if [ ${#services[@]} -eq 0 ]; then mapfile -t services < <(tous_les_services); fi
 deployer_services "${services[@]}" || true
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"

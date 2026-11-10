@@ -339,7 +339,7 @@ services:
   # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
   # Atelier Mission : mini-CRM freelance (prospects, devis, factures, relances), API + interface sur :3500.
   # Lit le temps dans Projets (127.0.0.1:3000) et écrit les encaissements dans Trésorerie (127.0.0.1:5050).
-  # Brevo et SUPER PDP : identifiants facultatifs, utilisés seulement en mode « En ligne » de l'app.
+  # Brevo (relances par e-mail) : clé facultative, utilisée seulement en mode « En ligne » de l'app.
   mission:
     <<: *app
     build: { <<: *build, dockerfile: docker/mission.Dockerfile }
@@ -347,9 +347,6 @@ services:
       <<: *tz
       ALLOWED_HOSTS: mission.${ATELIER_DOMAIN}
       BREVO_API_KEY: ${MISSION_BREVO_API_KEY:-}
-      SUPERPDP_CLIENT_ID: ${MISSION_SUPERPDP_CLIENT_ID:-}
-      SUPERPDP_CLIENT_SECRET: ${MISSION_SUPERPDP_CLIENT_SECRET:-}
-      SUPERPDP_URL: ${MISSION_SUPERPDP_URL:-}
       REMINDER_TICK_MINUTES: "15"
     volumes:
       - ./data/mission:/data

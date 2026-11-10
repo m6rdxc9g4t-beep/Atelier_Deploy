@@ -243,6 +243,13 @@ deployer_services() {
   [ ${#RATES[@]} -eq 0 ]
 }
 
+# Tous les services de docker-compose.yml. L'ordre de compose varie : datamind-demo, qui réutilise l'image
+# construite par datamind, passe en dernier.
+tous_les_services() { compose config --services | grep -vx datamind-demo; echo datamind-demo; }
+
+# Données DVF de l'observatoire immobilier (Portfolio) : retéléchargées au plus une fois par mois.
+export DVF_CACHE_KEY="${DVF_CACHE_KEY:-$(date +%Y-%m)}"
+
 # Génère les secrets absents de .env (utile aussi après l'ajout d'une app sur un VPS déjà installé).
 ensure_secrets() {
   local key

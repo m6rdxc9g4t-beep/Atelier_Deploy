@@ -72,9 +72,10 @@ DOMAIN="$(env_get ATELIER_DOMAIN)"
 step "Vérification du DNS"
 ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)
 dns_ok=1
+# Un nom par site de caddy/Caddyfile.
 for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" convert."$DOMAIN" datamind."$DOMAIN" demo-datamind."$DOMAIN" projets."$DOMAIN" \
-            tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" dates."$DOMAIN" suivi."$DOMAIN" portfolio."$DOMAIN" \
-            ops."$DOMAIN" mission."$DOMAIN"; do
+            wiki."$DOMAIN" hub."$DOMAIN" formulaire."$DOMAIN" tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" \
+            dates."$DOMAIN" suivi."$DOMAIN" portfolio."$DOMAIN" ops."$DOMAIN" mission."$DOMAIN"; do
   got=$(dig +short A "$host" | tail -n1)
   if [ -n "$ip" ] && [ "$got" = "$ip" ]; then ok "$host → $got"
   else warn "$host → ${got:-aucune adresse} (attendu : ${ip:-IP du VPS})"; dns_ok=0; fi
@@ -89,8 +90,12 @@ sync_apps
 ensure_dirs
 
 # ── 7. Construction et lancement ─────────────────────────────────────────────
-step "Construction des images (10 à 20 minutes la première fois)"
-compose build
+# Une app après l'autre, comme update.sh : tout construire d'un coup sature la mémoire et le disque du VPS.
+step "Construction et lancement, une app après l'autre (30 à 45 minutes la première fois)"
+verifier_docker
+nettoyer
+mapfile -t services < <(tous_les_services)
+deployer_services "${services[@]}" || true
 step "Démarrage"
 compose up -d --remove-orphans
 ok "conteneurs lancés"
@@ -104,7 +109,7 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
   DataMind  https://datamind.$DOMAIN    (agent d'analyse de données)
             https://demo-datamind.$DOMAIN (démo publique, sans connexion)
   Portfolio https://portfolio.$DOMAIN   (public, sans connexion)
-  Ops Lab   https://ops.$DOMAIN         (Sites & tests)
+  Ops Lab   https://ops.$DOMAIN         (public, sans connexion)
   Mission   https://mission.$DOMAIN     (Sites & tests)
   Identifiant  $(env_get PORTAL_USER)
   Mot de passe $(env_get PORTAL_PASSWORD)
@@ -115,3 +120,7 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
   Mise à jour : sudo ./update.sh
   Sauvegarde :  sudo ./backup.sh        (restaurer : sudo ./restore.sh)${reset}
 EOF
+
+if [ ${#RATES[@]} -gt 0 ]; then
+  die "Ces apps n'ont pas pu être construites ou lancées : ${RATES[*]} (voir plus haut). Les autres sont en ligne ; corrige, puis sudo ./update.sh <app>."
+fi
