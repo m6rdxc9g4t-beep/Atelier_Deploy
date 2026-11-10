@@ -42,6 +42,8 @@ regle "les apps privées restent sur le réseau de l'hôte (elles se parlent en 
 titre "Sondes et journaux"
 regle "chaque service a une sonde (update.sh l'attend avant de dire « à jour »)" \
   'all("healthcheck" in v for v in s.values())'
+regle "chaque app tourne sous docker-init (arrêt propre en 1 s au lieu de 10)" \
+  'all(v.get("init") is True for n, v in s.items() if n != "postgres")'
 regle "chaque service redémarre seul" \
   'all(v.get("restart") == "unless-stopped" for v in s.values())'
 

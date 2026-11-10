@@ -166,11 +166,18 @@ kit_a_jour() { [ "$(cat "logs/empreinte-$1" 2>/dev/null)" = "$(empreinte_kit "$1
 
 # Avant de toucher aux conteneurs : Docker répond et connaît ce que docker-compose.yml lui demande.
 verifier_docker() {
-  local version majeur
+  local version majeur init chemin trouve=0
   version="$(docker version --format '{{.Server.Version}}' 2>/dev/null)" || die "Docker ne répond pas (sudo systemctl status docker)."
   majeur="${version%%.*}"
   if ! [[ "$majeur" =~ ^[0-9]+$ ]] || [ "$majeur" -lt 25 ]; then
     die "Docker $version est trop ancien (il faut la version 25 ou une plus récente). Mets-le à jour : curl -fsSL https://get.docker.com | sudo sh, puis relance."
+  fi
+  # init: true (docker-compose.yml) : sans docker-init, livré avec Docker, aucun conteneur recréé ne démarrerait.
+  init="$(docker info --format '{{.InitCommit.ID}}' 2>/dev/null || true)"
+  if [ -z "$init" ] || [ "$init" = "N/A" ]; then
+    IFS=: read -r -a chemin <<<"${ATELIER_DOCKER_INIT:-$(command -v docker-init || true):/usr/libexec/docker/docker-init:/usr/lib/docker/docker-init:/usr/local/libexec/docker/docker-init}"
+    for init in "${chemin[@]}"; do if [ -n "$init" ] && [ -x "$init" ]; then trouve=1; fi; done
+    [ "$trouve" -eq 1 ] || die "docker-init est introuvable (il est livré avec Docker). Réinstalle Docker : curl -fsSL https://get.docker.com | sudo sh, puis relance."
   fi
 }
 

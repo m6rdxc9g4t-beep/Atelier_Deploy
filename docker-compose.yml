@@ -39,6 +39,10 @@ x-journal: &journal
 x-app: &app
   network_mode: host
   restart: unless-stopped
+  # docker-init (tini) est le premier processus de chaque conteneur : il transmet SIGTERM à l'app (le portail, Ciné et
+  # le Portfolio, lancés seuls, l'ignoraient : 10 s d'attente puis arrêt brutal à chaque redémarrage) et récupère les
+  # processus orphelins (Tesseract, ffprobe, MCP de Tab).
+  init: true
   environment: &tz
     TZ: ${TZ:-Europe/Paris}
   logging: *journal
@@ -50,6 +54,7 @@ x-app: &app
 # processus bornés.
 x-vitrine: &vitrine
   restart: unless-stopped
+  init: true
   networks: [vitrine]
   logging: *journal
   cap_drop: [ALL]

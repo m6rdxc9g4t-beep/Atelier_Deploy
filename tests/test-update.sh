@@ -129,4 +129,11 @@ DOCKER_VERSION=24.0.7 refuse "update.sh ops refuse" ./update.sh ops
 hors_journal "build" "rien n'est construit"
 hors_journal "up -d" "rien n'est relancé"
 
+titre "docker-init absent : refus avant de toucher aux conteneurs (init: true ne démarrerait rien)"
+vider_journal
+DOCKER_SANS_INIT=1 ATELIER_DOCKER_INIT=/nulle/part/docker-init refuse "update.sh ops refuse" ./update.sh ops
+hors_journal "build" "rien n'est construit"
+: > "$SIM/docker-init"; chmod +x "$SIM/docker-init"
+DOCKER_SANS_INIT=1 ATELIER_DOCKER_INIT="$SIM/docker-init" attendu "docker-init trouvé sur le disque : la mise à jour passe" ./update.sh ops
+
 banc_fin
