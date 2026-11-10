@@ -91,8 +91,11 @@ attendu "update.sh portfolio après un changement de réglage du portail (.env)"
 dans_journal "build portail" "le portail est redéployé avec le nouveau réglage"
 hors_journal "build caddy" "pas Caddy"
 vider_journal
+echo "atelier-datamind:precedent" > "$SIM/image-retenue"   # la démo publique tourne encore sur l'ancienne image
 attendu "update.sh datamind" ./update.sh datamind
 dans_journal "up -d --wait --wait-timeout 300 datamind-demo" "la démo publique suit toujours DataMind"
+attendu "l'ancienne image de DataMind est libérée une fois la démo relancée (elle la retenait)" \
+  test "$(grep -n 'rmi atelier-datamind:precedent' "$SIM_LOG" | tail -n1 | cut -d: -f1)" -gt "$(grep -n 'up -d --wait --wait-timeout 300 datamind-demo' "$SIM_LOG" | cut -d: -f1)"
 hors_journal "build caddy" "Caddy n'est pas reconstruit"
 echo "# encore une adresse" >> caddy/Caddyfile
 vider_journal

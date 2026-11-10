@@ -1,5 +1,6 @@
 # Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Hub… derrière Caddy.
-# Section « Sites & tests » du portail : Agent Ops Lab (service ops) et Atelier Mission (service mission).
+# Vitrine pro, publique : Portfolio, Agent Ops Lab (service ops) et la démo de DataMind.
+# Section « Sites & tests » du portail : DataMind et Atelier Mission (service mission).
 # Cuisine, Dates et Suivi vivent sur Vercel uniquement : le portail les ouvre là-bas.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :

@@ -12,6 +12,7 @@
 #   DOCKER_FAIL_ON="build ops"     fait échouer tout appel qui contient ce texte
 #   DOCKER_FAIL_ONCE="build ops"   idem, une seule fois (panne passagère)
 #   DOCKER_SLEEP_ON="build" DOCKER_SLEEP=2   ralentit ces appels
+#   $SIM/image-retenue             tant que ce fichier existe, « rmi » de l'image qu'il nomme échoue (encore utilisée)
 #   DOCKER_VERSION=24.0.7          version annoncée du moteur
 #   DOCKER_SANS_INIT=1             docker info ne connaît pas docker-init
 #   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement)
@@ -56,6 +57,9 @@ case "$args" in
   *"exec -T postgres psql"*) cat >> "$SIM/psql.recu" ;;
   "info --format"*) if [ -n "${DOCKER_SANS_INIT:-}" ]; then echo "N/A"; else echo "de40ad0"; fi ;;
   "version --format"*) echo "${DOCKER_VERSION:-29.0.0}" ;;
+  "rmi "*)   # une image encore utilisée par un conteneur ne se supprime pas
+    if [ -e "$SIM/image-retenue" ] && [[ "$args" == *"$(cat "$SIM/image-retenue")"* ]]; then exit 1; fi ;;
+  *"up -d --wait --wait-timeout 300 datamind-demo"*) rm -f "$SIM/image-retenue" ;;   # la démo passe sur la nouvelle image
   "image inspect"*) [ -z "${DOCKER_SANS_IMAGE:-}" ] || exit 1 ;;
 esac
 exit 0

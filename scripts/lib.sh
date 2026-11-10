@@ -203,7 +203,9 @@ deployer() {
     return 1
   fi
   if compose up -d --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
-    [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || true
+    # L'image précédente n'a plus d'usage, sauf si un autre service tourne encore dessus (la démo publique sur celle
+    # de DataMind) : docker refuse alors de la libérer, et deployer_services réessaie à la fin.
+    [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || A_LIBERER+=("$image")
     case "$service" in caddy|portail) mkdir -p logs; empreinte_kit "$service" > "logs/empreinte-$service" ;; esac
     return 0
   fi
@@ -231,6 +233,7 @@ deployer() {
 # des dépendances de Tab pour Caddy puis pour Nexus, ne sont faites qu'une fois) et vidé à la fin ; au-delà, il est
 # vidé après chaque service pour ménager le disque.
 RATES=()
+A_LIBERER=()
 deployer_services() {
   local service
   RATES=()
@@ -239,6 +242,9 @@ deployer_services() {
     else RATES+=("$service"); fi
     if [ $# -le 3 ]; then nettoyer_images; else nettoyer; fi
   done
+  # Images précédentes à libérer une fois tous les services relancés (voir deployer).
+  for service in "${A_LIBERER[@]}"; do docker rmi "$service:precedent" >/dev/null 2>&1 || true; done
+  A_LIBERER=()
   nettoyer
   [ ${#RATES[@]} -eq 0 ]
 }
