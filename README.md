@@ -136,6 +136,7 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 `sudo ./backup.sh` écrit `backups/atelier-AAAAMMJJ-HHMM.tar.gz` : le dossier `data/` (toutes les apps), `.env` (réglages et secrets) et un export de la base PostgreSQL de Nexus (`nexus.sql.gz`). Les vidéos de `media/` n'y sont pas. L'archive n'est lisible que par root.
 
 - **Une sauvegarde ratée se voit.** L'archive est relue en entier avant de prendre son nom ; en cas d'échec (disque plein, PostgreSQL arrêté…), le script finit en erreur, ne supprime aucune ancienne archive, relance les apps qu'il avait arrêtées et l'écrit dans `logs/backup.log`.
+- **Jamais en même temps qu'une mise à jour.** Mise à jour, mise à jour automatique, sauvegarde et restauration se partagent un verrou : la sauvegarde de nuit attend la fin d'une mise à jour en cours (une heure au plus), une seconde mise à jour lancée à la main est refusée avec un message.
 - **Garde une copie ailleurs.** Les archives sont sur le même disque que les données : si le VPS est perdu, elles le sont aussi. Depuis ton Mac, de temps en temps (ou par une tâche planifiée) :
   ```bash
   rsync -avP --rsync-path="sudo rsync" debian@IP_DU_VPS:Ateliers/Atelier_Deploy/backups/ ~/Sauvegardes/atelier/

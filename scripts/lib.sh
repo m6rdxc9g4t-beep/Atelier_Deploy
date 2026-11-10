@@ -16,6 +16,33 @@ ok()   { printf '  %s✓%s %s\n' "$green" "$reset" "$*"; }
 warn() { printf '  %s!%s %s\n' "$yellow" "$reset" "$*"; }
 die()  { printf '\n%s✗ %s%s\n' "$red" "$*" "$reset" >&2; exit 1; }
 
+# ── Verrou commun ────────────────────────────────────────────────────────────
+# Mise à jour, mise à jour automatique, sauvegarde et restauration ne tournent jamais en même temps : deux
+# constructions à la fois saturent la mémoire, et une app relancée pendant sa copie donne une sauvegarde incohérente.
+# flock : le noyau libère le verrou à la fin du script, même tué. Un script lancé par un autre qui le tient déjà
+# (auto-update.sh → update.sh, update.sh relancé après la mise à jour du kit) en hérite : ATELIER_VERROU=1.
+#   verrou refuser     s'arrête avec un message si le verrou est pris
+#   verrou attendre    patiente jusqu'à une heure (sauvegarde de nuit)
+#   verrou silencieux  sort sans rien dire (le cron repassera dans 5 minutes)
+VERROU="${ATELIER_VERROU_FICHIER:-/run/lock/atelier.lock}"
+verrou() {
+  [ -z "${ATELIER_VERROU:-}" ] || return 0
+  if ! { exec 9>>"$VERROU"; } 2>/dev/null; then
+    warn "verrou indisponible ($VERROU) : le script continue sans lui (lance-le avec sudo)"
+    return 0
+  fi
+  if ! flock -n 9; then
+    case "${1:-refuser}" in
+      silencieux) exit 0 ;;
+      attendre)
+        warn "une mise à jour, une sauvegarde ou une restauration est en cours : attente (une heure au plus)"
+        flock -w 3600 9 || die "Le serveur est resté occupé plus d'une heure : abandon." ;;
+      *) die "Une mise à jour, une sauvegarde ou une restauration est déjà en cours : réessaie quand elle sera finie." ;;
+    esac
+  fi
+  export ATELIER_VERROU=1
+}
+
 # Lit une valeur de .env (sans exécuter le fichier).
 env_get() {
   [ -f .env ] || return 0

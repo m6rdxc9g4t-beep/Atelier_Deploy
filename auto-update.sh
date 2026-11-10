@@ -14,6 +14,8 @@ set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
 CRON_FILE=/etc/cron.d/atelier-auto-update
+# Verrou de la ligne de cron (un seul passage à la fois) ; le verrou commun de scripts/lib.sh s'y ajoute et
+# empêche de croiser une mise à jour manuelle ou une sauvegarde.
 LOCK=/run/atelier-auto-update.lock
 LOG="$ROOT/logs/auto-update.log"
 
@@ -111,6 +113,6 @@ CRON
     done
     if [ -f "$LOG" ]; then echo; tail -n 8 "$LOG"; fi
     ;;
-  check) check ;;
+  check) verrou silencieux; check ;;
   *) die "Usage : sudo ./auto-update.sh [install|remove|status]" ;;
 esac

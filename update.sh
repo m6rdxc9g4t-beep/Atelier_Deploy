@@ -4,6 +4,7 @@
 #          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, datamind (+ sa démo publique), projets, wiki, hub, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
+verrou refuser
 
 step "Mise à jour du code"
 if [ -z "${ATELIER_KIT_A_JOUR:-}" ]; then

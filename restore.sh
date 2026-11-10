@@ -83,6 +83,8 @@ if [ "$oui" -eq 0 ]; then
   [ "$reponse" = "oui" ] || die "Restauration abandonnée : rien n'a été touché."
 fi
 
+verrou refuser
+
 # ── 2. Données ───────────────────────────────────────────────────────────────
 step "Arrêt des apps"
 arrete=1

@@ -82,6 +82,8 @@ done
 [ "$dns_ok" -eq 1 ] || warn "Tant que le DNS ne pointe pas vers ce VPS, les certificats HTTPS ne pourront pas être émis. Caddy réessaiera tout seul."
 
 # ── 6. Code des apps ─────────────────────────────────────────────────────────
+# Pris seulement ici : un service lancé par l'installation des paquets ou de Docker ne doit pas hériter du verrou.
+verrou refuser
 step "Récupération des apps"
 sync_apps
 ensure_dirs

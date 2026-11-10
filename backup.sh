@@ -68,6 +68,11 @@ trap fin EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+# Une mise à jour en cours relancerait les apps pendant leur copie : la sauvegarde attend qu'elle finisse.
+resultat="le serveur est resté occupé par une mise à jour pendant plus d'une heure"
+verrou attendre
+resultat="interrompue avant la fin"
+
 # ── Place disponible ─────────────────────────────────────────────────────────
 # Besoin estimé : une fois et demie la dernière archive (à défaut, la taille de data/), plus 200 Mo de marge.
 derniere="$(ls -1t backups/atelier-*.tar.gz 2>/dev/null | head -n1 || true)"
