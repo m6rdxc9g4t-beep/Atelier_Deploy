@@ -45,4 +45,8 @@ regle "chaque service a une sonde (update.sh l'attend avant de dire « à jour �
 regle "chaque service redémarre seul" \
   'all(v.get("restart") == "unless-stopped" for v in s.values())'
 
+titre "Caddy"
+attendu "l'image de Caddy valide le Caddyfile à la construction (après l'avoir copié)" \
+  test "$(grep -n 'caddy validate --config /etc/caddy/Caddyfile' "$DEPOT/caddy/Dockerfile" | cut -d: -f1)" -gt "$(grep -n '^COPY caddy/Caddyfile' "$DEPOT/caddy/Dockerfile" | cut -d: -f1)"
+
 banc_fin

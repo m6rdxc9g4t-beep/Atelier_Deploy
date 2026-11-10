@@ -44,5 +44,13 @@ RUN VITE_ATELIER_TAB_URL="$PROTO://tab.$ATELIER_DOMAIN" \
 # ── Caddy ────────────────────────────────────────────────────────────────────
 FROM caddy:2.10-alpine
 COPY caddy/Caddyfile /etc/caddy/Caddyfile
+# Caddy est le seul point d'entrée de toute la suite : un Caddyfile fautif fait échouer la construction ici,
+# et update.sh garde alors l'ancien Caddy en service au lieu de le remplacer par un conteneur qui ne démarre pas.
+# Même commande dans tests/lancer.sh. Seules l'adresse et l'e-mail comptent pour la validation.
+ARG ATELIER_DOMAIN
+RUN ATELIER_DOMAIN="${ATELIER_DOMAIN:-exemple.test}" ACME_EMAIL=validation@exemple.test \
+    XDG_DATA_HOME=/tmp/caddy-validation XDG_CONFIG_HOME=/tmp/caddy-validation \
+    caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile \
+    && rm -rf /tmp/caddy-validation
 COPY --from=tab /src/dist /srv/tab
 COPY --from=projets /app/frontend/dist /srv/projets
