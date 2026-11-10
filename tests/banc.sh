@@ -46,6 +46,10 @@ if [ -n "${DOCKER_FAIL_ONCE:-}" ] && [[ "$args" == *"$DOCKER_FAIL_ONCE"* ]] && [
 fi
 case "$args" in
   *"config --services"*) cat "$SIM/services" ;;
+  *"config --hash "*)   # empreinte de la configuration résolue d'un service : le fichier et ses réglages de .env
+    service="${args##* }"
+    case "$service" in portail) motif='^(ATELIER_DOMAIN|PORTAL_|SESSION_)' ;; *) motif='^(ATELIER_DOMAIN|ACME_EMAIL)=' ;; esac
+    echo "$service $({ grep -E "$motif" .env; cat docker-compose.yml; } | sha256sum | cut -d' ' -f1)" ;;
   *"ps --services"*) cat "$SIM/en-marche" ;;
   *"exec -T postgres pg_dump"*) echo "-- faux export de la base de Nexus" ;;
   *"exec -T postgres psql"*) cat >> "$SIM/psql.recu" ;;

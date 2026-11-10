@@ -67,6 +67,57 @@ done
 vert "tous les autres services sont déployés"
 attendu "datamind-demo passe après datamind" test "$(grep -n 'up -d --wait --wait-timeout 300 datamind' "$SIM_LOG" | tail -n1 | grep -c 'datamind-demo')" = 1
 
+titre "Caddy et le portail ne sont reconstruits que si quelque chose les concerne a changé"
+attendu "update.sh portail (les deux sont déployés et notés)" ./update.sh portail
+vider_journal
+attendu "update.sh ops" ./update.sh ops
+dans_journal "build ops"
+hors_journal "build caddy" "Caddy n'est pas reconstruit (aucune connexion coupée)"
+hors_journal "build portail" "le portail non plus"
+hors_journal "up -d --wait --wait-timeout 300 caddy" "Caddy n'est pas relancé"
+echo "# une adresse de plus" >> caddy/Caddyfile
+vider_journal
+attendu "update.sh hub après une modification du Caddyfile" ./update.sh hub
+dans_journal "build caddy" "Caddy est reconstruit"
+hors_journal "build portail" "pas le portail"
+echo "// une tuile de plus" >> portail/server.mjs
+vider_journal
+attendu "update.sh mission après une modification du portail" ./update.sh mission
+dans_journal "build portail" "le portail est reconstruit"
+hors_journal "build caddy" "pas Caddy"
+sed -i 's/^PORTAL_PASSWORD=.*/PORTAL_PASSWORD=un-autre-mot-de-passe/' .env
+vider_journal
+attendu "update.sh portfolio après un changement de réglage du portail (.env)" ./update.sh portfolio
+dans_journal "build portail" "le portail est redéployé avec le nouveau réglage"
+hors_journal "build caddy" "pas Caddy"
+vider_journal
+attendu "update.sh datamind" ./update.sh datamind
+dans_journal "up -d --wait --wait-timeout 300 datamind-demo" "la démo publique suit toujours DataMind"
+hors_journal "build caddy" "Caddy n'est pas reconstruit"
+echo "# encore une adresse" >> caddy/Caddyfile
+vider_journal
+DOCKER_FAIL_ON="build caddy" refuse "update.sh ops avec un Caddy qui ne se construit pas" ./update.sh ops
+vider_journal
+attendu "update.sh ops de nouveau" ./update.sh ops
+dans_journal "build caddy" "un déploiement raté n'est pas noté : Caddy est reconstruit au passage suivant"
+vider_journal
+attendu "update.sh portail" ./update.sh portail
+dans_journal "build caddy" "la cible portail reconstruit toujours Caddy"
+dans_journal "build portail" "et le portail"
+
+titre "Cache de construction gardé entre les services d'une même cible"
+vider_journal
+attendu "update.sh tab" ./update.sh tab
+entre="$(sed -n '/build caddy/,/build nexus-backend/p' "$SIM_LOG")"
+refuse "pas de vidage du cache entre Caddy et Nexus (l'installation de Tab sert aux deux)" grep -q "builder prune" <<<"$entre"
+attendu "les anciennes images sont tout de même supprimées entre les deux" grep -q "image prune" <<<"$entre"
+attendu "le cache est vidé à la fin" grep -q "builder prune" <<<"$(sed -n '/build nexus-backend/,$p' "$SIM_LOG")"
+vider_journal
+attendu "update.sh (tout)" ./update.sh
+premier="$(grep -m1 -o 'build [a-z-]*' "$SIM_LOG")"
+attendu "mise à jour complète : cache vidé après chaque service (disque de 40 Go)" \
+  grep -q "builder prune" <<<"$(sed -n "/$premier/,/ build /p" "$SIM_LOG" | sed '1d')"
+
 titre "Premier lancement : aucune image à garder"
 vider_journal
 DOCKER_SANS_IMAGE=1 attendu "update.sh hub réussit" ./update.sh hub

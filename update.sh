@@ -47,6 +47,19 @@ esac
 
 ensure_secrets
 ensure_ia
+
+# Caddy et le portail accompagnent ces cibles pour le jour où le kit leur apprend une adresse ou une tuile.
+# Si rien de ce qui les concerne n'a changé depuis leur dernier déploiement, on n'y touche pas.
+case "${1:-all}" in
+  datamind|portfolio|ops|mission|hub)
+    utiles=()
+    for service in "${services[@]}"; do
+      case "$service" in caddy|portail) if kit_a_jour "$service"; then continue; fi ;; esac
+      utiles+=("$service")
+    done
+    services=("${utiles[@]}") ;;
+esac
+
 # Une cible ne fait avancer que son propre code : celui des autres apps attend leur reconstruction.
 if [ "${1:-all}" = all ]; then sync_apps; else sync_apps --seulement "${depots[@]}"; fi
 ensure_dirs
@@ -66,7 +79,6 @@ deployer_services "${services[@]}" || true
 step "Redémarrage"
 compose up -d --remove-orphans "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
-nettoyer
 if [ ${#RATES[@]} -gt 0 ]; then
   compose ps
   die "non mis à jour : ${RATES[*]} (voir plus haut ; les autres services demandés sont à jour)"

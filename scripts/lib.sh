@@ -142,10 +142,27 @@ verifier_archive() {
 # nouvelle, plus le cache de construction. Tout reconstruire d'un coup demande donc plus de 10 Go libres.
 # On reconstruit une app à la fois : construire, relancer, supprimer l'ancienne image et le cache, puis la suivante.
 libre_go() { echo $(( $(libre_ko "$ROOT") / 1048576 )); }
+nettoyer_images() { docker image prune -f >/dev/null 2>&1 || true; }
 nettoyer() {
-  docker image prune -f >/dev/null 2>&1 || true
+  nettoyer_images
   docker builder prune -af >/dev/null 2>&1 || warn "nettoyage du cache de construction impossible"
 }
+
+# Empreinte de tout ce qui fait l'image et le conteneur de Caddy ou du portail : leurs fichiers dans le kit et leur
+# configuration résolue (docker-compose.yml + .env, telle que compose la compare pour recréer un conteneur ; les
+# arguments de construction n'en font pas partie, d'où PROTO pour Caddy). Elle est notée dans logs/ après chaque déploiement réussi :
+# tant qu'elle ne change pas, mettre à jour une app ne reconstruit ni Caddy ni le portail. Reconstruire Caddy
+# coupe en effet les connexions en cours de toute la suite (réponses des agents, vidéos, envois de fichiers).
+empreinte_kit() {
+  {
+    case "$1" in
+      caddy)   sha256sum caddy/Caddyfile caddy/Dockerfile; env_get PROTO ;;
+      portail) find portail -type f ! -path 'portail/tests/*' -print0 | sort -z | xargs -0 sha256sum ;;
+    esac
+    compose config --hash "$1" 2>/dev/null || compose config "$1" 2>/dev/null || true
+  } | sha256sum | cut -d' ' -f1
+}
+kit_a_jour() { [ "$(cat "logs/empreinte-$1" 2>/dev/null)" = "$(empreinte_kit "$1")" ]; }
 
 # Avant de toucher aux conteneurs : Docker répond et connaît ce que docker-compose.yml lui demande.
 verifier_docker() {
@@ -180,6 +197,7 @@ deployer() {
   fi
   if compose up -d --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
     [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || true
+    case "$service" in caddy|portail) mkdir -p logs; empreinte_kit "$service" > "logs/empreinte-$service" ;; esac
     return 0
   fi
   warn "$service ne redémarre pas. Dernières lignes de son journal :"
@@ -202,6 +220,9 @@ deployer() {
 
 # Déploie les services donnés, un par un. Un service en échec n'arrête pas les suivants : ils sont listés dans RATES,
 # et la fonction rend 1 s'il y en a.
+# Jusqu'à 3 services, le cache de construction est gardé de l'un à l'autre (les étapes communes, comme l'installation
+# des dépendances de Tab pour Caddy puis pour Nexus, ne sont faites qu'une fois) et vidé à la fin ; au-delà, il est
+# vidé après chaque service pour ménager le disque.
 RATES=()
 deployer_services() {
   local service
@@ -209,8 +230,9 @@ deployer_services() {
   for service in "$@"; do
     if deployer "$service"; then ok "$service à jour et en service (espace libre : $(libre_go) Go)"
     else RATES+=("$service"); fi
-    nettoyer
+    if [ $# -le 3 ]; then nettoyer_images; else nettoyer; fi
   done
+  nettoyer
   [ ${#RATES[@]} -eq 0 ]
 }
 
