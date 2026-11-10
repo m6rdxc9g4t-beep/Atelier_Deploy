@@ -150,9 +150,10 @@ nettoyer() {
 
 # Empreinte de tout ce qui fait l'image et le conteneur de Caddy ou du portail : leurs fichiers dans le kit et leur
 # configuration résolue (docker-compose.yml + .env, telle que compose la compare pour recréer un conteneur ; les
-# arguments de construction n'en font pas partie, d'où PROTO pour Caddy). Elle est notée dans logs/ après chaque déploiement réussi :
-# tant qu'elle ne change pas, mettre à jour une app ne reconstruit ni Caddy ni le portail. Reconstruire Caddy
-# coupe en effet les connexions en cours de toute la suite (réponses des agents, vidéos, envois de fichiers).
+# arguments de construction n'en font pas partie, d'où PROTO pour Caddy).
+# Elle est notée dans logs/ après chaque déploiement réussi : tant qu'elle ne change pas, mettre à jour une app ne
+# reconstruit ni Caddy ni le portail. Reconstruire Caddy coupe en effet les connexions en cours de toute la suite
+# (réponses des agents, vidéos, envois de fichiers).
 empreinte_kit() {
   {
     case "$1" in
