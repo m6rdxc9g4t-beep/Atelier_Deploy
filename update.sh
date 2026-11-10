@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Met à jour les apps (dernier commit de leur branche), reconstruit et relance.
 # Usage :  sudo ./update.sh            toutes les apps
-#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, datamind (+ sa démo publique), projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)
+#          sudo ./update.sh viz        une seule (nexus, viz, tab, convert, datamind (+ sa démo publique), projets, wiki, hub, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -39,8 +39,9 @@ case "${1:-all}" in
   portfolio) services=(portfolio caddy portail) ;;  # Caddy et le portail connaissent son adresse et sa tuile
   ops)     services=(ops caddy portail) ;;    # Sites & tests : Agent Ops Lab (Caddy et le portail connaissent son adresse)
   mission) services=(mission caddy portail) ;; # Sites & tests : Atelier Mission (idem)
+  hub)     services=(hub caddy portail) ;;    # Atelier Hub : Caddy et le portail connaissent son adresse et sa tuile
   ia|ollama) services=(ollama) ;;             # IA du serveur : télécharge le modèle choisi dans .env
-  *) die "App inconnue : $1 (nexus, viz, tab, convert, datamind, projets, wiki, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)" ;;
+  *) die "App inconnue : $1 (nexus, viz, tab, convert, datamind, projets, wiki, hub, formulaire, tresorerie, savoir, cine, portfolio, ops, mission, ia, portail)" ;;
 esac
 
 # Le disque du VPS est petit (40 Go) : une reconstruction garde l'ancienne image (en service) à côté de la

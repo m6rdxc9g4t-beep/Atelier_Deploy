@@ -9,6 +9,7 @@
 #   demo-datamind.{$ATELIER_DOMAIN} démo publique de DataMind (:3601 ; mode démo, sans connexion, « Vitrine pro »)
 #   projets.{$ATELIER_DOMAIN}   Atelier Projets (interface statique + API :3000)
 #   wiki.{$ATELIER_DOMAIN}      Atelier Wiki   (:3200, sert aussi son interface)
+#   hub.{$ATELIER_DOMAIN}       Atelier Hub    (:3700, sert aussi son interface ; fiche de chaque projet)
 #   formulaire.{$ATELIER_DOMAIN} Atelier Formulaire (:3300 ; réponse par lien public sans connexion)
 #   tresorerie.{$ATELIER_DOMAIN} Atelier Trésorerie (:5050)
 #   savoir.{$ATELIER_DOMAIN}    Atelier Savoir (:5051)
@@ -212,6 +213,18 @@
 	handle {
 		import connexion
 		reverse_proxy 127.0.0.1:3200
+	}
+}
+
+{$SITE_SCHEME}hub.{$ATELIER_DOMAIN} {
+	import securite
+	handle /api/health {
+		import sante_publique
+		reverse_proxy 127.0.0.1:3700
+	}
+	handle {
+		import connexion
+		reverse_proxy 127.0.0.1:3700
 	}
 }
 

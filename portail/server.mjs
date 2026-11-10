@@ -65,6 +65,10 @@ const HOSTED = [
     probes: ['http://127.0.0.1:3200/api/health'],
   },
   {
+    id: 'hub', name: 'Hub', role: 'Tout ce que la suite sait d’un projet', color: '#9a3e6c', sub: 'hub',
+    probes: ['http://127.0.0.1:3700/api/health'],
+  },
+  {
     id: 'formulaire', name: 'Formulaire', role: 'Questionnaires, inscriptions, retours', color: '#008478', sub: 'formulaire',
     probes: ['http://127.0.0.1:3300/api/health'],
   },
