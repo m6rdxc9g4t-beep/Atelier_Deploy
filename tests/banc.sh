@@ -15,7 +15,8 @@
 #   DOCKER_VERSION=24.0.7          version annoncée du moteur
 #   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement)
 #   $SIM/en-marche                 services « en marche » (un par ligne) rendus par `compose ps --services`
-# Réglages du faux tar : TAR_FAIL=1 (échec, comme un disque plein), TAR_SLEEP=2 (archive lente).
+# Réglages du faux tar : TAR_FAIL=1 (échec, comme un disque plein), TAR_SLEEP=2 (archive lente),
+# ARCHIVE_ILLISIBLE_A_L_EXTRACTION=1 (toute extraction échoue).
 # Faux df : DF_LIBRE_KO=1024 (espace libre annoncé, en Ko).
 
 DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -47,7 +48,7 @@ case "$args" in
   *"config --services"*) cat "$SIM/services" ;;
   *"ps --services"*) cat "$SIM/en-marche" ;;
   *"exec -T postgres pg_dump"*) echo "-- faux export de la base de Nexus" ;;
-  *"exec -T postgres psql"*) cat > "$SIM/psql.recu" ;;
+  *"exec -T postgres psql"*) cat >> "$SIM/psql.recu" ;;
   "info --format"*) echo "de40ad0" ;;
   "version --format"*) echo "${DOCKER_VERSION:-29.0.0}" ;;
   "image inspect"*) [ -z "${DOCKER_SANS_IMAGE:-}" ] || exit 1 ;;
@@ -58,6 +59,7 @@ FAUX
 #!/usr/bin/env bash
 # Faux tar : le vrai, sauf panne ou lenteur demandée pour la création d'une archive (-c).
 vrai=/usr/bin/tar; [ -x "$vrai" ] || vrai=/bin/tar
+if [[ "$1" == -x* ]] && [ -n "${ARCHIVE_ILLISIBLE_A_L_EXTRACTION:-}" ]; then echo "tar: erreur de lecture simulée" >&2; exit 2; fi
 if [[ "$1" == -c* ]]; then
   [ -z "${TAR_SLEEP:-}" ] || sleep "$TAR_SLEEP"
   if [ -n "${TAR_FAIL:-}" ]; then : > "$2"; echo "tar: écriture impossible (disque plein simulé)" >&2; exit 2; fi
@@ -91,7 +93,7 @@ CONF
   export GIT_CONFIG_GLOBAL="$SIM/gitconfig" GIT_CONFIG_NOSYSTEM=1 PATH="$SIM/bin:$PATH"
   # Le kit simulé n'est pas un dépôt git : update.sh ne cherche pas à se mettre à jour lui-même.
   export ATELIER_KIT_A_JOUR=1 ATELIER_VERROU_FICHIER="$SIM/atelier.lock"
-  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE DOCKER_VERSION TAR_FAIL TAR_SLEEP DF_LIBRE_KO
+  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE DOCKER_VERSION TAR_FAIL TAR_SLEEP DF_LIBRE_KO ARCHIVE_ILLISIBLE_A_L_EXTRACTION
   local repo
   for repo in "${DEPOTS_SIMULES[@]}"; do
     git init -q --bare "$SIM/remotes/m6rdxc9g4t-beep/$repo.git"

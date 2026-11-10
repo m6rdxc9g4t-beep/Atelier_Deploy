@@ -4,11 +4,26 @@
 # Une sauvegarde ratée sort en erreur, ne laisse aucune archive et ne supprime aucune ancienne ;
 # les apps arrêtées pour la copie sont toujours relancées, même si le script est interrompu.
 # Résultat de chaque passage : une ligne dans logs/backup.log.
+#   sudo ./backup.sh                      nouvelle sauvegarde
+#   sudo ./backup.sh verifier [archive]   relit une sauvegarde en entier (la dernière par défaut), sans rien arrêter
+#   sudo ./restore.sh <archive>           la restaure
 # À planifier chaque nuit :
 #   echo "30 3 * * * root $(pwd)/backup.sh >> $(pwd)/logs/backup.log 2>&1" | sudo tee /etc/cron.d/atelier-backup
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 umask 077 # l'archive contient .env et toutes les données : jamais lisible par un autre compte, même pendant sa création
+
+if [ "${1:-}" = verifier ]; then
+  # shellcheck disable=SC2012  # noms d'archives sans espace, tri par date
+  archive="${2:-$(ls -1t backups/atelier-*.tar.gz 2>/dev/null | head -n1 || true)}"
+  [ -n "$archive" ] && [ -f "$archive" ] || die "aucune sauvegarde à vérifier (sudo ./backup.sh en crée une)"
+  liste=$(mktemp); trap 'rm -f "$liste"' EXIT
+  verifier_archive "$archive" "$liste" || die "$archive est illisible ou incomplète (il y manque data/ ou .env)"
+  ok "$archive : lisible en entier ($(du -h "$archive" | cut -f1), $(wc -l < "$liste") fichiers, du $(date -r "$archive" '+%F à %H:%M'))"
+  if grep -qE ' nexus\.sql\.gz$' "$liste"; then ok "avec la base de Nexus"; else warn "sans la base de Nexus"; fi
+  exit 0
+fi
+[ $# -eq 0 ] || die "Usage : sudo ./backup.sh [verifier [archive]]"
 
 # Viz (DuckDB) n'accepte qu'un programme ; Projets, Savoir, Trésorerie, Wiki, Hub, Formulaire et Mission écrivent en
 # SQLite : on les arrête quelques secondes pour une copie cohérente.

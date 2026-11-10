@@ -111,5 +111,5 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
   État :        docker compose ps
   Journaux :    docker compose logs -f caddy   (ou viz, projets, nexus-backend…)
   Mise à jour : sudo ./update.sh
-  Sauvegarde :  sudo ./backup.sh${reset}
+  Sauvegarde :  sudo ./backup.sh        (restaurer : sudo ./restore.sh)${reset}
 EOF

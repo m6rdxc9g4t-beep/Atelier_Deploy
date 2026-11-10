@@ -85,6 +85,8 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Sauvegarder | `sudo ./backup.sh` → `backups/atelier-AAAAMMJJ-HHMM.tar.gz` (données, `.env` et base de Nexus ; l'archive est relue en entier avant d'être gardée, les 14 dernières sont conservées). Viz, Projets, Savoir, Trésorerie, Wiki, Hub, Formulaire et Mission s'arrêtent quelques secondes, le temps de la copie. |
 | Sauvegarder chaque nuit | `echo "30 3 * * * root $(pwd)/backup.sh >> $(pwd)/logs/backup.log 2>&1" \| sudo tee /etc/cron.d/atelier-backup` |
 | Savoir si la dernière sauvegarde a réussi | `sudo tail -n 3 logs/backup.log` (une ligne `ok` ou `ÉCHEC` par passage) |
+| Vérifier qu'une sauvegarde est lisible | `sudo ./backup.sh verifier` (la dernière) ou `sudo ./backup.sh verifier backups/atelier-….tar.gz` : relit l'archive en entier, sans rien arrêter |
+| Restaurer une sauvegarde | `sudo ./restore.sh` liste les archives ; `sudo ./restore.sh backups/atelier-….tar.gz` restaure (voir « Sauvegarder et restaurer ») |
 | Changer le mot de passe | modifier `PORTAL_PASSWORD` dans `.env`, puis `sudo docker compose up -d portail` |
 | Déployer une autre branche | `BRANCH_NEXUS=ma-branche` dans `.env`, puis `sudo ./update.sh nexus` |
 | Changer de modèle d'IA | `OLLAMA_MODEL=…` dans `.env` (ex. `llama3.1:8b`, `llama3.2:3b`, `qwen3:8b`), puis `sudo ./update.sh` |
@@ -127,6 +129,29 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
 - **Réponse publique de Formulaire.** Exception voulue : la page `/r/<lien secret>`, son API `/api/public/*` et les fichiers de l'interface de `formulaire.…` sont ouverts sans connexion, pour les formulaires que leur auteur a partagés « à toute personne qui a le lien ».
 - **Sélecteur de suite dans les apps.** Les liens Viz ↔ Tab ↔ Projets ↔ Nexus de chaque app sont compilés avec tes sous-domaines : tu passes d'une app à l'autre sans repasser par le portail.
 - **Données** dans `data/` : `viz/` (DuckDB, rapports), `convert/` (conversions et fichiers déposés), `projets/` (SQLite + sauvegardes automatiques), `nexus/` (réglages `.env`), `atelier_tab/` (fichiers que le MCP de Tab lit et écrit pour Nexus), `wiki/` (`wiki.db` + `uploads/`), `hub/` (`hub.db` : fiches projet, rattachements, sources), `formulaire/` (`formulaire.db`), `tresorerie/` (`finance.db`), `savoir/` (base + fichiers déposés), `cine/` (catalogue, profils), `portfolio/` (messages du formulaire de contact), `datamind/` (jeux de données et analyses de DataMind), `mission/` (`atelier-mission.db` : clients, devis, factures). Vidéos dans `media/films` et `media/series` (lecture seule pour Ciné, non sauvegardées). Base de Nexus dans le volume Docker `atelier_postgres_data`.
+
+## Sauvegarder et restaurer
+
+`sudo ./backup.sh` écrit `backups/atelier-AAAAMMJJ-HHMM.tar.gz` : le dossier `data/` (toutes les apps), `.env` (réglages et secrets) et un export de la base PostgreSQL de Nexus (`nexus.sql.gz`). Les vidéos de `media/` n'y sont pas. L'archive n'est lisible que par root.
+
+- **Une sauvegarde ratée se voit.** L'archive est relue en entier avant de prendre son nom ; en cas d'échec (disque plein, PostgreSQL arrêté…), le script finit en erreur, ne supprime aucune ancienne archive, relance les apps qu'il avait arrêtées et l'écrit dans `logs/backup.log`.
+- **Garde une copie ailleurs.** Les archives sont sur le même disque que les données : si le VPS est perdu, elles le sont aussi. Depuis ton Mac, de temps en temps (ou par une tâche planifiée) :
+  ```bash
+  rsync -avP --rsync-path="sudo rsync" debian@IP_DU_VPS:Ateliers/Atelier_Deploy/backups/ ~/Sauvegardes/atelier/
+  ```
+- **Restaurer sur ce VPS** (données abîmées, erreur de manipulation) :
+  ```bash
+  sudo ./restore.sh                                   # liste les sauvegardes
+  sudo ./restore.sh backups/atelier-20261110-0330.tar.gz
+  ```
+  Le script contrôle l'archive, demande confirmation, arrête les apps, remplace `data/` et rejoue la base de Nexus, puis relance tout. Rien n'est supprimé : les données d'avant sont gardées dans `data.avant-restauration-<date>/`, à effacer quand tout est vérifié. `.env` n'est remplacé qu'avec `--avec-env` (l'actuel est alors gardé à côté).
+- **Restaurer sur un nouveau VPS** : clone le kit, copie l'archive dans `backups/`, puis
+  ```bash
+  sudo tar -xzf backups/atelier-20261110-0330.tar.gz .env   # reprend domaine, mots de passe et secrets
+  sudo ./install.sh
+  sudo ./restore.sh backups/atelier-20261110-0330.tar.gz
+  ```
+  Pense à faire pointer le DNS vers la nouvelle adresse IP.
 
 ## Portfolio à une adresse Netlify
 
