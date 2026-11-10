@@ -9,7 +9,7 @@
 #   sudo ./auto-update.sh           une vérification maintenant (ce que lance le cron)
 #
 # Apps suivies : AUTO_UPDATE_APPS dans .env (noms de update.sh, séparés par des espaces), aucune par défaut.
-# Journal : logs/auto-update.log
+# Journal : logs/auto-update.log (au-delà de 5 Mo, l'ancien contenu passe dans logs/auto-update.log.1)
 set -euo pipefail
 source "$(dirname "$0")/scripts/lib.sh"
 
@@ -113,6 +113,10 @@ CRON
     done
     if [ -f "$LOG" ]; then echo; tail -n 8 "$LOG"; fi
     ;;
-  check) verrou silencieux; check ;;
+  check)
+    verrou silencieux
+    # Le journal reçoit toute la sortie des constructions : il est borné (5 Mo, un ancien gardé dans auto-update.log.1).
+    tourner_journal "$LOG"
+    check ;;
   *) die "Usage : sudo ./auto-update.sh [install|remove|status]" ;;
 esac

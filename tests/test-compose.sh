@@ -44,6 +44,12 @@ regle "chaque service a une sonde (update.sh l'attend avant de dire « à jour �
   'all("healthcheck" in v for v in s.values())'
 regle "chaque app tourne sous docker-init (arrêt propre en 1 s au lieu de 10)" \
   'all(v.get("init") is True for n, v in s.items() if n != "postgres")'
+regle "chaque journal de conteneur est borné (PostgreSQL compris)" \
+  'all(v.get("logging", {}).get("options", {}).get("max-size") for v in s.values())'
+regle "à court de mémoire, le noyau épargne Caddy, le portail et PostgreSQL" \
+  'all(s[n].get("oom_score_adj", 0) < 0 for n in ["caddy", "portail", "postgres"])'
+regle "et sacrifie d'abord Ollama et la démo publique, qui redémarrent seuls" \
+  'all(s[n].get("oom_score_adj", 0) > 0 for n in ["ollama", "datamind-demo"])'
 regle "chaque service redémarre seul" \
   'all(v.get("restart") == "unless-stopped" for v in s.values())'
 

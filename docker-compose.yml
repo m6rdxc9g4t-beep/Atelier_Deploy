@@ -9,6 +9,9 @@
 #
 # Lancer :  docker compose up -d --build        Journal :  docker compose logs -f <service>
 #
+# Le VPS visé a 4 Go de mémoire : oom_score_adj dit au noyau qui épargner (Caddy, le portail, PostgreSQL) et qui
+# sacrifier d'abord (Ollama, la démo publique) quand elle vient à manquer.
+#
 # Chaque service construit ici a une sonde (healthcheck) : update.sh attend qu'elle réponde avant d'annoncer une app
 # « à jour », et remet l'image précédente sinon. start_interval (sondes toutes les 2 s pendant le démarrage)
 # demande Docker 25 ou plus récent, ce que update.sh vérifie.
@@ -66,6 +69,7 @@ services:
   caddy:
     <<: *app
     build: { <<: *build, dockerfile: caddy/Dockerfile }
+    oom_score_adj: -500   # dernier sacrifié si la mémoire manque : sans lui, plus aucune app n'est joignable
     environment:
       <<: *tz
       ATELIER_DOMAIN: ${ATELIER_DOMAIN}
@@ -89,6 +93,7 @@ services:
   portail:
     <<: *app
     build: ./portail
+    oom_score_adj: -500   # la connexion de toutes les apps passe par lui
     environment:
       <<: *tz
       ATELIER_DOMAIN: ${ATELIER_DOMAIN}
@@ -199,7 +204,8 @@ services:
     # Données éphémères : rien sur le disque, tout disparaît au redémarrage (utilisateur node, uid 1000).
     tmpfs:
       - /data:size=128m,uid=1000,gid=1000,mode=0700
-    # Service public : mémoire et processus bornés, aucun privilège.
+    # Service public : mémoire et processus bornés, aucun privilège ; sacrifié avant les apps privées si la mémoire manque.
+    oom_score_adj: 500
     mem_limit: 768m
     pids_limit: 256
     cap_drop: [ALL]
@@ -447,6 +453,8 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
+    logging: *journal
+    oom_score_adj: -500   # la base de Nexus ne doit pas être tuée en pleine écriture
     environment:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -468,6 +476,9 @@ services:
   ollama:
     <<: *app
     image: ollama/ollama:latest
+    # Le plus gros consommateur de mémoire (le modèle chargé) : s'il faut tuer un processus, que ce soit lui.
+    # Il redémarre seul et recharge le modèle à la demande suivante.
+    oom_score_adj: 500
     environment:
       <<: *tz
       OLLAMA_HOST: 127.0.0.1:11434

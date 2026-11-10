@@ -49,4 +49,14 @@ attendu "un nouveau commit relance la mise à jour" ./auto-update.sh
 attendu "ops est reconstruit" test "$(compte_journal 'build ops')" = 4
 refuse "l'échec est effacé" test -e logs/echec-ops
 
+titre "Le journal ne grossit pas sans fin"
+mkdir -p logs
+head -c 6000000 /dev/zero | tr '\0' 'x' > logs/auto-update.log
+attendu "auto-update.sh réussit" ./auto-update.sh
+attendu "au-delà de 5 Mo, le journal repart de zéro" test "$(stat -c %s logs/auto-update.log)" -lt 100000
+attendu "l'ancien contenu est gardé une fois" test "$(stat -c %s logs/auto-update.log.1)" -ge 6000000
+echo "ligne récente" > logs/auto-update.log
+attendu "auto-update.sh réussit" ./auto-update.sh
+attendu "un petit journal n'est pas touché" grep -q "ligne récente" logs/auto-update.log
+
 banc_fin
