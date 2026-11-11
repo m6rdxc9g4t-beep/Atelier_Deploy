@@ -20,15 +20,20 @@ die()  { printf '\n%s✗ %s%s\n' "$red" "$*" "$reset" >&2; exit 1; }
 # Mise à jour, mise à jour automatique, sauvegarde et restauration ne tournent jamais en même temps : deux
 # constructions à la fois saturent la mémoire, et une app relancée pendant sa copie donne une sauvegarde incohérente.
 # flock : le noyau libère le verrou à la fin du script, même tué. Un script lancé par un autre qui le tient déjà
-# (auto-update.sh → update.sh, update.sh relancé après la mise à jour du kit) en hérite : ATELIER_VERROU=1.
+# (auto-update.sh → update.sh, update.sh relancé après la mise à jour du kit) en hérite : ATELIER_VERROU porte le
+# chemin du verrou tenu (une autre valeur vient d'une ancienne version du kit, dont le verrou était ailleurs).
 #   verrou refuser     s'arrête avec un message si le verrou est pris
 #   verrou attendre    patiente jusqu'à une heure (sauvegarde de nuit)
 #   verrou silencieux  sort sans rien dire (le cron repassera dans 5 minutes)
-VERROU="${ATELIER_VERROU_FICHIER:-/run/lock/atelier.lock}"
+# Le fichier vit dans /run, où seul root peut créer un fichier : dans /run/lock, ouvert en écriture à tous, un
+# fichier créé un jour sans sudo ne pourrait plus être ouvert par root (fs.protected_regular) et tous les scripts
+# tourneraient sans verrou. Un verrou qui existe est ouvert en lecture (flock s'en contente), il n'est créé que s'il manque.
+VERROU="${ATELIER_VERROU_FICHIER:-/run/atelier.lock}"
 verrou() {
-  [ -z "${ATELIER_VERROU:-}" ] || return 0
-  if ! { exec 9>>"$VERROU"; } 2>/dev/null; then
-    warn "verrou indisponible ($VERROU) : le script continue sans lui (lance-le avec sudo)"
+  [ "${ATELIER_VERROU:-}" != "$VERROU" ] || return 0
+  if ! { [ -e "$VERROU" ] && exec 9<"$VERROU"; } 2>/dev/null && ! { exec 9>>"$VERROU"; } 2>/dev/null; then
+    if [ "$(id -u)" -eq 0 ]; then warn "verrou indisponible ($VERROU) : le script continue sans lui"
+    else warn "verrou indisponible ($VERROU) : le script continue sans lui (lance-le avec sudo)"; fi
     return 0
   fi
   if ! flock -n 9; then
@@ -40,7 +45,7 @@ verrou() {
       *) die "Une mise à jour, une sauvegarde ou une restauration est déjà en cours : réessaie quand elle sera finie." ;;
     esac
   fi
-  export ATELIER_VERROU=1
+  export ATELIER_VERROU="$VERROU"
 }
 
 # Lit une valeur de .env (sans exécuter le fichier).
