@@ -53,7 +53,7 @@ check() {
     if ! app_entry "$app" >/dev/null; then warn "$app : app inconnue (AUTO_UPDATE_APPS)"; continue; fi
     read -r remote local_sha <<<"$(shas "$app")"
     if [ "$remote" = "?" ]; then warn "$app : GitHub injoignable, on réessaiera"; continue; fi
-    # Échec noté pour ce commit : « commit essais » dans logs/echec-<app> (le code, lui, a déjà avancé).
+    # Échec noté pour ce commit : « commit essais » dans logs/echec-<app> (le code, lui, est revenu au commit en service).
     echec=""; essais=0
     [ ! -f "$ROOT/logs/echec-$app" ] || read -r echec essais <"$ROOT/logs/echec-$app" || true
     if [ "$echec" = "$remote" ]; then

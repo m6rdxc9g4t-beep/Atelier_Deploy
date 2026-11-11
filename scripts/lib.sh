@@ -210,8 +210,12 @@ deployer() {
   fi
   if compose up -d --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
     # L'image précédente n'a plus d'usage, sauf si un autre service tourne encore dessus (la démo publique sur celle
-    # de DataMind) : docker refuse alors de la libérer, et deployer_services réessaie à la fin.
-    [ "$precedent" -eq 0 ] || docker rmi "$image:precedent" >/dev/null 2>&1 || A_LIBERER+=("$image")
+    # de DataMind) : docker refuse alors de la libérer, et deployer_services réessaie à la fin. Dans un lot de
+    # services liés, elle est gardée tant qu'un service du lot reste à déployer : elle sert au retour arrière.
+    if [ "$precedent" -eq 1 ]; then
+      if [ "$GARDER_PRECEDENT" -eq 1 ]; then A_LIBERER+=("$image")
+      else docker rmi "$image:precedent" >/dev/null 2>&1 || A_LIBERER+=("$image"); fi
+    fi
     case "$service" in caddy|portail) mkdir -p logs; empreinte_kit "$service" > "logs/empreinte-$service" ;; esac
     return 0
   fi
@@ -233,21 +237,77 @@ deployer() {
   return 1
 }
 
+# Remet en service la version précédente d'un service déjà passé à la nouvelle (lot abandonné, voir
+# deployer_services). Un service sans image à lui (la démo publique de DataMind) est seulement relancé : il suit
+# l'image de son voisin, remise en place juste avant.
+revenir() {
+  local service="$1" image
+  image="$(image_de "$service")"
+  # Caddy ou le portail ne sont plus ceux du kit : leur empreinte ne doit pas les dire à jour.
+  case "$service" in caddy|portail) rm -f "logs/empreinte-$service" ;; esac
+  if [ -n "$image" ]; then
+    if ! docker image inspect "$image:precedent" >/dev/null 2>&1 || ! docker tag "$image:precedent" "$image:latest"; then
+      warn "$service : pas de version précédente à remettre en service, il reste sur la nouvelle"
+      return 1
+    fi
+  fi
+  if compose up -d --no-build --wait --wait-timeout "$ATTENTE_SERVICE" "$service"; then
+    warn "$service : version précédente remise en service"
+  else
+    warn "$service : la version précédente ne redémarre pas (sudo docker compose logs $service)"
+    return 1
+  fi
+}
+
+# deployer_services [--lies N] service…
 # Déploie les services donnés, un par un. Un service en échec n'arrête pas les suivants : ils sont listés dans RATES,
 # et la fonction rend 1 s'il y en a.
+# --lies N : les N premiers services sont construits depuis le code d'une même app (son API puis son interface servie
+# par Caddy, le backend puis le frontend de Nexus…) : ils passent tous à la nouvelle version, ou aucun. Au premier
+# échec, les suivants du lot ne sont pas tentés et ceux déjà passés reviennent à leur version précédente : une
+# interface ne reste jamais devant une API d'une autre version. Tout le lot est alors listé dans RATES, et LOT_ANNULE
+# vaut 1 (update.sh remet le code de l'app sur le commit en service).
 # Jusqu'à 3 services, le cache de construction est gardé de l'un à l'autre (les étapes communes, comme l'installation
 # des dépendances de Tab pour Caddy puis pour Nexus, ne sont faites qu'une fois) et vidé à la fin ; au-delà, il est
 # vidé après chaque service pour ménager le disque.
 RATES=()
 A_LIBERER=()
+GARDER_PRECEDENT=0
+LOT_ANNULE=0
 deployer_services() {
-  local service
+  local service lies=0 rang=0 du_lot i faits=()
+  if [ "${1:-}" = "--lies" ]; then lies="$2"; shift 2; fi
   RATES=()
+  LOT_ANNULE=0
   for service in "$@"; do
-    if deployer "$service"; then ok "$service à jour et en service (espace libre : $(libre_go) Go)"
-    else RATES+=("$service"); fi
+    rang=$((rang + 1))
+    du_lot=0; GARDER_PRECEDENT=0
+    if [ "$rang" -le "$lies" ]; then du_lot=1; fi
+    if [ "$rang" -lt "$lies" ]; then GARDER_PRECEDENT=1; fi
+    if [ "$du_lot" -eq 1 ] && [ "$LOT_ANNULE" -eq 1 ]; then
+      warn "$service : non tenté (il va avec le service en échec ci-dessus)"
+      RATES+=("$service")
+      continue
+    fi
+    if deployer "$service"; then
+      ok "$service à jour et en service (espace libre : $(libre_go) Go)"
+      [ "$du_lot" -eq 0 ] || faits+=("$service")
+    else
+      RATES+=("$service")
+      if [ "$du_lot" -eq 1 ]; then
+        LOT_ANNULE=1
+        # Retour arrière des services du lot déjà passés à la nouvelle version, du dernier au premier.
+        for ((i = ${#faits[@]} - 1; i >= 0; i--)); do
+          revenir "${faits[i]}" || true
+          RATES+=("${faits[i]}")
+        done
+        # Le service en échec n'a pas d'image à lui : il repart sur celle de son voisin, revenue en arrière.
+        if [ ${#faits[@]} -gt 0 ] && [ -z "$(image_de "$service")" ]; then revenir "$service" || true; fi
+      fi
+    fi
     if [ $# -le 3 ]; then nettoyer_images; else nettoyer; fi
   done
+  GARDER_PRECEDENT=0
   # Images précédentes à libérer une fois tous les services relancés (voir deployer).
   for service in "${A_LIBERER[@]}"; do docker rmi "$service:precedent" >/dev/null 2>&1 || true; done
   A_LIBERER=()
