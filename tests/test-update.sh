@@ -121,6 +121,15 @@ premier="$(grep -m1 -o 'build [a-z-]*' "$SIM_LOG")"
 attendu "mise à jour complète : cache vidé après chaque service (disque de 40 Go)" \
   grep -q "builder prune" <<<"$(sed -n "/$premier/,/ build /p" "$SIM_LOG" | sed '1d')"
 
+titre "Mise à jour complète, une app jamais construite ne se construit pas : le message la nomme"
+vider_journal
+sortie="$(DOCKER_SANS_IMAGE=1 DOCKER_FAIL_ON="build viz" ./update.sh 2>&1)"; code=$?
+attendu "update.sh sort en erreur" test "$code" -ne 0
+attendu "et nomme Viz" grep -q "non mis à jour : viz" <<<"$sortie"
+attendu "la relance finale ne reconstruit rien" test "$(compte_journal 'up -d --no-build --remove-orphans')" = 1
+refuse "et laisse Viz de côté" grep -q -- "up -d --no-build --remove-orphans.* viz" "$SIM_LOG"
+dans_journal "up -d --wait --wait-timeout 300 wiki" "les autres apps sont déployées"
+
 titre "Premier lancement : aucune image à garder"
 vider_journal
 DOCKER_SANS_IMAGE=1 attendu "update.sh hub réussit" ./update.sh hub

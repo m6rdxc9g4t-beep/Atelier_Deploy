@@ -48,6 +48,17 @@ attendu "et nomme Viz" grep -q "viz" <<<"$(grep -i "pas pu" <<<"$sortie")"
 dans_journal "up -d --wait --wait-timeout 300 portail" "le portail est déployé"
 dans_journal "up -d --wait --wait-timeout 300 wiki" "le Wiki aussi"
 
+titre "Première installation, une app ne se construit pas : le récapitulatif et le nom de l'app sont tout de même affichés"
+preparer
+sortie="$(DOCKER_SANS_IMAGE=1 DOCKER_FAIL_ON="build viz" ./install.sh </dev/null 2>&1)"; code=$?
+attendu "install.sh sort en erreur" test "$code" -ne 0
+attendu "le récapitulatif donne l'adresse du portail" grep -q "https://atelier.exemple.test" <<<"$sortie"
+attendu "et le mot de passe" grep -q "motdepasse-de-test" <<<"$sortie"
+attendu "le message final nomme Viz" grep -q "viz" <<<"$(grep -i "pas pu" <<<"$sortie")"
+attendu "la relance finale ne reconstruit rien" test "$(compte_journal 'up -d --no-build --remove-orphans')" = 1
+refuse "et laisse Viz de côté" grep -q -- "up -d --no-build --remove-orphans.* viz" "$SIM_LOG"
+dans_journal "up -d --wait --wait-timeout 300 portail" "le portail est déployé"
+
 titre "Docker trop ancien : refus avant toute construction"
 preparer
 DOCKER_VERSION=24.0.7 refuse "install.sh refuse" ./install.sh </dev/null

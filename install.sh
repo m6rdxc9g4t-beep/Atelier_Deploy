@@ -97,7 +97,9 @@ nettoyer
 mapfile -t services < <(tous_les_services)
 deployer_services "${services[@]}" || true
 step "Démarrage"
-compose up -d --remove-orphans
+# Sans les apps en échec : leur image manque peut-être, et la reconstruire ici arrêterait le script avant le
+# récapitulatif (adresse du portail, mot de passe) et le message qui les nomme.
+relancer_tout "${services[@]}"
 ok "conteneurs lancés"
 pull_model
 

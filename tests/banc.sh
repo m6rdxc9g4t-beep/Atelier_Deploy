@@ -15,7 +15,8 @@
 #   $SIM/image-retenue             tant que ce fichier existe, « rmi » de l'image qu'il nomme échoue (encore utilisée)
 #   DOCKER_VERSION=24.0.7          version annoncée du moteur
 #   DOCKER_SANS_INIT=1             docker info ne connaît pas docker-init
-#   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement)
+#   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement) ; avec DOCKER_FAIL_ON="build viz",
+#                                  `up -d` échoue aussi s'il vise viz : le vrai compose reconstruit une image manquante
 #   PSQL_ERREUR_SQL=1              une instruction SQL échoue : comme le vrai psql, code non nul avec ON_ERROR_STOP seulement
 #   PG_REEL=/chemin/bin            psql et pg_dump du service postgres sont les vrais (PGHOST et PGPORT disent où)
 #   $SIM/en-marche                 services « en marche » (un par ligne) rendus par `compose ps --services`
@@ -52,6 +53,15 @@ if [ -n "${PG_REEL:-}" ] && [[ "$args" == *"exec -T postgres p"* ]]; then
   while [ "$1" != postgres ]; do shift; done
   outil="$2"; shift 2
   exec "$PG_REEL/$outil" "$@"
+fi
+# Image manquante : `up` la reconstruit (la construction en panne échoue de nouveau) ou, avec --no-build, la réclame.
+if [ -n "${DOCKER_SANS_IMAGE:-}" ] && [[ "${DOCKER_FAIL_ON:-}" == "build "* ]] && [[ " $args " == *" up -d "* ]]; then
+  sans_image="${DOCKER_FAIL_ON#build }"; vises=""; apres=0
+  for mot in "$@"; do
+    if [ "$apres" -eq 1 ]; then case "$mot" in -*|[0-9]*) ;; *) vises+=" $mot" ;; esac; fi
+    [ "$mot" != up ] || apres=1
+  done
+  if [ -z "$vises" ] || [[ "$vises " == *" $sans_image "* ]]; then echo "image de $sans_image introuvable" >&2; exit 1; fi
 fi
 case "$args" in
   *"config --services"*) cat "$SIM/services" ;;

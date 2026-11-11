@@ -71,7 +71,7 @@ ok "espace libre : $(libre_go) Go"
 if [ ${#services[@]} -eq 0 ]; then mapfile -t services < <(tous_les_services); fi
 deployer_services "${services[@]}" || true
 step "Redémarrage"
-compose up -d --remove-orphans "${services[@]}"
+relancer_tout "${services[@]}"
 case "${1:-all}" in all|ia|ollama) pull_model ;; esac
 if [ ${#RATES[@]} -gt 0 ]; then
   compose ps

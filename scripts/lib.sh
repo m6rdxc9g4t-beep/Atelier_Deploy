@@ -255,6 +255,20 @@ deployer_services() {
   [ ${#RATES[@]} -eq 0 ]
 }
 
+# Relance finale : démarre ce qui ne tourne pas encore et retire les conteneurs des services disparus du kit.
+# Sans construction, et sans les services en échec (RATES) : une image manquante serait sinon reconstruite ici, et son
+# échec arrêterait le script avant le message qui nomme ces services. Un échec est signalé sans arrêter le script.
+#   relancer_tout service…
+relancer_tout() {
+  local service bons=()
+  for service in "$@"; do
+    [[ " ${RATES[*]} " == *" $service "* ]] || bons+=("$service")
+  done
+  [ ${#bons[@]} -gt 0 ] || return 0
+  compose up -d --no-build --remove-orphans "${bons[@]}" \
+    || warn "relance incomplète (voir ci-dessus) : un service dépend peut-être d'une app en échec ; état : sudo docker compose ps"
+}
+
 # Tous les services de docker-compose.yml. L'ordre de compose varie : datamind-demo, qui réutilise l'image
 # construite par datamind, passe en dernier.
 tous_les_services() { compose config --services | grep -vx datamind-demo; echo datamind-demo; }
