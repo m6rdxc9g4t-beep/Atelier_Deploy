@@ -24,7 +24,7 @@ cat > "$tmp/temoin.mjs" <<'EOF'
 import { createServer } from 'node:http'
 createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
-  res.end(`temoin=oui\ncookie=<${req.headers.cookie ?? ''}>\nutilisateur=<${req.headers['x-atelier-user'] ?? ''}>\n`)
+  res.end(`temoin=oui\ncookie=<${req.headers.cookie ?? ''}>\nutilisateur=<${req.headers['x-atelier-user'] ?? ''}>\nadresse=<${req.headers['x-forwarded-for'] ?? ''}>\n`)
 }).listen(Number(process.argv[2]), '127.0.0.1')
 EOF
 node "$tmp/temoin.mjs" "$P_TEMOIN" & pids+=($!)
@@ -75,6 +75,12 @@ attendu "avec la session, l'app répond" grep -q "temoin=oui" "$tmp/reponse"
 attendu "et reçoit l'utilisateur vérifié par le portail, pas celui du visiteur" test "$(recu utilisateur)" = francois
 va viz /api/health
 attendu "la sonde /api/health d'une app reste publique" grep -q "temoin=oui" "$tmp/reponse"
+
+va "" /connexion -H "X-Forwarded-For: 203.0.113.99" -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "Origin: http://atelier.localhost" --data "utilisateur=francois&mot_de_passe=faux"
+va viz / -H "Cookie: $SESSION" -H "X-Forwarded-For: 203.0.113.99"
+attendu "l'adresse du visiteur vient de Caddy, pas d'un en-tête X-Forwarded-For inventé (limite d'essais du portail)" \
+  test "$(recu adresse)" = 127.0.0.1
 
 titre "Cookie de session et sites publics"
 # Tout sous-domaine du Caddyfile qui répond sans connexion est un site public : il ne doit jamais recevoir le cookie

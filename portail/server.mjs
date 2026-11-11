@@ -10,7 +10,8 @@
 //   GET  /sante            sonde de vie du portail (publique)
 
 import { createServer } from 'node:http'
-import { createHmac, timingSafeEqual, randomBytes, scryptSync } from 'node:crypto'
+import { createHmac, timingSafeEqual, randomBytes, scrypt, scryptSync } from 'node:crypto'
+import { promisify } from 'node:util'
 import { readFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -35,6 +36,9 @@ if (SECRET.length < 32) fail('SESSION_SECRET doit faire au moins 32 caractères.
 // Le mot de passe n'est jamais comparé en clair : on compare deux empreintes de même longueur.
 const salt = randomBytes(16)
 const passwordDigest = scryptSync(PASSWORD, salt, 32)
+// Pendant le service, l'empreinte se calcule hors du fil principal : une rafale de tentatives de connexion ne fait
+// pas attendre /auth/verify, donc aucune app.
+const digest = promisify(scrypt)
 
 /**
  * Les apps du portail. `color` = signature de l'app (Atelier_Projets/design-system/brand/atelier-brand.css, --atelier-sig-<id>).
@@ -270,22 +274,41 @@ function safeReturn(raw) {
   return `${SCHEME}://${DOMAIN}/`
 }
 
-// ── Limite d'essais de connexion : 8 échecs par IP sur 15 min ───────────────
+// ── Limite d'essais de connexion : 8 essais ratés par adresse sur 15 min ────
+const WINDOW = 15 * 60e3
+const MAX_ATTEMPTS = 8
 const attempts = new Map()
-const recentFailures = (ip, now = Date.now()) => (attempts.get(ip) || []).filter((t) => now - t < 15 * 60e3)
-function tooManyAttempts(ip) {
-  const list = recentFailures(ip)
-  // Une adresse sans échec récent ne reste pas en mémoire.
-  if (list.length) attempts.set(ip, list)
-  else attempts.delete(ip)
-  return list.length >= 8
+const recent = (key, now = Date.now()) => (attempts.get(key) || []).filter((t) => now - t < WINDOW)
+
+/**
+ * Ce qui compte pour la limite : l'adresse IPv4, ou le préfixe /64 d'une adresse IPv6. Un abonné IPv6 dispose d'un
+ * /64 entier : compter par adresse lui laisserait autant d'essais qu'il veut.
+ */
+function rateKey(ip = '') {
+  const v4 = ip.match(/^(?:::ffff:)?(\d+\.\d+\.\d+\.\d+)$/i)
+  if (v4) return v4[1]
+  if (!ip.includes(':')) return ip
+  const [head, tail] = ip.split('%')[0].toLowerCase().split('::')
+  const start = head ? head.split(':') : []
+  const end = tail ? tail.split(':') : []
+  const groups = tail === undefined ? start : [...start, ...Array(Math.max(8 - start.length - end.length, 0)).fill('0'), ...end]
+  return `${groups.slice(0, 4).map((g) => (parseInt(g, 16) || 0).toString(16)).join(':')}::/64`
+}
+
+/** Secondes à attendre avant le prochain essai (0 = essai permis). */
+function waitSeconds(key, now = Date.now()) {
+  const list = recent(key, now)
+  // Une adresse sans essai raté récent ne reste pas en mémoire.
+  if (list.length) attempts.set(key, list)
+  else attempts.delete(key)
+  return list.length >= MAX_ATTEMPTS ? Math.ceil((list[list.length - MAX_ATTEMPTS] + WINDOW - now) / 1000) : 0
 }
 // Les adresses qui ne reviennent jamais sont oubliées au bout d'un quart d'heure (table bornée sous une attaque répartie).
 setInterval(() => {
   const now = Date.now()
-  for (const ip of attempts.keys()) if (!recentFailures(ip, now).length) attempts.delete(ip)
-}, 15 * 60e3).unref()
-const noteFailure = (ip) => attempts.set(ip, [...(attempts.get(ip) || []), Date.now()])
+  for (const key of attempts.keys()) if (!recent(key, now).length) attempts.delete(key)
+}, WINDOW).unref()
+const noteAttempt = (key) => attempts.set(key, [...(attempts.get(key) || []), Date.now()])
 
 // ── Sondes d'état ───────────────────────────────────────────────────────────
 async function probe(url) {
@@ -346,7 +369,7 @@ function send(res, status, body, headers = {}) {
 const json = (res, status, data) =>
   send(res, status, JSON.stringify(data), { 'Content-Type': 'application/json; charset=utf-8' })
 
-async function loginPage(res, { retour = '', error = '', status = 200, ident = '' } = {}) {
+async function loginPage(res, { retour = '', error = '', status = 200, ident = '', headers = {} } = {}) {
   const html = (await page('connexion.html'))
     .replaceAll('{{RETOUR}}', escape(retour))
     .replaceAll('{{ERREUR}}', error ? `<p class="at-error" role="alert">${escape(error)}</p>` : '')
@@ -357,7 +380,7 @@ async function loginPage(res, { retour = '', error = '', status = 200, ident = '
     .replaceAll('{{DOMAINE}}', escape(DOMAIN))
     .replace('{{ICONES}}', await page('atelier-icons.svg'))
     .replaceAll('{{UTILISATEUR}}', escape(USER))
-  send(res, status, html)
+  send(res, status, html, headers)
 }
 
 /** Corps d'un formulaire. Au-delà de `limit` octets : erreur `status: 413`, le reste n'est pas gardé en mémoire. */
@@ -376,7 +399,9 @@ function readBody(req, limit = 4096) {
   })
 }
 
-const clientIp = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress
+// Adresse du visiteur : la dernière de X-Forwarded-For, celle que Caddy a lui-même constatée. Les précédentes, s'il y
+// en a, viennent du visiteur et peuvent être inventées pour échapper à la limite d'essais.
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || '').split(',').pop().trim() || req.socket.remoteAddress
 
 // ── Routeur ─────────────────────────────────────────────────────────────────
 const server = createServer(async (req, res) => {
@@ -455,19 +480,25 @@ const server = createServer(async (req, res) => {
     }
 
     if (path === '/connexion' && req.method === 'POST') {
-      const ip = clientIp(req)
+      const key = rateKey(clientIp(req))
       const form = await readBody(req)
       const retour = form.get('retour') || ''
-      if (tooManyAttempts(ip)) {
-        return loginPage(res, { retour, status: 429, error: 'Trop d’essais. Réessaie dans un quart d’heure.', ident: (form.get('utilisateur') || '').trim().slice(0, 64) })
+      const user = (form.get('utilisateur') || '').trim()
+      const ident = user.slice(0, 64) // réaffiché dans le formulaire
+      const wait = waitSeconds(key)
+      if (wait) {
+        const minutes = Math.ceil(wait / 60)
+        const error = `Trop d’essais. Réessaie dans ${minutes > 1 ? `${minutes} minutes` : 'une minute'}.`
+        return loginPage(res, { retour, status: 429, error, ident, headers: { 'Retry-After': String(wait) } })
       }
-      const userOk = (form.get('utilisateur') || '').trim().toLowerCase() === USER.toLowerCase()
-      const passOk = timingSafeEqual(scryptSync(form.get('mot_de_passe') || '', salt, 32), passwordDigest)
+      // L'essai est compté avant d'être vérifié : des essais envoyés en même temps ne passent pas tous sous la limite.
+      noteAttempt(key)
+      const userOk = user.toLowerCase() === USER.toLowerCase()
+      const passOk = timingSafeEqual(await digest(form.get('mot_de_passe') || '', salt, 32), passwordDigest)
       if (!userOk || !passOk) {
-        noteFailure(ip)
-        return loginPage(res, { retour, status: 401, error: 'Identifiant ou mot de passe incorrect.', ident: (form.get('utilisateur') || '').trim().slice(0, 64) })
+        return loginPage(res, { retour, status: 401, error: 'Identifiant ou mot de passe incorrect.', ident })
       }
-      attempts.delete(ip)
+      attempts.delete(key)
       res.writeHead(303, {
         'Set-Cookie': sessionCookie(makeToken(USER), SESSION_DAYS * 86400),
         Location: safeReturn(retour),

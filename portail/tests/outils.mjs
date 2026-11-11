@@ -56,7 +56,7 @@ export async function connexion(base, motDePasse, ip = '203.0.113.7') {
     body: new URLSearchParams({ utilisateur: 'francois', mot_de_passe: motDePasse }),
   })
   const cookie = res.headers.get('set-cookie')
-  return { status: res.status, cookie: cookie ? cookie.split(';')[0] : null }
+  return { status: res.status, cookie: cookie ? cookie.split(';')[0] : null, res }
 }
 
 export const verifier = (base, cookie, accept = 'application/json') =>
