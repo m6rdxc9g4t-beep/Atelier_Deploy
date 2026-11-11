@@ -1,12 +1,21 @@
 # Suite Atelier sur un VPS : portail + Nexus, Viz, Tab, Convert, Projets, Wiki, Hub… derrière Caddy.
-# Section « Sites & tests » du portail : Agent Ops Lab (service ops) et Atelier Mission (service mission).
+# Vitrine pro, publique : Portfolio, Agent Ops Lab (service ops) et la démo de DataMind.
+# Section « Sites & tests » du portail : DataMind et Atelier Mission (service mission).
 # Cuisine, Dates et Suivi vivent sur Vercel uniquement : le portail les ouvre là-bas.
 #
 # Les apps se parlent en 127.0.0.1 (règle de la suite, vérifiée par Viz et Nexus) :
 # elles partagent donc le réseau de l'hôte et n'écoutent que sur 127.0.0.1.
 # Seul Caddy ouvre les ports 80 et 443 au monde.
+# Exception : les sites publics qui n'appellent aucune app (Portfolio, Ops Lab) sont isolés sur leur propre réseau.
 #
 # Lancer :  docker compose up -d --build        Journal :  docker compose logs -f <service>
+#
+# Le VPS visé a 4 Go de mémoire : oom_score_adj dit au noyau qui épargner (Caddy, le portail, PostgreSQL) et qui
+# sacrifier d'abord (Ollama, la démo publique) quand elle vient à manquer.
+#
+# Chaque service construit ici a une sonde (healthcheck) : update.sh attend qu'elle réponde avant d'annoncer une app
+# « à jour », et remet l'image précédente sinon. start_interval (sondes toutes les 2 s pendant le démarrage)
+# demande Docker 25 ou plus récent, ce que update.sh vérifie.
 
 name: atelier
 
@@ -27,19 +36,41 @@ x-ia: &ia
   OLLAMA_TIMEOUT_SECONDS: "600"
   OLLAMA_TIMEOUT_MS: "600000"
 
+x-journal: &journal
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
 x-app: &app
   network_mode: host
   restart: unless-stopped
+  # docker-init (tini) est le premier processus de chaque conteneur : il transmet SIGTERM à l'app (le portail, Ciné et
+  # le Portfolio, lancés seuls, l'ignoraient : 10 s d'attente puis arrêt brutal à chaque redémarrage) et récupère les
+  # processus orphelins (Tesseract, ffprobe, MCP de Tab).
+  init: true
   environment: &tz
     TZ: ${TZ:-Europe/Paris}
-  logging:
-    driver: json-file
-    options: { max-size: "10m", max-file: "3" }
+  logging: *journal
+
+# Sites publics (Portfolio, Ops Lab) : ouverts à tout Internet sans la connexion du portail. Ils ne partagent donc pas
+# le réseau de l'hôte, où les apps privées répondent sans connexion sur 127.0.0.1 : une faille dans l'un d'eux ne
+# donnerait accès ni à Trésorerie, ni au Wiki, ni à Ollama, ni à PostgreSQL. Réseau à part (« vitrine »), port publié
+# sur 127.0.0.1 seulement (Caddy et les sondes du portail l'appellent comme avant), aucun privilège, mémoire et
+# processus bornés.
+x-vitrine: &vitrine
+  restart: unless-stopped
+  init: true
+  networks: [vitrine]
+  logging: *journal
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 256
+  mem_limit: 512m
 
 services:
   caddy:
     <<: *app
     build: { <<: *build, dockerfile: caddy/Dockerfile }
+    oom_score_adj: -500   # dernier sacrifié si la mémoire manque : sans lui, plus aucune app n'est joignable
     environment:
       <<: *tz
       ATELIER_DOMAIN: ${ATELIER_DOMAIN}
@@ -52,10 +83,18 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on: [portail]
+    # API d'administration de Caddy (127.0.0.1:2019, jamais exposée) : répond dès que la configuration est chargée.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      start_interval: 2s
 
   portail:
     <<: *app
     build: ./portail
+    oom_score_adj: -500   # la connexion de toutes les apps passe par lui
     environment:
       <<: *tz
       ATELIER_DOMAIN: ${ATELIER_DOMAIN}
@@ -67,8 +106,15 @@ services:
       CUISINE_URL: ${CUISINE_URL:-}
       SUIVI_URL: ${SUIVI_URL:-}
       DATES_URL: ${DATES_URL:-}
+      DRESSING_URL: ${DRESSING_URL:-}
       # Vitrine pro : adresse publique du Portfolio et de ses démos (ex. relais Netlify), vide = portfolio.<domaine>.
       PORTFOLIO_PUBLIC_URL: ${PORTFOLIO_PUBLIC_URL:-}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9000/sante').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      start_interval: 2s
 
   viz:
     <<: *app
@@ -87,6 +133,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 30s
+      start_interval: 2s
 
   convert:
     <<: *app
@@ -105,6 +152,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 30s
+      start_interval: 2s
 
   # Sites & tests — DataMind (dépôt Agent_Data) : agent d'analyse de données, API Fastify + DuckDB et interface React
   # sur 127.0.0.1:3600. Claude avec ton forfait (DATAMIND_CLAUDE_OAUTH_TOKEN, sans clé API, usage personnel),
@@ -132,6 +180,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Vitrine pro — démo publique de DataMind (https://demo-datamind.<domaine>, sans connexion) : la MÊME image que
   # datamind (construite par lui, jamais ici), lancée en mode démo : 16 jeux d'exemple copiés au démarrage dans un
@@ -157,7 +206,8 @@ services:
     # Données éphémères : rien sur le disque, tout disparaît au redémarrage (utilisateur node, uid 1000).
     tmpfs:
       - /data:size=128m,uid=1000,gid=1000,mode=0700
-    # Service public : mémoire et processus bornés, aucun privilège.
+    # Service public : mémoire et processus bornés, aucun privilège ; sacrifié avant les apps privées si la mémoire manque.
+    oom_score_adj: 500
     mem_limit: 768m
     pids_limit: 256
     cap_drop: [ALL]
@@ -167,6 +217,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   projets:
     <<: *app
@@ -185,6 +236,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 60s
+      start_interval: 2s
 
   wiki:
     <<: *app
@@ -200,6 +252,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Atelier Hub : une fiche par projet. Lit Projets, Wiki, Viz, Convert et Nexus en 127.0.0.1 (lecture seule)
   # et l'index de Tab (fichiers du MCP de Tab) ; les liens ouvrent les sous-domaines de la suite.
@@ -223,6 +276,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   formulaire:
     <<: *app
@@ -238,10 +292,11 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   # Portfolio : site public (vitrine pour les recruteurs), sans la connexion du portail.
   portfolio:
-    <<: *app
+    <<: *vitrine
     build:
       <<: *build
       dockerfile: docker/portfolio.Dockerfile
@@ -253,8 +308,11 @@ services:
         DVF_DEPARTEMENTS: ${DVF_DEPARTEMENTS:-49,62,59,44,35}
     environment:
       <<: *tz
+      # Dans son conteneur, le serveur écoute sur toutes les interfaces ; l'hôte ne publie le port que sur 127.0.0.1.
+      HOST: 0.0.0.0
       # Relais Netlify (netlify/portfolio) : secret partagé pour reconnaître l'adresse réelle des visiteurs.
       NETLIFY_PROXY_SECRET: ${PORTFOLIO_PROXY_SECRET:-}
+    ports: ["127.0.0.1:8787:8787"]
     volumes:
       - ./data/portfolio:/data
     healthcheck:
@@ -262,21 +320,28 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
-  # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
-  # Agent Ops Lab : TMS simulé piloté par un agent IA (tout tourne dans le navigateur).
+  # Agent Ops Lab : TMS simulé piloté par un agent IA (tout tourne dans le navigateur), public comme le Portfolio.
   ops:
-    <<: *app
+    <<: *vitrine
     build: { <<: *build, dockerfile: docker/ops.Dockerfile }
+    environment:
+      <<: *tz
+      # Next.js autonome lit HOSTNAME : toutes les interfaces du conteneur, port publié sur 127.0.0.1 seulement.
+      HOSTNAME: 0.0.0.0
+    ports: ["127.0.0.1:3400:3400"]
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3400/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
+  # ── Sites & tests : simulations et maquettes, derrière la connexion du portail ──
   # Atelier Mission : mini-CRM freelance (prospects, devis, factures, relances), API + interface sur :3500.
   # Lit le temps dans Projets (127.0.0.1:3000) et écrit les encaissements dans Trésorerie (127.0.0.1:5050).
-  # Brevo et SUPER PDP : identifiants facultatifs, utilisés seulement en mode « En ligne » de l'app.
+  # Brevo (relances par e-mail) : clé facultative, utilisée seulement en mode « En ligne » de l'app.
   mission:
     <<: *app
     build: { <<: *build, dockerfile: docker/mission.Dockerfile }
@@ -284,9 +349,6 @@ services:
       <<: *tz
       ALLOWED_HOSTS: mission.${ATELIER_DOMAIN}
       BREVO_API_KEY: ${MISSION_BREVO_API_KEY:-}
-      SUPERPDP_CLIENT_ID: ${MISSION_SUPERPDP_CLIENT_ID:-}
-      SUPERPDP_CLIENT_SECRET: ${MISSION_SUPERPDP_CLIENT_SECRET:-}
-      SUPERPDP_URL: ${MISSION_SUPERPDP_URL:-}
       REMINDER_TICK_MINUTES: "15"
     volumes:
       - ./data/mission:/data
@@ -295,6 +357,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   nexus-backend:
     <<: *app
@@ -324,11 +387,18 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 40s
+      start_interval: 2s
 
   nexus-frontend:
     <<: *app
     build: { <<: *build, dockerfile: docker/nexus-frontend.Dockerfile }
     depends_on: [nexus-backend]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/').then(r=>process.exit(r.status<500?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      start_interval: 2s
 
   cine:
     <<: *app
@@ -347,6 +417,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   savoir:
     <<: *app
@@ -361,6 +432,7 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   tresorerie:
     <<: *app
@@ -375,10 +447,13 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 20s
+      start_interval: 2s
 
   postgres:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
+    logging: *journal
+    oom_score_adj: -500   # la base de Nexus ne doit pas être tuée en pleine écriture
     environment:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -400,6 +475,9 @@ services:
   ollama:
     <<: *app
     image: ollama/ollama:latest
+    # Le plus gros consommateur de mémoire (le modèle chargé) : s'il faut tuer un processus, que ce soit lui.
+    # Il redémarre seul et recharge le modèle à la demande suivante.
+    oom_score_adj: 500
     environment:
       <<: *tz
       OLLAMA_HOST: 127.0.0.1:11434
@@ -415,6 +493,11 @@ services:
       interval: 30s
       timeout: 10s
       start_period: 20s
+      start_interval: 2s
+
+networks:
+  # Réseau des sites publics : sans PostgreSQL (réseau par défaut) et hors du réseau de l'hôte.
+  vitrine:
 
 volumes:
   caddy_data:

@@ -44,6 +44,8 @@
 
 .health { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: var(--t-small); white-space: nowrap; }
 .health b { font-weight: 500; color: var(--ink-2); }
+#health-state { display: inline-flex; align-items: center; gap: 8px; }
+#health-time:not(:empty)::before { content: "· "; }
 #refresh.is-busy .ic { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -135,11 +137,29 @@
   .at-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 8px 14px; gap: 12px; }
   .at-row .at-appicon { --size: 28px; border-radius: var(--r-md); }
   .at-row .k, .at-row .ms, .at-row .go { display: none; }
-  .at-row .copy { width: 36px; height: 36px; }
   .at-row .name-role { display: flex; flex-direction: column; min-width: 0; }
   .at-row .role { font-size: var(--t-small); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 14px 20px; }
   .tile .k { display: none; }
+  /* Au doigt : toute cible fait au moins 40 px (recherche, filtres, thème, affichage, déconnexion, copie). */
+  .search { height: 40px; }
+  .search input { font-size: 16px; } /* en dessous, Safari sur iPhone zoome la page dès qu'on touche le champ */
+  .at-nav-item { height: 40px; padding: 0 14px; }
+  .at-seg button { height: 36px; min-width: 40px; justify-content: center; padding: 0 10px; }
+  .at-seg button::after { content: ""; position: absolute; inset: -4px 0; }
+  .at-seg button { position: relative; }
+  .me .at-btn--icon { width: 40px; height: 40px; }
+  .at-row .copy, .tile .copy { width: 40px; height: 40px; }
+  /* Le bouton de copie reste au bout de la ligne (quatrième colonne), au lieu de passer seul sur une seconde ligne. */
+  .at-row .copy { grid-row: 1; grid-column: 4; margin: 0 -8px 0 -6px; }
+  .tile .foot { min-height: 40px; }
+  .tile .copy { flex: none; margin-right: -8px; }
+  /* Ligne ou tuile étroite : quand un état est affiché (hors ligne, partiel), il prend la place de l'étiquette
+     « Public », qui serait sinon coupée en plein mot (« P… »). */
+  .at-row:has(> .at-state) .pub, .tile .foot:has(.at-state) .pub { display: none; }
+  /* En-tête de groupe : le titre reste d'un seul tenant, la précision se coupe proprement. */
+  .at-ghead b { white-space: nowrap; }
+  .at-ghead span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 @media (min-width: 761px) { .at-row .name-role { display: contents; } }
 </style>
@@ -191,7 +211,7 @@
       </div>
       <span class="at-spacer"></span>
       <label class="at-check"><input type="checkbox" id="newtab">Nouvel onglet</label>
-      <span class="health" id="health" aria-live="polite"><span class="at-state" data-s="unknown"></span>Vérification…</span>
+      <span class="health" id="health"><span id="health-state" role="status" aria-live="polite"><span class="at-state" data-s="unknown"></span>Vérification…</span><span class="num" id="health-time"></span></span>
       <button class="at-btn at-btn--ghost at-btn--icon" id="refresh" type="button" title="Vérifier maintenant"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only">Vérifier maintenant</span></button>
     </header>
     <div id="content"></div>
@@ -231,7 +251,8 @@ const content = $('#content');
 const q = $('#q');
 const newtab = $('#newtab');
 let statuses = {};
-let filter = store.get('atelier:filter') || 'all';
+let filter = store.get('atelier:filter');
+if (!TITLES[filter]) filter = 'all'; // un filtre d'une ancienne version du portail
 let view = store.get('atelier:view') === 'grid' ? 'grid' : 'list';
 let sel = 0;
 let visible = [];
@@ -304,6 +325,7 @@ const copyBtn = (a) => a.share
   : '';
 const pubTag = (a) => (a.public ? '<span class="pub">Public</span>' : '');
 
+// La latence (« 12 ms ») n'est pas dans ce HTML : elle change à chaque vérification, writeMs() l'écrit à part.
 function itemHtml(a, i, last) {
   const down = stateOf(a) === 'down' ? ' is-down' : '';
   const lastBadge = a.id === last ? '<span class="last">Dernière</span>' : '';
@@ -314,16 +336,46 @@ function itemHtml(a, i, last) {
     return `<div class="tile${down}" data-i="${i}" style="--app:${a.color}">
       <span class="k">${a.key}</span>${icon(a, 'at-appicon--lg')}
       <span class="tile-text"><span class="name">${link}</span>${lastBadge}<span class="role">${a.role}</span></span>
-      <span class="foot">${stateOf(a) === 'up' ? `<span class="ms">${msHtml(a)}</span>` : stateHtml(a, true)}${pubTag(a)}${copyBtn(a)}</span></div>`;
+      <span class="foot">${stateOf(a) === 'up' ? '<span class="ms"></span>' : stateHtml(a, true)}${pubTag(a)}${copyBtn(a)}</span></div>`;
   }
   return `<div class="at-row${down}" data-i="${i}" style="--app:${a.color}" role="listitem">
     <span class="k">${a.key}</span>${icon(a)}
     <span class="name-role"><span class="name">${link}${pubTag(a)}${lastBadge}</span><span class="role">${a.role}</span></span>
-    ${stateHtml(a)}<span class="ms">${msHtml(a)}</span>${a.share ? copyBtn(a) : goIcon(a)}</div>`;
+    ${stateHtml(a)}<span class="ms"></span>${a.share ? copyBtn(a) : goIcon(a)}</div>`;
+}
+
+// Ce qui a le focus dans la liste (lien d'une app ou son bouton de copie), pour le lui rendre quand la liste est
+// redessinée sous lui (une app change d'état pendant la vérification, toutes les 20 s).
+function focusedItem() {
+  const el = document.activeElement;
+  const item = el && content.contains(el) ? el.closest('[data-i]') : null;
+  return item ? { id: visible[Number(item.dataset.i)]?.id, copy: el.matches('[data-copy]') } : null;
+}
+function restoreFocus(kept) {
+  const i = kept ? visible.findIndex((a) => a.id === kept.id) : -1;
+  if (i < 0) return;
+  const item = content.querySelector(`[data-i="${i}"]`);
+  (kept.copy && item.querySelector('[data-copy]') || item.querySelector('.row-link'))?.focus({ preventScroll: true });
+}
+
+// La liste n'est remplacée que si elle change. Sinon ses éléments restent en place : la vérification de l'état, toutes
+// les 20 s, ne reprend donc pas le focus (un lecteur d'écran relirait la ligne à chaque fois), elle n'écrit que les latences.
+let drawn = null;
+function draw(html) {
+  if (html === drawn) return false;
+  content.innerHTML = drawn = html;
+  return true;
+}
+function writeMs() {
+  items().forEach((el) => {
+    const ms = el.querySelector('.ms'), text = msHtml(visible[Number(el.dataset.i)]);
+    if (ms && ms.textContent !== text) ms.textContent = text;
+  });
 }
 
 function render() {
   const term = q.value.trim();
+  const kept = focusedItem();
   visible = selectApps();
   sel = Math.min(sel, Math.max(visible.length - 1, 0));
   const last = store.get('atelier:last');
@@ -340,11 +392,11 @@ function render() {
   });
 
   if (!visible.length) {
-    content.innerHTML = term
+    draw(term
       ? `<div class="empty"><strong>Aucune app ne correspond à « ${term.replace(/[<>&"]/g, '')} »</strong>Cherche par nom ou par rôle : « budget », « films », « agent »…<br><button class="at-btn" type="button" data-clear>Effacer la recherche</button></div>`
       : filter === 'incidents'
         ? `<div class="empty"><strong>Aucun incident</strong>Toutes les apps du serveur répondent.</div>`
-        : `<div class="empty"><strong>Pas encore d’app récente</strong>Les apps que tu ouvres depuis le portail apparaîtront ici.</div>`;
+        : `<div class="empty"><strong>Pas encore d’app récente</strong>Les apps que tu ouvres depuis le portail apparaîtront ici.</div>`);
     return;
   }
 
@@ -355,13 +407,15 @@ function render() {
     : [{ g: null, apps: visible }];
   let i = 0;
   const order = [];
-  content.innerHTML = sections.map(({ g, apps }) => {
+  const redrawn = draw(sections.map(({ g, apps }) => {
     const head = g ? `<div class="at-ghead"><b>${g.title}</b><span class="at-count">${apps.length}</span><span>${g.note}</span></div>` : '';
     const items = apps.map((a) => { order.push(a); return itemHtml(a, i++, last) }).join('');
     return head + (view === 'grid' ? `<div class="tiles">${items}</div>` : `<div role="list">${items}</div>`);
-  }).join('');
+  }).join(''));
   visible = order;
+  writeMs();
   paintSel(false);
+  if (redrawn) restoreFocus(kept);
 }
 
 function items() { return [...content.querySelectorAll('[data-i]')] }
@@ -443,11 +497,17 @@ document.addEventListener('keydown', (e) => {
 
 // ── État du serveur ──
 const refreshBtn = $('#refresh');
-async function refresh() {
-  const health = $('#health');
+// La zone annoncée aux lecteurs d'écran ne change que si l'état change : l'heure de la vérification est à côté.
+function setHealth(html, time = '') {
+  const state = $('#health-state');
+  if (state.dataset.html !== html) { state.innerHTML = html; state.dataset.html = html }
+  $('#health-time').textContent = time;
+}
+async function refresh(fresh = false) {
   refreshBtn.classList.add('is-busy');
   try {
-    const res = await fetch('/api/statut', { cache: 'no-store' });
+    // Le bouton demande une vérification neuve ; le rythme de fond partage celle des autres onglets (5 s).
+    const res = await fetch(fresh ? '/api/statut?frais' : '/api/statut', { cache: 'no-store' });
     if (res.status === 401) return location.assign('/connexion');
     const data = await res.json();
     statuses = Object.fromEntries(data.apps.map((s) => [s.id, s]));
@@ -455,16 +515,16 @@ async function refresh() {
     const up = data.apps.filter((s) => s.state === 'up').length;
     const worst = data.apps.some((s) => s.state === 'down') ? 'down' : up < total ? 'partial' : 'up';
     const time = new Date(data.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    health.innerHTML = `<span class="at-state" data-s="${worst}"></span><b class="num">${up} sur ${total}</b> en ligne · <span class="num">${time}</span>`;
-    health.title = worst === 'up' ? 'Toutes les apps du serveur répondent' : `${total - up} app(s) du serveur ne répondent pas entièrement`;
+    setHealth(`<span class="at-state" data-s="${worst}"></span><b class="num">${up} sur ${total}</b> en ligne`, time);
+    $('#health').title = worst === 'up' ? 'Toutes les apps du serveur répondent' : `${total - up} app(s) du serveur ne répondent pas entièrement`;
     render();
   } catch {
-    health.innerHTML = `<span class="at-state" data-s="down"></span>État impossible à vérifier`;
+    setHealth(`<span class="at-state" data-s="down"></span>État impossible à vérifier`);
   } finally {
     refreshBtn.classList.remove('is-busy');
   }
 }
-refreshBtn.addEventListener('click', refresh);
+refreshBtn.addEventListener('click', () => refresh(true));
 
 render();
 requestAnimationFrame(() => $('#main').classList.add('is-ready'));

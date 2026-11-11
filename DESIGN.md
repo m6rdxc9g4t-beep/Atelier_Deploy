@@ -281,7 +281,7 @@ Le rythme suit un pas de 4 px (4, 8, 12, 16, 20, 24). Les gouttières horizontal
 
 Les lignes de liste sont des grilles dont chaque surface fixe les colonnes (au portail : touche, icône, nom, rôle, état, latence, flèche). Une vue alternative en tuiles (`minmax(156px, 1fr)`, écart 8 px) reprend les mêmes éléments.
 
-Sous 760 px (règle aujourd'hui écrite dans la page du portail, pas dans `atelier.css`), la coquille passe en une colonne : la barre latérale devient un bandeau en haut, la navigation une rangée défilante de pastilles, les lignes montent à 52 px avec icône de 28 px, nom et rôle empilés, et la base typographique passe à 14 px. Les tuiles passent à deux colonnes.
+Sous 760 px (règle aujourd'hui écrite dans la page du portail, pas dans `atelier.css`), la coquille passe en une colonne : la barre latérale devient un bandeau en haut, la navigation une rangée défilante de pastilles, les lignes montent à 52 px avec icône de 28 px, nom et rôle empilés, et la base typographique passe à 14 px. Les tuiles passent à deux colonnes. Au doigt, toute cible fait au moins 40 px (recherche, filtres, thème, affichage, déconnexion, copie d'un lien), et le texte d'un champ est à 16 px : en dessous, Safari sur iPhone zoome la page dès qu'on touche le champ.
 
 ## Elevation & Depth
 

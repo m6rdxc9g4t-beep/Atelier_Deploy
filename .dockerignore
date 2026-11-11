@@ -8,3 +8,9 @@
 **/.env
 **/.env.local
 data
+backups
+media
+logs
+data.avant-restauration-*
+.env.avant-restauration-*
+.restauration.*

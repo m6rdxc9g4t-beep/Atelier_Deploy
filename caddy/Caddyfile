@@ -19,7 +19,7 @@
 #   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
 #   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; public, section « Vitrine pro » du portail)
 #   mission.{$ATELIER_DOMAIN}   Atelier Mission (:3500, sert aussi son interface ; section « Sites & tests »)
-#   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
+#   Cuisine, Dates, Suivi et Dressing sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
 # Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session,
@@ -48,6 +48,14 @@
 		uri /auth/verify
 		copy_headers X-Atelier-User
 	}
+}
+
+# Sites publics (Portfolio, Ops Lab, démo de DataMind) : ils sont sur un sous-domaine, donc ton navigateur leur envoie
+# aussi le cookie de session du portail quand tu les visites connecté. Il est retiré ici, avant de leur parvenir :
+# un site public compromis ne peut pas y lire de quoi ouvrir les apps privées. Les autres cookies passent.
+# À importer dans tout bloc sans `import connexion` qui relaie vers un site ouvert à tous (vérifié par tests/test-caddy.sh).
+(sans_session) {
+	request_header Cookie "atelier_session=[^;]*(; *)?" ""
 }
 
 # Les sondes /api/health restent publiques (elles ne disent que « ok ») :
@@ -155,6 +163,7 @@
 # c'est sur elle que l'app compte les questions de chaque visiteur.
 {$SITE_SCHEME}demo-datamind.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	# Pas d'import de fichier en démo : seules de petites requêtes JSON passent.
 	request_body /api/* {
 		max_size 1MB
@@ -322,6 +331,7 @@
 # Le serveur applique ses propres en-têtes (helmet) et limite le formulaire de contact.
 {$SITE_SCHEME}portfolio.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	request_body /api/* {
 		max_size 2MB
 	}
@@ -335,6 +345,7 @@
 # dans docker-compose.yml, une entrée dans SITES (portail/server.mjs) et dans APPS (scripts/lib.sh).
 {$SITE_SCHEME}ops.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	handle /api/health {
 		import sante_publique
 		reverse_proxy 127.0.0.1:3400

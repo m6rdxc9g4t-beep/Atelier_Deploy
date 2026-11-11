@@ -5,3 +5,9 @@ data/
 logs/
 exemples/dist/
 __pycache__/
+# Sauvegardes (elles contiennent .env et toutes les données), vidéos de Ciné, restes d'une restauration
+backups/
+media/
+data.avant-restauration-*/
+.env.avant-restauration-*
+.restauration.*/

@@ -59,9 +59,9 @@ ask ACME_EMAIL "E-mail pour les certificats HTTPS"
 ask GITHUB_CLONE_TOKEN "Jeton GitHub (lecture des dépôts privés)" secret
 ask ANTHROPIC_API_KEY "Clé API Anthropic (Entrée pour passer)" secret
 
-for key in PORTAL_PASSWORD; do
-  [ -n "$(env_get $key)" ] || { env_set $key "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "$key généré"; }
-done
+if [ -z "$(env_get PORTAL_PASSWORD)" ]; then
+  env_set PORTAL_PASSWORD "$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"; ok "PORTAL_PASSWORD généré"
+fi
 ensure_secrets
 ensure_ia
 
@@ -72,9 +72,10 @@ DOMAIN="$(env_get ATELIER_DOMAIN)"
 step "Vérification du DNS"
 ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org || true)
 dns_ok=1
+# Un nom par site de caddy/Caddyfile.
 for host in "$DOMAIN" nexus."$DOMAIN" viz."$DOMAIN" tab."$DOMAIN" convert."$DOMAIN" datamind."$DOMAIN" demo-datamind."$DOMAIN" projets."$DOMAIN" \
-            tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" dates."$DOMAIN" suivi."$DOMAIN" portfolio."$DOMAIN" \
-            ops."$DOMAIN" mission."$DOMAIN"; do
+            wiki."$DOMAIN" hub."$DOMAIN" formulaire."$DOMAIN" tresorerie."$DOMAIN" savoir."$DOMAIN" cine."$DOMAIN" \
+            dates."$DOMAIN" suivi."$DOMAIN" portfolio."$DOMAIN" ops."$DOMAIN" mission."$DOMAIN"; do
   got=$(dig +short A "$host" | tail -n1)
   if [ -n "$ip" ] && [ "$got" = "$ip" ]; then ok "$host → $got"
   else warn "$host → ${got:-aucune adresse} (attendu : ${ip:-IP du VPS})"; dns_ok=0; fi
@@ -82,15 +83,23 @@ done
 [ "$dns_ok" -eq 1 ] || warn "Tant que le DNS ne pointe pas vers ce VPS, les certificats HTTPS ne pourront pas être émis. Caddy réessaiera tout seul."
 
 # ── 6. Code des apps ─────────────────────────────────────────────────────────
+# Pris seulement ici : un service lancé par l'installation des paquets ou de Docker ne doit pas hériter du verrou.
+verrou refuser
 step "Récupération des apps"
 sync_apps
 ensure_dirs
 
 # ── 7. Construction et lancement ─────────────────────────────────────────────
-step "Construction des images (10 à 20 minutes la première fois)"
-compose build
+# Une app après l'autre, comme update.sh : tout construire d'un coup sature la mémoire et le disque du VPS.
+step "Construction et lancement, une app après l'autre (30 à 45 minutes la première fois)"
+verifier_docker
+nettoyer
+mapfile -t services < <(tous_les_services)
+deployer_services "${services[@]}" || true
 step "Démarrage"
-compose up -d --remove-orphans
+# Sans les apps en échec : leur image manque peut-être, et la reconstruire ici arrêterait le script avant le
+# récapitulatif (adresse du portail, mot de passe) et le message qui les nomme.
+relancer_tout "${services[@]}"
 ok "conteneurs lancés"
 pull_model
 
@@ -102,7 +111,7 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
   DataMind  https://datamind.$DOMAIN    (agent d'analyse de données)
             https://demo-datamind.$DOMAIN (démo publique, sans connexion)
   Portfolio https://portfolio.$DOMAIN   (public, sans connexion)
-  Ops Lab   https://ops.$DOMAIN         (Sites & tests)
+  Ops Lab   https://ops.$DOMAIN         (public, sans connexion)
   Mission   https://mission.$DOMAIN     (Sites & tests)
   Identifiant  $(env_get PORTAL_USER)
   Mot de passe $(env_get PORTAL_PASSWORD)
@@ -111,5 +120,9 @@ ${bold}${green}La suite Atelier est en ligne.${reset}
   État :        docker compose ps
   Journaux :    docker compose logs -f caddy   (ou viz, projets, nexus-backend…)
   Mise à jour : sudo ./update.sh
-  Sauvegarde :  sudo ./backup.sh${reset}
+  Sauvegarde :  sudo ./backup.sh        (restaurer : sudo ./restore.sh)${reset}
 EOF
+
+if [ ${#RATES[@]} -gt 0 ]; then
+  die "Ces apps n'ont pas pu être construites ou lancées : ${RATES[*]} (voir plus haut). Les autres sont en ligne ; corrige, puis sudo ./update.sh <app>."
+fi
