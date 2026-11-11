@@ -73,6 +73,10 @@ refuse "un en-tête X-Atelier-User inventé n'ouvre rien" grep -q "temoin=oui" "
 va viz / -H "Accept: text/html" -H "Cookie: $SESSION" -H "X-Atelier-User: pirate"
 attendu "avec la session, l'app répond" grep -q "temoin=oui" "$tmp/reponse"
 attendu "et reçoit l'utilisateur vérifié par le portail, pas celui du visiteur" test "$(recu utilisateur)" = francois
+va viz /api/donnees -H "Cookie: $SESSION" -H "Origin: http://viz.atelier.localhost" --data "x=1"
+attendu "une app envoie ses propres formulaires (le portail ne refuse que les POST qui lui sont adressés)" grep -q "temoin=oui" "$tmp/reponse"
+va "" /deconnexion -H "Origin: http://portfolio.atelier.localhost" --data ""
+attendu "un autre site ne peut pas déconnecter quelqu'un" test "$(code)" = 403
 va viz /api/health
 attendu "la sonde /api/health d'une app reste publique" grep -q "temoin=oui" "$tmp/reponse"
 

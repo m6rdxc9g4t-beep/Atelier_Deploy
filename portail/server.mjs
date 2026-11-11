@@ -274,6 +274,20 @@ function safeReturn(raw) {
   return `${SCHEME}://${DOMAIN}/`
 }
 
+/**
+ * Les formulaires du portail (connexion, déconnexion) ne s'envoient que depuis le portail : le navigateur annonce
+ * d'où part chaque POST (en-tête Origin). Sans cet en-tête (curl, script), la demande ne vient pas d'une page web.
+ */
+function fromPortal(req) {
+  const origin = req.headers.origin
+  if (origin === undefined) return true
+  try {
+    return new URL(origin).host === DOMAIN
+  } catch {
+    return false // « null » (page isolée, redirection d'un autre site) ou valeur illisible
+  }
+}
+
 // ── Limite d'essais de connexion : 8 essais ratés par adresse sur 15 min ────
 const WINDOW = 15 * 60e3
 const MAX_ATTEMPTS = 8
@@ -353,6 +367,19 @@ async function page(name) {
   return pages[name]
 }
 
+/**
+ * Politique de sécurité des deux pages : seuls leurs propres scripts s'exécutent (jeton à usage unique, posé sur le
+ * modèle avant qu'aucune donnée n'y soit insérée), et la page ne charge ni n'appelle rien hors du portail.
+ */
+function protect(template) {
+  const nonce = randomBytes(16).toString('base64')
+  const csp = [
+    "default-src 'none'", `script-src 'nonce-${nonce}'`, "style-src 'self' 'unsafe-inline'", "img-src 'self' data:",
+    "font-src 'self'", "connect-src 'self'", "base-uri 'none'", "frame-ancestors 'none'",
+  ].join('; ')
+  return { html: template.replaceAll('<script>', `<script nonce="${nonce}">`), headers: { 'Content-Security-Policy': csp } }
+}
+
 const escape = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
 function send(res, status, body, headers = {}) {
@@ -360,6 +387,7 @@ function send(res, status, body, headers = {}) {
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store',
     'X-Frame-Options': 'DENY',
+    'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'same-origin',
     ...headers,
   })
@@ -370,7 +398,8 @@ const json = (res, status, data) =>
   send(res, status, JSON.stringify(data), { 'Content-Type': 'application/json; charset=utf-8' })
 
 async function loginPage(res, { retour = '', error = '', status = 200, ident = '', headers = {} } = {}) {
-  const html = (await page('connexion.html'))
+  const safe = protect(await page('connexion.html'))
+  const html = safe.html
     .replaceAll('{{RETOUR}}', escape(retour))
     .replaceAll('{{ERREUR}}', error ? `<p class="at-error" role="alert">${escape(error)}</p>` : '')
     .replaceAll('{{INVALIDE}}', error ? ' aria-invalid="true"' : '')
@@ -380,7 +409,7 @@ async function loginPage(res, { retour = '', error = '', status = 200, ident = '
     .replaceAll('{{DOMAINE}}', escape(DOMAIN))
     .replace('{{ICONES}}', await page('atelier-icons.svg'))
     .replaceAll('{{UTILISATEUR}}', escape(USER))
-  send(res, status, html, headers)
+  send(res, status, html, { ...safe.headers, ...headers })
 }
 
 /** Corps d'un formulaire. Au-delà de `limit` octets : erreur `status: 413`, le reste n'est pas gardé en mémoire. */
@@ -471,6 +500,13 @@ const server = createServer(async (req, res) => {
       return res.end()
     }
 
+    // Un autre site ne peut ni déconnecter quelqu'un, ni envoyer le formulaire de connexion à sa place.
+    if (req.method === 'POST' && !fromPortal(req)) {
+      const error = 'Cette demande ne vient pas du portail. Recharge cette page, puis réessaie.'
+      if (path === '/connexion') return loginPage(res, { status: 403, error })
+      return send(res, 403, error, { 'Content-Type': 'text/plain; charset=utf-8' })
+    }
+
     if (path === '/connexion' && req.method === 'GET') {
       if (session(req)) {
         res.writeHead(302, { Location: safeReturn(url.searchParams.get('retour') || '') })
@@ -522,12 +558,13 @@ const server = createServer(async (req, res) => {
     if (path === '/api/statut') return json(res, 200, { apps: await statuses(), at: new Date().toISOString() })
 
     if (path === '/' || path === '/index.html') {
-      const html = (await page('index.html'))
+      const safe = protect(await page('index.html'))
+      const html = safe.html
         .replace('/*APPS*/[]', JSON.stringify(APPS.map(({ probes, ...a }) => a)))
         .replaceAll('{{UTILISATEUR}}', escape(s.u))
         .replaceAll('{{DOMAINE}}', escape(DOMAIN))
         .replace('{{ICONES}}', await page('atelier-icons.svg'))
-      return send(res, 200, html)
+      return send(res, 200, html, safe.headers)
     }
 
     return send(res, 404, 'Page introuvable')
