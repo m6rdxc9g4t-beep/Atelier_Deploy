@@ -107,7 +107,10 @@ test('au téléphone, toute cible fait au moins 40 px et rien ne déborde', opti
   assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('q')).fontSize), '16px', 'recherche à 16 px : pas de zoom sur iPhone')
   await page.context().clearCookies()
   await page.goto(`${base}/connexion`)
-  const champs = await page.evaluate(() => [...document.querySelectorAll('.at-input, button')].map((e) => [e.getBoundingClientRect().height, getComputedStyle(e).fontSize]))
-  for (const [hauteur, taille] of champs) assert.ok(hauteur >= 44 && parseFloat(taille) >= 16, `connexion : ${hauteur} px, texte ${taille}`)
+  const champs = await page.evaluate(() => [...document.querySelectorAll('.at-input, button')].map((e) => [e.tagName, e.getBoundingClientRect().height, parseFloat(getComputedStyle(e).fontSize)]))
+  for (const [balise, hauteur, taille] of champs) {
+    assert.ok(hauteur >= 44, `connexion : ${balise} de ${hauteur} px`)
+    if (balise === 'INPUT') assert.ok(taille >= 16, `connexion : champ à ${taille} px (zoom sur iPhone sous 16 px)`)
+  }
   assert.equal(await page.getAttribute('[name=utilisateur]', 'autocapitalize'), 'none')
 })
