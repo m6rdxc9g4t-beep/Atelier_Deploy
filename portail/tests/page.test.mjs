@@ -147,7 +147,14 @@ test('un filtre inconnu resté en mémoire retombe sur « Toutes les apps »', o
 })
 
 test('au téléphone, toute cible fait au moins 40 px et rien ne déborde', options, async (t) => {
-  const { page, base } = await ouvrir(t, { largeur: 390, hauteur: 844, tactile: true })
+  let simule = 'down' // le cas le plus large : chaque ligne affiche son état
+  const { page, base } = await ouvrir(t, { largeur: 390, hauteur: 844, tactile: true, statut: (d) => toutes(simule, 12)(d) })
+  // Les étiquettes « Public » affichées dans la liste : entières, ou coupées par le nom qui les contient (« P… »).
+  const etiquettes = () => page.evaluate(() => {
+    const vues = [...document.querySelectorAll('.at-row .pub')].filter((e) => e.offsetParent)
+    const coupees = vues.filter((e) => e.getBoundingClientRect().right > e.closest('.name').getBoundingClientRect().right + 0.5)
+    return { vues: vues.length, coupees: coupees.map((e) => e.closest('[data-i]').querySelector('.row-link').textContent) }
+  })
   const mesurer = () => page.evaluate(() => {
     const petites = []
     for (const e of document.querySelectorAll('button, a, input, .search')) {
@@ -162,6 +169,16 @@ test('au téléphone, toute cible fait au moins 40 px et rien ne déborde', opti
     return { petites, debordement: document.documentElement.scrollWidth - innerWidth }
   })
   assert.deepEqual(await mesurer(), { petites: [], debordement: 0 }, 'liste')
+  assert.ok((await page.locator('.at-row > .at-state').count()) >= 20, 'chaque ligne du serveur affiche « Hors ligne »')
+  assert.deepEqual(await etiquettes(), { vues: 0, coupees: [] }, 'hors ligne : l’état prend la place de « Public », jamais coupé')
+  simule = 'up'
+  await rafraichir(page)
+  const enLigne = await etiquettes()
+  assert.ok(enLigne.vues >= 3, 'en ligne : les sites de la Vitrine gardent leur étiquette « Public »')
+  assert.deepEqual(enLigne.coupees, [], 'en ligne : aucune étiquette coupée')
+  assert.deepEqual(await mesurer(), { petites: [], debordement: 0 }, 'liste, apps en ligne')
+  simule = 'down'
+  await rafraichir(page)
   await page.tap('[data-view="grid"]')
   assert.deepEqual(await mesurer(), { petites: [], debordement: 0 }, 'icônes')
   assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('q')).fontSize), '16px', 'recherche à 16 px : pas de zoom sur iPhone')

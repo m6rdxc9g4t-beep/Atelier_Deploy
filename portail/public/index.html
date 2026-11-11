@@ -154,8 +154,9 @@
   .at-row .copy { grid-row: 1; grid-column: 4; margin: 0 -8px 0 -6px; }
   .tile .foot { min-height: 40px; }
   .tile .copy { flex: none; margin-right: -8px; }
-  /* Tuile étroite : quand un état est affiché (hors ligne, partiel), il prend la place de l'étiquette « Public ». */
-  .tile .foot:has(.at-state) .pub { display: none; }
+  /* Ligne ou tuile étroite : quand un état est affiché (hors ligne, partiel), il prend la place de l'étiquette
+     « Public », qui serait sinon coupée en plein mot (« P… »). */
+  .at-row:has(> .at-state) .pub, .tile .foot:has(.at-state) .pub { display: none; }
   /* En-tête de groupe : le titre reste d'un seul tenant, la précision se coupe proprement. */
   .at-ghead b { white-space: nowrap; }
   .at-ghead span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
