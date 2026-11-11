@@ -238,16 +238,20 @@ function readToken(token) {
   }
 }
 
-function cookies(req) {
-  const out = {}
+/**
+ * La session portée par la requête, ou null. Les valeurs ne sont pas décodées : le jeton n'en a pas besoin, et un
+ * cookie mal encodé posé par une app (« prefs=100% ») ne doit pas faire échouer forward_auth pour toute cette app.
+ * Tous les cookies du nom sont essayés : un ancien exemplaire resté dans le navigateur ne masque pas le bon.
+ */
+function session(req) {
   for (const part of (req.headers.cookie || '').split(';')) {
     const i = part.indexOf('=')
-    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim())
+    if (i < 0 || part.slice(0, i).trim() !== COOKIE) continue
+    const data = readToken(part.slice(i + 1).trim())
+    if (data) return data
   }
-  return out
+  return null
 }
-
-const session = (req) => readToken(cookies(req)[COOKIE])
 
 function sessionCookie(value, maxAge) {
   // Domain=<domaine> : le cookie vaut pour le portail ET tous ses sous-domaines (viz., tab., …)
@@ -356,14 +360,18 @@ async function loginPage(res, { retour = '', error = '', status = 200, ident = '
   send(res, status, html)
 }
 
+/** Corps d'un formulaire. Au-delà de `limit` octets : erreur `status: 413`, le reste n'est pas gardé en mémoire. */
 function readBody(req, limit = 4096) {
   return new Promise((resolve, reject) => {
-    let data = ''
+    const chunks = []
+    let size = 0
     req.on('data', (chunk) => {
-      data += chunk
-      if (data.length > limit) reject(new Error('trop long'))
+      size += chunk.length
+      if (size > limit) return reject(Object.assign(new Error('corps trop long'), { status: 413 }))
+      chunks.push(chunk)
     })
-    req.on('end', () => resolve(new URLSearchParams(data)))
+    // Les morceaux sont assemblés avant d'être décodés : un caractère accentué peut être à cheval sur deux morceaux.
+    req.on('end', () => resolve(new URLSearchParams(Buffer.concat(chunks).toString('utf8'))))
     req.on('error', reject)
   })
 }
@@ -493,6 +501,11 @@ const server = createServer(async (req, res) => {
 
     return send(res, 404, 'Page introuvable')
   } catch (err) {
+    if (err.status === 413) {
+      // La connexion est fermée après la réponse : la suite d'un envoi trop long n'est pas lue.
+      send(res, 413, 'Requête trop longue', { Connection: 'close' })
+      return req.resume()
+    }
     console.error(err)
     return send(res, 500, 'Erreur du portail')
   }
