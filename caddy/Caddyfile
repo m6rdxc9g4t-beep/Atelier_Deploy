@@ -19,7 +19,7 @@
 #   portfolio.{$ATELIER_DOMAIN} Atelier Portfolio (:8787 ; site public, sans la connexion du portail)
 #   ops.{$ATELIER_DOMAIN}       Agent Ops Lab (:3400 ; public, section « Vitrine pro » du portail)
 #   mission.{$ATELIER_DOMAIN}   Atelier Mission (:3500, sert aussi son interface ; section « Sites & tests »)
-#   Cuisine, Dates et Suivi sont des apps en ligne (Vercel) : simples liens du portail.
+#   Cuisine, Dates, Suivi et Dressing sont des apps en ligne (Vercel) : simples liens du portail.
 #
 # Toutes les apps écoutent sur 127.0.0.1 uniquement : seul Caddy est exposé.
 # Chaque requête passe d'abord par le portail (forward_auth) qui vérifie le cookie de session,

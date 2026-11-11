@@ -118,7 +118,7 @@ Internet ──443──▶ Caddy ──▶ portail :9000   (connexion, choix de
                                                              ├─▶ MCP d'Atelier Tab (node, dans le conteneur)
                                                              └─▶ Viz, Projets, Trésorerie, Savoir, Ciné en 127.0.0.1
 
-Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
+Portail ──lien──▶ Cuisine, Dates, Suivi, Dressing (Vercel + Supabase, hors VPS)
 ```
 
 - **Tout écoute sur 127.0.0.1.** Viz et Nexus n'acceptent de parler aux autres apps de la suite que sur `127.0.0.1` (contrat `atelier-node/1`). Les conteneurs partagent donc le réseau de l'hôte, et seul Caddy ouvre les ports 80 et 443.
@@ -200,7 +200,7 @@ La même app, en **mode démo**, ouverte à tous depuis la section **Vitrine pro
 
 ## IA du serveur (Ollama)
 
-Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, DataMind (et sa démo publique), Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates et Suivi ne sont pas concernées.
+Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert toutes les apps hébergées : Nexus, Viz, Convert, DataMind (et sa démo publique), Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, et l'assistant de **Tab**, qui n'utilise plus l'Ollama de ton Mac. Cuisine, Dates, Suivi et Dressing ne sont pas concernées.
 
 - **Un seul modèle pour tout le monde** (`OLLAMA_MODEL` dans `.env`), choisi à l'installation selon la mémoire du serveur : `llama3.1:8b` à partir de 10 Go, `llama3.2:3b` à partir de 5 Go, `llama3.2:1b` en dessous. Il est téléchargé une fois (2 à 5 Go) et reste en mémoire 30 minutes après la dernière demande.
 - **Lent sans carte graphique** : une réponse prend de quelques secondes à quelques minutes. Les délais des apps sont réglés à 10 minutes.
@@ -219,7 +219,7 @@ Un seul Ollama tourne sur le VPS (service `ollama`, `127.0.0.1:11434`) et sert t
 - **Trésorerie et données financières.** Nexus verrouille ses agents financiers sur Ollama, qui tourne sur le serveur : rien ne part chez un tiers. Garde aussi Ollama comme moteur dans les paramètres de Trésorerie.
 - **Suivi → Trésorerie.** La synchro de Suivi (script `launchd` sur le Mac) vise encore `http://127.0.0.1:5050` sur ton Mac. Si tu n'utilises plus que la Trésorerie du VPS, cette synchro est à déplacer sur le VPS.
 - **Ciné et l'espace disque.** Les vidéos occupent vite des dizaines de Go : vérifie la place libre avec `df -h` avant de les copier.
-- **Cuisine, Dates et Suivi** restent sur Vercel uniquement : leurs notifications iPhone, liens par e-mail et apps installées sur l'écran d'accueil dépendent de leur adresse Vercel. Le portail se contente de les ouvrir dans un onglet.
+- **Cuisine, Dates, Suivi et Dressing** restent sur Vercel uniquement : leurs notifications iPhone, liens par e-mail et apps installées sur l'écran d'accueil dépendent de leur adresse Vercel. Le portail se contente de les ouvrir dans un onglet.
 - **Wiki et Nexus.** Le Wiki est un nœud `atelier-node/1` (manifeste sur `http://127.0.0.1:3200/api/atelier/manifest` : chercher, lire, créer, compléter des pages). Nexus ne le connaît pas encore : il faudra lui ajouter `WIKI_BASE_URL=http://127.0.0.1:3200/api` pour que ses workflows s'en servent.
 
 - **Atelier Hub.** Une fiche par projet (`hub.…`) : avancement et temps passé (Projets), pages (Wiki), tables (Tab), rapports (Viz), conversions (Convert), agents (Nexus) et sources. Il lit ces apps en `127.0.0.1`, en lecture seule, et l'index de Tab dans `data/atelier_tab/exports` (les tables écrites par le MCP de Tab et par Convert, pas celles du Tab de ton navigateur). Les liens ouvrent les sous-domaines de la suite. Installer ou mettre à jour : `sudo ./update.sh hub`.

@@ -20,7 +20,7 @@ Une suite d'outils entièrement possédée par une seule personne : même serveu
 
 ## Operating Context
 - Portail : https://atelier.141-227-149-233.sslip.io (domaine provisoire), identifiant unique, cookie partagé par les sous-domaines, `forward_auth` Caddy.
-- Trois familles d'apps dans le portail : **sur le serveur** (Nexus, Viz, Tab, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, Convert, Portfolio), **Sites & tests** (Ops Lab, Mission, DataMind), **apps en ligne** avec leur propre connexion (Suivi, Dates, Cuisine).
+- Trois familles d'apps dans le portail : **sur le serveur** (Nexus, Viz, Tab, Projets, Wiki, Formulaire, Trésorerie, Savoir, Ciné, Convert, Portfolio), **Sites & tests** (Ops Lab, Mission, DataMind), **apps en ligne** avec leur propre connexion (Suivi, Dates, Cuisine, Dressing).
 - Raccourcis clavier 1–9 et 0 pour ouvrir une app ; état sondé côté serveur toutes les 20 s.
 - Agents liés : Agent_Data (DataMind), Atelier_agent-AvP, agent-ops-lab (Ops Lab).
 
