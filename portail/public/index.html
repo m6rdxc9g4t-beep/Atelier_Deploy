@@ -468,10 +468,11 @@ function setHealth(html, time = '') {
   if (state.dataset.html !== html) { state.innerHTML = html; state.dataset.html = html }
   $('#health-time').textContent = time;
 }
-async function refresh() {
+async function refresh(fresh = false) {
   refreshBtn.classList.add('is-busy');
   try {
-    const res = await fetch('/api/statut', { cache: 'no-store' });
+    // Le bouton demande une vérification neuve ; le rythme de fond partage celle des autres onglets (5 s).
+    const res = await fetch(fresh ? '/api/statut?frais' : '/api/statut', { cache: 'no-store' });
     if (res.status === 401) return location.assign('/connexion');
     const data = await res.json();
     statuses = Object.fromEntries(data.apps.map((s) => [s.id, s]));
@@ -488,7 +489,7 @@ async function refresh() {
     refreshBtn.classList.remove('is-busy');
   }
 }
-refreshBtn.addEventListener('click', refresh);
+refreshBtn.addEventListener('click', () => refresh(true));
 
 render();
 requestAnimationFrame(() => $('#main').classList.add('is-ready'));

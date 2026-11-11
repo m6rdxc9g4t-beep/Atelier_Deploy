@@ -27,7 +27,7 @@ async function ouvrir(t, { largeur = 1280, hauteur = 800, tactile = false } = {}
   const erreurs = []
   page.on('console', (m) => m.type() === 'error' && erreurs.push(m.text()))
   page.on('pageerror', (e) => erreurs.push(String(e)))
-  const etat = page.waitForResponse((r) => r.url().endsWith('/api/statut'))
+  const etat = page.waitForResponse((r) => r.url().includes('/api/statut'))
   await page.goto(`${p.base}/`)
   await etat
   return { page, erreurs, base: p.base }
@@ -35,7 +35,7 @@ async function ouvrir(t, { largeur = 1280, hauteur = 800, tactile = false } = {}
 
 /** Relance la vérification de l'état sans déplacer le focus (comme le fait la page toutes les 20 s). */
 async function rafraichir(page) {
-  const etat = page.waitForResponse((r) => r.url().endsWith('/api/statut'))
+  const etat = page.waitForResponse((r) => r.url().includes('/api/statut'))
   await page.evaluate(() => document.getElementById('refresh').dispatchEvent(new Event('click')))
   await etat
   await page.waitForFunction(() => !document.getElementById('refresh').classList.contains('is-busy'))

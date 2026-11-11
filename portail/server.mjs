@@ -6,11 +6,11 @@
 //   GET  /connexion        formulaire de connexion        POST /connexion   vérifie et pose le cookie
 //   POST /deconnexion      efface le cookie
 //   GET  /auth/verify      appelé par Caddy (forward_auth) avant chaque requête vers une app
-//   GET  /api/statut       état de chaque app, sondé côté serveur sur 127.0.0.1
+//   GET  /api/statut       état de chaque app, sondé côté serveur sur 127.0.0.1 (?frais : sans réponse en cache)
 //   GET  /sante            sonde de vie du portail (publique)
 
 import { createServer } from 'node:http'
-import { createHmac, timingSafeEqual, randomBytes, scrypt, scryptSync } from 'node:crypto'
+import { createHash, createHmac, timingSafeEqual, randomBytes, scrypt, scryptSync } from 'node:crypto'
 import { promisify } from 'node:util'
 import { readFile } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
@@ -329,13 +329,16 @@ async function probe(url) {
   const t0 = performance.now()
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(2500), redirect: 'manual' })
-    return { ok: res.status < 500, ms: Math.round(performance.now() - t0) }
+    const ms = Math.round(performance.now() - t0)
+    // Seul le code compte : le corps n'est pas lu, et la connexion est rendue tout de suite.
+    await res.body?.cancel().catch(() => {})
+    return { ok: res.status < 500, ms }
   } catch {
     return { ok: false, ms: null }
   }
 }
 
-async function statuses() {
+async function probeAll() {
   // Plusieurs entrées partagent une même sonde (le Portfolio et ses démos) : une seule requête par adresse.
   const once = new Map()
   const probeOnce = (url) => {
@@ -352,6 +355,24 @@ async function statuses() {
       return { id: a.id, state, ms }
     }),
   )
+}
+
+// L'état est sondé une fois pour tous les onglets ouverts : une réponse sert 5 s, et les demandes qui arrivent
+// pendant une vérification attendent son résultat au lieu d'en lancer une autre. `at` = heure réelle des sondes.
+// `fresh` (bouton « Vérifier maintenant ») ne se contente pas d'une réponse déjà rendue.
+const STATUS_TTL = 5000
+let lastStatus = null
+function statuses(fresh = false) {
+  const reusable = lastStatus && (lastStatus.done ? !fresh && Date.now() - lastStatus.started <= STATUS_TTL : true)
+  if (!reusable) {
+    const check = { started: Date.now(), done: false }
+    check.result = probeAll().then((apps) => {
+      check.done = true
+      return { apps, at: new Date().toISOString() }
+    })
+    lastStatus = check
+  }
+  return lastStatus.result
 }
 
 // ── Fichiers du système de design ──────────────────────────────────────────
@@ -459,11 +480,19 @@ const server = createServer(async (req, res) => {
     if (asset) {
       try {
         const file = await readFile(join(here, 'public', asset.file))
-        res.writeHead(200, {
+        // Empreinte du contenu : passé l'heure de cache, le navigateur revalide (304) sans retélécharger le fichier.
+        const etag = `"${createHash('sha1').update(file).digest('base64url')}"`
+        const headers = {
           'Content-Type': asset.type,
           'Cache-Control': asset.type === 'font/woff2' ? 'public, max-age=31536000, immutable' : 'public, max-age=3600',
           'Access-Control-Allow-Origin': '*',
-        })
+          ETag: etag,
+        }
+        if (req.headers['if-none-match'] === etag) {
+          res.writeHead(304, headers)
+          return res.end()
+        }
+        res.writeHead(200, headers)
         return res.end(file)
       } catch {
         return send(res, 404, 'Fichier introuvable')
@@ -555,7 +584,7 @@ const server = createServer(async (req, res) => {
       return res.end()
     }
 
-    if (path === '/api/statut') return json(res, 200, { apps: await statuses(), at: new Date().toISOString() })
+    if (path === '/api/statut') return json(res, 200, await statuses(url.searchParams.has('frais')))
 
     if (path === '/' || path === '/index.html') {
       const safe = protect(await page('index.html'))
