@@ -16,6 +16,8 @@
 #   DOCKER_VERSION=24.0.7          version annoncée du moteur
 #   DOCKER_SANS_INIT=1             docker info ne connaît pas docker-init
 #   DOCKER_SANS_IMAGE=1            aucune image déjà construite (premier lancement)
+#   PSQL_ERREUR_SQL=1              une instruction SQL échoue : comme le vrai psql, code non nul avec ON_ERROR_STOP seulement
+#   PG_REEL=/chemin/bin            psql et pg_dump du service postgres sont les vrais (PGHOST et PGPORT disent où)
 #   $SIM/en-marche                 services « en marche » (un par ligne) rendus par `compose ps --services`
 # Réglages du faux tar : TAR_FAIL=1 (échec, comme un disque plein), TAR_SLEEP=2 (archive lente),
 # ARCHIVE_ILLISIBLE_A_L_EXTRACTION=1 (toute extraction échoue).
@@ -46,6 +48,11 @@ if [ -n "${DOCKER_FAIL_ON:-}" ] && [[ "$args" == *"$DOCKER_FAIL_ON"* ]]; then ex
 if [ -n "${DOCKER_FAIL_ONCE:-}" ] && [[ "$args" == *"$DOCKER_FAIL_ONCE"* ]] && [ ! -e "$SIM/panne-passee" ]; then
   : > "$SIM/panne-passee"; exit 1
 fi
+if [ -n "${PG_REEL:-}" ] && [[ "$args" == *"exec -T postgres p"* ]]; then
+  while [ "$1" != postgres ]; do shift; done
+  outil="$2"; shift 2
+  exec "$PG_REEL/$outil" "$@"
+fi
 case "$args" in
   *"config --services"*) cat "$SIM/services" ;;
   *"config --hash "*)   # empreinte de la configuration résolue d'un service : le fichier et ses réglages de .env
@@ -54,7 +61,9 @@ case "$args" in
     echo "$service $({ grep -E "$motif" .env; cat docker-compose.yml; } | sha256sum | cut -d' ' -f1)" ;;
   *"ps --services"*) cat "$SIM/en-marche" ;;
   *"exec -T postgres pg_dump"*) echo "-- faux export de la base de Nexus" ;;
-  *"exec -T postgres psql"*) cat >> "$SIM/psql.recu" ;;
+  *"exec -T postgres psql"*)
+    cat >> "$SIM/psql.recu"
+    if [ -n "${PSQL_ERREUR_SQL:-}" ] && [[ "$args" == *"ON_ERROR_STOP=1"* ]]; then echo "psql: erreur SQL simulée" >&2; exit 3; fi ;;
   "info --format"*) if [ -n "${DOCKER_SANS_INIT:-}" ]; then echo "N/A"; else echo "de40ad0"; fi ;;
   "version --format"*) echo "${DOCKER_VERSION:-29.0.0}" ;;
   "rmi "*)   # une image encore utilisée par un conteneur ne se supprime pas
@@ -102,7 +111,7 @@ CONF
   export GIT_CONFIG_GLOBAL="$SIM/gitconfig" GIT_CONFIG_NOSYSTEM=1 PATH="$SIM/bin:$PATH"
   # Le kit simulé n'est pas un dépôt git : update.sh ne cherche pas à se mettre à jour lui-même.
   export ATELIER_KIT_A_JOUR=1 ATELIER_VERROU_FICHIER="$SIM/atelier.lock"
-  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE DOCKER_SANS_INIT DOCKER_VERSION ATELIER_DOCKER_INIT TAR_FAIL TAR_SLEEP DF_LIBRE_KO ARCHIVE_ILLISIBLE_A_L_EXTRACTION
+  unset ATELIER_VERROU DOCKER_FAIL_ON DOCKER_FAIL_ONCE DOCKER_SLEEP_ON DOCKER_SLEEP DOCKER_SANS_IMAGE DOCKER_SANS_INIT DOCKER_VERSION ATELIER_DOCKER_INIT TAR_FAIL TAR_SLEEP DF_LIBRE_KO ARCHIVE_ILLISIBLE_A_L_EXTRACTION PSQL_ERREUR_SQL PG_REEL
   local repo
   for repo in "${DEPOTS_SIMULES[@]}"; do
     git init -q --bare "$SIM/remotes/m6rdxc9g4t-beep/$repo.git"

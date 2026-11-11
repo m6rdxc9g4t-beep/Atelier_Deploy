@@ -147,7 +147,7 @@ Portail ──lien──▶ Cuisine, Dates, Suivi (Vercel + Supabase, hors VPS)
   sudo ./restore.sh                                   # liste les sauvegardes
   sudo ./restore.sh backups/atelier-20261110-0330.tar.gz
   ```
-  Le script contrôle l'archive, demande confirmation, arrête les apps, remplace `data/` et rejoue la base de Nexus, puis relance tout. Rien n'est supprimé : les données d'avant sont gardées dans `data.avant-restauration-<date>/`, à effacer quand tout est vérifié. `.env` n'est remplacé qu'avec `--avec-env` (l'actuel est alors gardé à côté).
+  Le script contrôle l'archive, demande confirmation, arrête les apps, remplace `data/` et rejoue la base de Nexus, puis relance tout. La base est remplacée en entier par celle de l'archive, en une seule transaction : si le rejeu échoue, elle reste telle qu'elle était et le script finit en erreur (« restauration incomplète »). Rien n'est supprimé : les données d'avant sont gardées dans `data.avant-restauration-<date>/`, à effacer quand tout est vérifié. `.env` n'est remplacé qu'avec `--avec-env` (l'actuel est alors gardé à côté).
 - **Restaurer sur un nouveau VPS** : clone le kit, copie l'archive dans `backups/`, puis
   ```bash
   sudo tar -xzf backups/atelier-20261110-0330.tar.gz .env   # reprend domaine, mots de passe et secrets
@@ -234,7 +234,7 @@ Une erreur dans ce dépôt touche toutes les apps en service. Avant de committer
 ./tests/lancer.sh
 ```
 
-Rien n'est lancé pour de vrai : les scripts tournent sur un banc d'essai (`tests/banc.sh` : une copie du kit dans un dossier temporaire, un faux `docker` qui note ses appels, les dépôts des apps simulés par des dépôts git locaux). Sont vérifiés : la syntaxe des scripts, `docker compose config` et les règles de `tests/test-compose.sh` (ports sur `127.0.0.1`, sites publics isolés, une sonde par service), le Caddyfile (`caddy validate`, si `caddy` est installé : `CADDY=/chemin/vers/caddy`), les sessions du portail (`portail/tests/`), puis sauvegarde, restauration, mise à jour et mise à jour automatique, pannes comprises (`tests/test-*.sh`). Les étapes dont l'outil manque (`shellcheck`, `caddy`, `docker compose`) sont sautées et signalées.
+Rien n'est lancé pour de vrai : les scripts tournent sur un banc d'essai (`tests/banc.sh` : une copie du kit dans un dossier temporaire, un faux `docker` qui note ses appels, les dépôts des apps simulés par des dépôts git locaux). Sont vérifiés : la syntaxe des scripts, `docker compose config` et les règles de `tests/test-compose.sh` (ports sur `127.0.0.1`, sites publics isolés, une sonde par service), le Caddyfile (`caddy validate`, si `caddy` est installé : `CADDY=/chemin/vers/caddy`), les sessions du portail (`portail/tests/`), puis sauvegarde, restauration, mise à jour et mise à jour automatique, pannes comprises (`tests/test-*.sh`). Si PostgreSQL est installé sur la machine, la restauration de la base de Nexus est aussi rejouée dans un vrai serveur, lancé le temps du test dans le dossier temporaire (`tests/test-restore-postgres.sh`). Les étapes dont l'outil manque (`shellcheck`, `caddy`, `docker compose`, PostgreSQL) sont sautées et signalées.
 
 ## Dépannage
 

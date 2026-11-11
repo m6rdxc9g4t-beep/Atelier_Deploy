@@ -105,12 +105,24 @@ fi
 ensure_dirs
 
 # ── 3. Base de Nexus ─────────────────────────────────────────────────────────
+# Rejeu en une seule transaction, arrêtée à la première erreur : la base est remplacée en entier par celle de
+# l'archive, ou reste telle qu'elle était (sans ON_ERROR_STOP, psql rendrait 0 après un rejeu à moitié raté).
+# Le schéma public est vidé d'abord, dans la même transaction : une table apparue depuis la sauvegarde (mise à jour
+# de Nexus) et liée aux autres par une clé étrangère empêcherait sinon de les remplacer. L'export recrée tout,
+# extension vector comprise ; Nexus est arrêté, personne d'autre n'utilise la base.
+rejouer_base() {
+  { printf 'SET client_min_messages = warning;\nDROP SCHEMA IF EXISTS public CASCADE;\nCREATE SCHEMA public;\n'; gunzip -c "$tmp/nexus.sql.gz"; } \
+    | compose exec -T postgres psql -q -v ON_ERROR_STOP=1 --single-transaction -U nexus -d atelier_nexus >/dev/null
+}
 incomplet=0
 if [ "$avec_nexus" -eq 1 ]; then
   step "Base de Nexus"
   tar -xzf "$archive" -C "$tmp" nexus.sql.gz
-  if compose up -d --wait --wait-timeout 120 postgres >/dev/null \
-     && gunzip -c "$tmp/nexus.sql.gz" | compose exec -T postgres psql -q -U nexus -d atelier_nexus >/dev/null; then
+  # Un export tronqué, rejoué jusqu'à sa coupure, serait validé comme une base complète : il est relu avant.
+  if ! gunzip -t "$tmp/nexus.sql.gz" 2>/dev/null; then
+    warn "l'export de la base de Nexus (nexus.sql.gz) est abîmé : la base n'a pas été modifiée"
+    incomplet=1
+  elif compose up -d --wait --wait-timeout 120 postgres >/dev/null && rejouer_base; then
     ok "base rejouée"
     # Le mot de passe de la base suit celui de .env (utile si .env vient d'être restauré).
     mdp="$(env_get POSTGRES_PASSWORD)"
@@ -119,7 +131,7 @@ if [ "$avec_nexus" -eq 1 ]; then
         || warn "mot de passe de la base non aligné sur .env"
     fi
   else
-    warn "la base de Nexus n'a pas pu être rejouée (sudo docker compose logs postgres) ; l'export est dans l'archive : nexus.sql.gz"
+    warn "la base de Nexus n'a pas pu être rejouée : elle est restée telle qu'elle était (sudo docker compose logs postgres) ; l'export est dans l'archive : nexus.sql.gz"
     incomplet=1
   fi
 fi
