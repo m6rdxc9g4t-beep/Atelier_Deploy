@@ -32,3 +32,33 @@ test('la feuille de style et les icônes se revalident sans être retélécharg�
     assert.equal((await fetch(`${p.base}${chemin}`, { headers: { 'If-None-Match': '"autre"' } })).status, 200)
   }
 })
+
+/** Les apps que la page reçoit du serveur. */
+async function apps(base, cookie) {
+  const html = await fetch(`${base}/`, { headers: { Cookie: cookie } }).then((r) => r.text())
+  return { html, apps: JSON.parse(html.match(/const APPS = (\[.*\]);/)[1]) }
+}
+
+test('Dressing est dans les apps en ligne, à l’adresse de .env si elle est donnée', async (t) => {
+  const p = await lancer()
+  const q = await lancer({ DRESSING_URL: 'https://dressing.exemple.test' })
+  t.after(() => Promise.all([p.arreter(), q.arreter()]))
+  const { cookie } = await connexion(p.base, 'premier-mot-de-passe')
+  const dressing = (await apps(p.base, cookie)).apps.find((a) => a.id === 'dressing')
+  assert.deepEqual(
+    { name: dressing.name, url: dressing.url, external: dressing.external, color: dressing.color },
+    { name: 'Dressing', url: 'https://atelier-dressing.vercel.app', external: true, color: '#a16464' },
+  )
+  const autre = await connexion(q.base, 'premier-mot-de-passe')
+  assert.equal((await apps(q.base, autre.cookie)).apps.find((a) => a.id === 'dressing').url, 'https://dressing.exemple.test')
+})
+
+test('chaque app du portail a son icône dans le jeu d’icônes', async (t) => {
+  const p = await lancer()
+  t.after(p.arreter)
+  const { cookie } = await connexion(p.base, 'premier-mot-de-passe')
+  const page = await apps(p.base, cookie)
+  const sans = page.apps.filter((a) => !page.html.includes(`<symbol id="app-${a.icon || a.id}"`)).map((a) => a.id)
+  assert.deepEqual(sans, [])
+  assert.equal(new Set(page.apps.map((a) => a.id)).size, page.apps.length, 'identifiants uniques')
+})

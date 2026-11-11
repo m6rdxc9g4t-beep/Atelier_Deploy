@@ -106,6 +106,7 @@ services:
       CUISINE_URL: ${CUISINE_URL:-}
       SUIVI_URL: ${SUIVI_URL:-}
       DATES_URL: ${DATES_URL:-}
+      DRESSING_URL: ${DRESSING_URL:-}
       # Vitrine pro : adresse publique du Portfolio et de ses démos (ex. relais Netlify), vide = portfolio.<domaine>.
       PORTFOLIO_PUBLIC_URL: ${PORTFOLIO_PUBLIC_URL:-}
     healthcheck:

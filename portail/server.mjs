@@ -44,7 +44,7 @@ const digest = promisify(scrypt)
  * Les apps du portail. `color` = signature de l'app (Atelier_Projets/design-system/brand/atelier-brand.css, --atelier-sig-<id>).
  * Hébergées sur le VPS : `sub` = sous-domaine, `probes` = adresses locales sondées par le serveur.
  * En ligne (Vercel + Supabase, leur propre connexion) : `external` = adresse ouverte dans un onglet.
- * Dates, Suivi et Cuisine sont des apps en ligne : le portail ouvre leur adresse Vercel.
+ * Dates, Suivi, Cuisine et Dressing sont des apps en ligne : le portail ouvre leur adresse Vercel.
  * Sites & tests (`group: 'sites'`) : simulations et maquettes hébergées sur le VPS, rangées dans leur propre section.
  */
 const HOSTED = [
@@ -210,6 +210,10 @@ const ONLINE = [
   {
     id: 'cuisine', name: 'Cuisine', role: 'Garde-manger, recettes, tickets', color: '#9b84dc',
     url: env.CUISINE_URL || 'https://atelier-cuisine-iota.vercel.app',
+  },
+  {
+    id: 'dressing', name: 'Dressing', role: 'Vêtements en photos, tenues, essayage', color: '#a16464',
+    url: env.DRESSING_URL || 'https://atelier-dressing.vercel.app',
   },
 ].map((a) => ({ ...a, external: true, probes: [] }))
 

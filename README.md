@@ -5,7 +5,7 @@ La suite Atelier sur ton VPS OVH, derrière un portail où tu choisis l'app à o
 - **Hébergées sur le VPS**, derrière la connexion du portail : Nexus, Viz, Tab, Convert, Projets, Wiki, Hub, Formulaire, Trésorerie, Savoir, Ciné.
 - **Vitrine pro**, hébergée sur le VPS et **publique** (sans connexion) : le Portfolio, ses démos interactives (observatoire immobilier, e-commerce temps réel, labo A/B et causal, prévision de ventes, SQL Lab, qualité des données, tableau de bord, modélisation de données, segmentation clients, élasticité-prix, score de churn, labo de régression, attribution marketing, pipeline de données, impact sans groupe témoin, durée de vie client), **DataMind en direct** (la vraie app en mode démo, voir « DataMind ») et **Ops Lab**. Chaque entrée du portail a un bouton « Copier le lien public » (adresse `PORTFOLIO_PUBLIC_URL`, par ex. le relais Netlify). Les démos du Portfolio et Ops Lab tournent dans le navigateur du visiteur ; la démo de DataMind n'a que l'IA du serveur. Aucune IA payante.
 - **Sites & tests**, hébergés sur le VPS derrière la connexion du portail, dans leur propre section : simulations, maquettes et essais. Pour l'instant : **DataMind** (agent d'analyse de données, l'app complète avec son IA) et **Mission** (Atelier Mission, le mini-CRM freelance : prospects, devis, factures Malt et directes, relances).
-- **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates et Cuisine. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
+- **En ligne, sur Vercel uniquement** (Vercel + Supabase, avec sa propre connexion), sous forme de lien dans le portail : Suivi, Dates, Cuisine et Dressing. Elles se mettent à jour toutes seules à chaque commit ; les anciennes adresses `dates.…` et `suivi.…` du VPS redirigent vers Vercel.
 
 ```
 https://atelier.mondomaine.fr            portail : choix de l'app + connexion
@@ -76,7 +76,7 @@ Ouvre `https://atelier.mondomaine.fr`, connecte-toi, choisis ton app.
 | Mettre à jour automatiquement, comme Vercel (à chaque commit sur GitHub) | `sudo ./auto-update.sh install` une fois ; apps suivies dans `AUTO_UPDATE_APPS` (`.env`, aucune par défaut) ; état : `sudo ./auto-update.sh status`. Un commit dont la mise à jour échoue est retenté 3 fois (une panne de réseau passe), puis laissé de côté jusqu'au commit suivant. |
 | Lire les messages reçus par le portfolio | `sudo cat data/portfolio/messages.jsonl` |
 | Ajouter des films à Ciné | depuis ton Mac : `rsync -avP ~/Films/ debian@IP:~/Ateliers/Atelier_Deploy/media/films/`, puis « Rescanner » dans Ciné |
-| Changer l'adresse de Cuisine, Suivi ou Dates | `CUISINE_URL`, `SUIVI_URL` ou `DATES_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
+| Changer l'adresse de Cuisine, Suivi, Dates ou Dressing | `CUISINE_URL`, `SUIVI_URL`, `DATES_URL` ou `DRESSING_URL=https://…` dans `.env`, puis `sudo ./update.sh portail` |
 | Voir l'état des conteneurs | `sudo docker compose ps` |
 | Lire le journal d'une app | `sudo docker compose logs -f viz` |
 | Redémarrer une app | `sudo docker compose restart projets` |
