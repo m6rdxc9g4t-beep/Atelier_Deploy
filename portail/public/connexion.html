@@ -30,6 +30,11 @@ h1 { font-size: var(--t-page); font-weight: 600; letter-spacing: -0.012em; margi
 form { display: flex; flex-direction: column; gap: 14px; }
 .at-btn--primary { width: 100%; margin-top: 4px; }
 footer { color: var(--faint); font-size: var(--t-small); text-align: center; }
+/* Au doigt : champs et bouton de 44 px ; texte des champs à 16 px (en dessous, Safari sur iPhone zoome la page). */
+@media (max-width: 760px) {
+  .at-input { height: 44px; font-size: 16px; }
+  .at-btn--lg { height: 44px; }
+}
 </style>
 </head>
 <body>
@@ -45,7 +50,7 @@ footer { color: var(--faint); font-size: var(--t-small); text-align: center; }
   {{ERREUR}}
   <form method="post" action="/connexion">
     <input type="hidden" name="retour" value="{{RETOUR}}">
-    <label class="at-field">Identifiant<input class="at-input" name="utilisateur" autocomplete="username" required value="{{IDENT}}"{{FOCUS_IDENT}}></label>
+    <label class="at-field">Identifiant<input class="at-input" name="utilisateur" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required value="{{IDENT}}"{{FOCUS_IDENT}}></label>
     <label class="at-field">Mot de passe<input class="at-input" name="mot_de_passe" type="password" autocomplete="current-password" required{{FOCUS_MDP}}{{INVALIDE}}></label>
     <button class="at-btn at-btn--primary at-btn--lg" type="submit">Se connecter</button>
   </form>

@@ -85,3 +85,29 @@ test('un filtre inconnu resté en mémoire retombe sur « Toutes les apps »', o
   assert.equal(await page.textContent('#title'), 'Toutes les apps')
   assert.ok((await page.locator('#content [data-i]').count()) >= 30)
 })
+
+test('au téléphone, toute cible fait au moins 40 px et rien ne déborde', options, async (t) => {
+  const { page, base } = await ouvrir(t, { largeur: 390, hauteur: 844, tactile: true })
+  const mesurer = () => page.evaluate(() => {
+    const petites = []
+    for (const e of document.querySelectorAll('button, a, input, .search')) {
+      if (!e.offsetParent || e.closest('.search') && e.tagName === 'INPUT') continue
+      const zone = e.classList.contains('row-link') ? e.closest('[data-i]') : e // lien étiré sur toute la ligne
+      const r = zone.getBoundingClientRect()
+      const apres = getComputedStyle(e, '::after') // zone de toucher agrandie par un pseudo-élément
+      const marge = zone === e && apres.position === 'absolute' ? -2 * (parseFloat(apres.top) || 0) : 0
+      // 39,5 : une largeur calculée peut tomber à 39,99 px
+      if (r.height + marge < 39.5 || r.width < 39.5) petites.push(`${e.title || e.textContent.trim() || e.id} : ${Math.round(r.width)} × ${Math.round(r.height + marge)}`)
+    }
+    return { petites, debordement: document.documentElement.scrollWidth - innerWidth }
+  })
+  assert.deepEqual(await mesurer(), { petites: [], debordement: 0 }, 'liste')
+  await page.tap('[data-view="grid"]')
+  assert.deepEqual(await mesurer(), { petites: [], debordement: 0 }, 'icônes')
+  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('q')).fontSize), '16px', 'recherche à 16 px : pas de zoom sur iPhone')
+  await page.context().clearCookies()
+  await page.goto(`${base}/connexion`)
+  const champs = await page.evaluate(() => [...document.querySelectorAll('.at-input, button')].map((e) => [e.getBoundingClientRect().height, getComputedStyle(e).fontSize]))
+  for (const [hauteur, taille] of champs) assert.ok(hauteur >= 44 && parseFloat(taille) >= 16, `connexion : ${hauteur} px, texte ${taille}`)
+  assert.equal(await page.getAttribute('[name=utilisateur]', 'autocapitalize'), 'none')
+})

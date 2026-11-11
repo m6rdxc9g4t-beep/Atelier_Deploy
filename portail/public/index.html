@@ -137,11 +137,28 @@
   .at-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 8px 14px; gap: 12px; }
   .at-row .at-appicon { --size: 28px; border-radius: var(--r-md); }
   .at-row .k, .at-row .ms, .at-row .go { display: none; }
-  .at-row .copy { width: 36px; height: 36px; }
   .at-row .name-role { display: flex; flex-direction: column; min-width: 0; }
   .at-row .role { font-size: var(--t-small); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px 14px 20px; }
   .tile .k { display: none; }
+  /* Au doigt : toute cible fait au moins 40 px (recherche, filtres, thème, affichage, déconnexion, copie). */
+  .search { height: 40px; }
+  .search input { font-size: 16px; } /* en dessous, Safari sur iPhone zoome la page dès qu'on touche le champ */
+  .at-nav-item { height: 40px; padding: 0 14px; }
+  .at-seg button { height: 36px; min-width: 40px; justify-content: center; padding: 0 10px; }
+  .at-seg button::after { content: ""; position: absolute; inset: -4px 0; }
+  .at-seg button { position: relative; }
+  .me .at-btn--icon { width: 40px; height: 40px; }
+  .at-row .copy, .tile .copy { width: 40px; height: 40px; }
+  /* Le bouton de copie reste au bout de la ligne (quatrième colonne), au lieu de passer seul sur une seconde ligne. */
+  .at-row .copy { grid-row: 1; grid-column: 4; margin: 0 -8px 0 -6px; }
+  .tile .foot { min-height: 40px; }
+  .tile .copy { flex: none; margin-right: -8px; }
+  /* Tuile étroite : quand un état est affiché (hors ligne, partiel), il prend la place de l'étiquette « Public ». */
+  .tile .foot:has(.at-state) .pub { display: none; }
+  /* En-tête de groupe : le titre reste d'un seul tenant, la précision se coupe proprement. */
+  .at-ghead b { white-space: nowrap; }
+  .at-ghead span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 @media (min-width: 761px) { .at-row .name-role { display: contents; } }
 </style>
