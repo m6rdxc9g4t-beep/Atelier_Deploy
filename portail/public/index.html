@@ -324,6 +324,7 @@ const copyBtn = (a) => a.share
   : '';
 const pubTag = (a) => (a.public ? '<span class="pub">Public</span>' : '');
 
+// La latence (« 12 ms ») n'est pas dans ce HTML : elle change à chaque vérification, writeMs() l'écrit à part.
 function itemHtml(a, i, last) {
   const down = stateOf(a) === 'down' ? ' is-down' : '';
   const lastBadge = a.id === last ? '<span class="last">Dernière</span>' : '';
@@ -334,16 +335,16 @@ function itemHtml(a, i, last) {
     return `<div class="tile${down}" data-i="${i}" style="--app:${a.color}">
       <span class="k">${a.key}</span>${icon(a, 'at-appicon--lg')}
       <span class="tile-text"><span class="name">${link}</span>${lastBadge}<span class="role">${a.role}</span></span>
-      <span class="foot">${stateOf(a) === 'up' ? `<span class="ms">${msHtml(a)}</span>` : stateHtml(a, true)}${pubTag(a)}${copyBtn(a)}</span></div>`;
+      <span class="foot">${stateOf(a) === 'up' ? '<span class="ms"></span>' : stateHtml(a, true)}${pubTag(a)}${copyBtn(a)}</span></div>`;
   }
   return `<div class="at-row${down}" data-i="${i}" style="--app:${a.color}" role="listitem">
     <span class="k">${a.key}</span>${icon(a)}
     <span class="name-role"><span class="name">${link}${pubTag(a)}${lastBadge}</span><span class="role">${a.role}</span></span>
-    ${stateHtml(a)}<span class="ms">${msHtml(a)}</span>${a.share ? copyBtn(a) : goIcon(a)}</div>`;
+    ${stateHtml(a)}<span class="ms"></span>${a.share ? copyBtn(a) : goIcon(a)}</div>`;
 }
 
-// Ce qui a le focus dans la liste (lien d'une app ou son bouton de copie), pour le lui rendre après un nouveau rendu :
-// la vérification de l'état redessine la liste toutes les 20 s.
+// Ce qui a le focus dans la liste (lien d'une app ou son bouton de copie), pour le lui rendre quand la liste est
+// redessinée sous lui (une app change d'état pendant la vérification, toutes les 20 s).
 function focusedItem() {
   const el = document.activeElement;
   const item = el && content.contains(el) ? el.closest('[data-i]') : null;
@@ -354,6 +355,21 @@ function restoreFocus(kept) {
   if (i < 0) return;
   const item = content.querySelector(`[data-i="${i}"]`);
   (kept.copy && item.querySelector('[data-copy]') || item.querySelector('.row-link'))?.focus({ preventScroll: true });
+}
+
+// La liste n'est remplacée que si elle change. Sinon ses éléments restent en place : la vérification de l'état, toutes
+// les 20 s, ne reprend donc pas le focus (un lecteur d'écran relirait la ligne à chaque fois), elle n'écrit que les latences.
+let drawn = null;
+function draw(html) {
+  if (html === drawn) return false;
+  content.innerHTML = drawn = html;
+  return true;
+}
+function writeMs() {
+  items().forEach((el) => {
+    const ms = el.querySelector('.ms'), text = msHtml(visible[Number(el.dataset.i)]);
+    if (ms && ms.textContent !== text) ms.textContent = text;
+  });
 }
 
 function render() {
@@ -375,11 +391,11 @@ function render() {
   });
 
   if (!visible.length) {
-    content.innerHTML = term
+    draw(term
       ? `<div class="empty"><strong>Aucune app ne correspond à « ${term.replace(/[<>&"]/g, '')} »</strong>Cherche par nom ou par rôle : « budget », « films », « agent »…<br><button class="at-btn" type="button" data-clear>Effacer la recherche</button></div>`
       : filter === 'incidents'
         ? `<div class="empty"><strong>Aucun incident</strong>Toutes les apps du serveur répondent.</div>`
-        : `<div class="empty"><strong>Pas encore d’app récente</strong>Les apps que tu ouvres depuis le portail apparaîtront ici.</div>`;
+        : `<div class="empty"><strong>Pas encore d’app récente</strong>Les apps que tu ouvres depuis le portail apparaîtront ici.</div>`);
     return;
   }
 
@@ -390,14 +406,15 @@ function render() {
     : [{ g: null, apps: visible }];
   let i = 0;
   const order = [];
-  content.innerHTML = sections.map(({ g, apps }) => {
+  const redrawn = draw(sections.map(({ g, apps }) => {
     const head = g ? `<div class="at-ghead"><b>${g.title}</b><span class="at-count">${apps.length}</span><span>${g.note}</span></div>` : '';
     const items = apps.map((a) => { order.push(a); return itemHtml(a, i++, last) }).join('');
     return head + (view === 'grid' ? `<div class="tiles">${items}</div>` : `<div role="list">${items}</div>`);
-  }).join('');
+  }).join(''));
   visible = order;
+  writeMs();
   paintSel(false);
-  restoreFocus(kept);
+  if (redrawn) restoreFocus(kept);
 }
 
 function items() { return [...content.querySelectorAll('[data-i]')] }

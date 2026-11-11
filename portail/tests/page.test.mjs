@@ -11,8 +11,11 @@ try {
 } catch {}
 const options = { skip: chromium ? false : 'Playwright introuvable' }
 
-/** Ouvre le portail, connecté ; rend la page et la liste des erreurs de console. */
-async function ouvrir(t, { largeur = 1280, hauteur = 800, tactile = false } = {}) {
+/**
+ * Ouvre le portail, connecté ; rend la page et la liste des erreurs de console.
+ * `statut(reponse, n)` retouche la n-ième réponse de /api/statut avant que la page la reçoive (état simulé).
+ */
+async function ouvrir(t, { largeur = 1280, hauteur = 800, tactile = false, statut = null } = {}) {
   const p = await lancer()
   const navigateur = await chromium.launch()
   t.after(async () => {
@@ -27,6 +30,15 @@ async function ouvrir(t, { largeur = 1280, hauteur = 800, tactile = false } = {}
   const erreurs = []
   page.on('console', (m) => m.type() === 'error' && erreurs.push(m.text()))
   page.on('pageerror', (e) => erreurs.push(String(e)))
+  if (statut) {
+    let n = 0
+    await page.route('**/api/statut*', async (route) => {
+      const reponse = await route.fetch()
+      const donnees = await reponse.json()
+      statut(donnees, ++n)
+      await route.fulfill({ response: reponse, json: donnees })
+    })
+  }
   const etat = page.waitForResponse((r) => r.url().includes('/api/statut'))
   await page.goto(`${p.base}/`)
   await etat
@@ -48,20 +60,68 @@ test('la page s’affiche sans erreur, apps et état compris', options, async (t
   assert.deepEqual(erreurs, [])
 })
 
+/** État simulé : toutes les apps du serveur dans le même état. */
+const toutes = (state, ms = null) => (donnees) => donnees.apps.forEach((a) => Object.assign(a, { state, ms }))
+
 test('la vérification périodique ne fait pas perdre le focus au clavier', options, async (t) => {
-  const { page } = await ouvrir(t)
+  // La première app change d'état à chaque vérification : la liste est redessinée sous le focus.
+  const { page } = await ouvrir(t, { statut: (d, n) => (d.apps[0].state = n % 2 ? 'down' : 'up') })
   const actif = () => page.evaluate(() => {
     const e = document.activeElement
     return `${e.className}|${e.closest('[data-i]')?.querySelector('.name')?.textContent ?? ''}`
   })
   await page.focus('#content [data-i="3"] .row-link')
   const lien = await actif()
+  const dessin = () => page.evaluate(() => document.querySelector('#content [data-i="0"]').className)
+  const avant = await dessin()
   await rafraichir(page)
+  assert.notEqual(await dessin(), avant, 'la liste a bien été redessinée')
   assert.equal(await actif(), lien, 'le lien de la ligne garde le focus')
   await page.focus('#content [data-copy]')
   const copie = await actif()
   await rafraichir(page)
   assert.equal(await actif(), copie, 'le bouton « Copier le lien » aussi')
+})
+
+test('sans changement d’état, la vérification laisse la liste en place : le focus n’est pas reposé', options, async (t) => {
+  // Les latences, elles, changent à chaque vérification, comme sur le serveur.
+  const { page } = await ouvrir(t, { statut: (d, n) => toutes('up', 10 + n)(d) })
+  const suivre = (selecteur) => page.evaluate((sel) => {
+    window.__noeud = document.querySelector(sel)
+    window.__noeud.focus()
+    window.__focus = 0
+    if (!window.__ecoute) document.addEventListener('focusin', () => window.__focus++)
+    window.__ecoute = true
+  }, selecteur)
+  const etat = () => page.evaluate(() => ({
+    memeNoeud: document.activeElement === window.__noeud && window.__noeud.isConnected,
+    focusReposes: window.__focus,
+    latence: document.querySelector('#content [data-i="3"] .ms').textContent,
+  }))
+  await suivre('#content [data-i="3"] .row-link')
+  const { latence } = await etat()
+  assert.match(latence, /^\d+ ms$/)
+  await rafraichir(page)
+  const apres = await etat()
+  assert.deepEqual({ memeNoeud: apres.memeNoeud, focusReposes: apres.focusReposes }, { memeNoeud: true, focusReposes: 0 }, 'liste')
+  assert.notEqual(apres.latence, latence, 'la latence affichée suit la vérification')
+
+  await page.click('[data-view="grid"]')
+  await suivre('#content [data-copy]')
+  await rafraichir(page)
+  const tuiles = await etat()
+  assert.deepEqual({ memeNoeud: tuiles.memeNoeud, focusReposes: tuiles.focusReposes }, { memeNoeud: true, focusReposes: 0 }, 'icônes')
+  assert.notEqual(tuiles.latence, apres.latence, 'icônes : la latence suit aussi')
+
+  // Recherche sans résultat : le bouton « Effacer la recherche » n'est pas remplacé non plus.
+  await page.fill('#q', 'zzzz-aucune-app')
+  await suivre('#content [data-clear]')
+  await rafraichir(page)
+  assert.deepEqual(
+    await page.evaluate(() => [document.activeElement === window.__noeud && window.__noeud.isConnected, window.__focus]),
+    [true, 0],
+    'recherche vide',
+  )
 })
 
 test('l’état du serveur n’est réannoncé aux lecteurs d’écran que s’il change', options, async (t) => {
