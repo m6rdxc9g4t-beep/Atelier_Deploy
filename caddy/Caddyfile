@@ -50,6 +50,14 @@
 	}
 }
 
+# Sites publics (Portfolio, Ops Lab, démo de DataMind) : ils sont sur un sous-domaine, donc ton navigateur leur envoie
+# aussi le cookie de session du portail quand tu les visites connecté. Il est retiré ici, avant de leur parvenir :
+# un site public compromis ne peut pas y lire de quoi ouvrir les apps privées. Les autres cookies passent.
+# À importer dans tout bloc sans `import connexion` qui relaie vers un site ouvert à tous (vérifié par tests/test-caddy.sh).
+(sans_session) {
+	request_header Cookie "atelier_session=[^;]*(; *)?" ""
+}
+
 # Les sondes /api/health restent publiques (elles ne disent que « ok ») :
 # le sélecteur de suite intégré à chaque app s'en sert d'un domaine à l'autre.
 (sante_publique) {
@@ -155,6 +163,7 @@
 # c'est sur elle que l'app compte les questions de chaque visiteur.
 {$SITE_SCHEME}demo-datamind.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	# Pas d'import de fichier en démo : seules de petites requêtes JSON passent.
 	request_body /api/* {
 		max_size 1MB
@@ -322,6 +331,7 @@
 # Le serveur applique ses propres en-têtes (helmet) et limite le formulaire de contact.
 {$SITE_SCHEME}portfolio.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	request_body /api/* {
 		max_size 2MB
 	}
@@ -335,6 +345,7 @@
 # dans docker-compose.yml, une entrée dans SITES (portail/server.mjs) et dans APPS (scripts/lib.sh).
 {$SITE_SCHEME}ops.{$ATELIER_DOMAIN} {
 	import securite
+	import sans_session
 	handle /api/health {
 		import sante_publique
 		reverse_proxy 127.0.0.1:3400

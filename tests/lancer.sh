@@ -4,7 +4,8 @@
 #
 # Outils facultatifs (étape sautée, et signalée, s'ils manquent) :
 #   docker compose   validation de docker-compose.yml (la commande suffit, pas le démon)
-#   caddy            validation du Caddyfile          CADDY=/chemin/vers/caddy ./tests/lancer.sh
+#   caddy            validation du Caddyfile, connexion unique de bout en bout (tests/test-caddy.sh)
+#                    CADDY=/chemin/vers/caddy ./tests/lancer.sh
 #   l'outil shellcheck : analyse des scripts     SHELLCHECK="uvx --from shellcheck-py shellcheck" ./tests/lancer.sh
 #   PostgreSQL       restauration de la base de Nexus rejouée pour de vrai (tests/test-restore-postgres.sh)
 set -uo pipefail
