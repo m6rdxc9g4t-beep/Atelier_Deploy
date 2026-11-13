@@ -32,6 +32,9 @@ RUN pip install -r requirements.txt
 # Pilotes des connecteurs de Viz (SQL Server, PostgreSQL, MySQL, Snowflake, BigQuery) : « Nouvelle connexion » ne dit
 # plus « Pilote à installer ». Roues binaires pour Linux x86_64 et arm64 : aucun paquet système (FreeTDS et libpq sont
 # dans les roues). Environ 145 Mo installés. SharePoint, SQLite et les fichiers n'en ont pas besoin.
+# Seul effet sur les dépendances de base : google-cloud-bigquery (python-dateutil<3) ramène python-dateutil de 4.x à
+# 2.9.x. Viz ne l'importe pas elle-même et pandas demande >=2.9 ; la CI de Viz n'installe pas les pilotes, mais toute
+# sa suite pytest (branche main) a tourné une fois avec les deux fichiers installés comme ici (Python 3.12) : verte.
 COPY apps/atelier_viz/backend/requirements-connectors.txt ./
 RUN pip install -r requirements-connectors.txt
 COPY apps/atelier_viz/backend/ ./
