@@ -230,4 +230,18 @@ hors_journal "build" "rien n'est construit"
 : > "$SIM/docker-init"; chmod +x "$SIM/docker-init"
 DOCKER_SANS_INIT=1 ATELIER_DOCKER_INIT="$SIM/docker-init" attendu "docker-init trouvé sur le disque : la mise à jour passe" ./update.sh ops
 
+titre "Nexus réglé sur Claude : gardé avec le jeton du forfait, ramené à l'IA du serveur sans accès à Claude"
+cp .env "$SIM/env.avant"
+echo "NEXUS_LLM_PROVIDER=anthropic" >> .env
+attendu "update.sh ops réussit (ni clé ni jeton)" ./update.sh ops
+attendu "sans clé ni jeton : Nexus revient à l'IA du serveur" grep -qx "NEXUS_LLM_PROVIDER=ollama" .env
+cp "$SIM/env.avant" .env
+printf '%s\n' "CLAUDE_OAUTH_TOKEN=sk-ant-oat01-jeton-de-test" "NEXUS_LLM_PROVIDER=anthropic" >> .env
+attendu "update.sh ops réussit (jeton du forfait seul)" ./update.sh ops
+attendu "avec le jeton du forfait : Claude reste le moteur par défaut de Nexus" grep -qx "NEXUS_LLM_PROVIDER=anthropic" .env
+attendu "et le jeton est laissé tel quel dans .env" grep -qx "CLAUDE_OAUTH_TOKEN=sk-ant-oat01-jeton-de-test" .env
+cp "$SIM/env.avant" .env
+attendu "sans la ligne CLAUDE_OAUTH_TOKEN (.env d'avant) : update.sh passe sans l'ajouter" ./update.sh ops
+refuse "aucune ligne de jeton n'est ajoutée à .env" grep -q "CLAUDE_OAUTH_TOKEN" .env
+
 banc_fin

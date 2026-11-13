@@ -372,10 +372,11 @@ ensure_ia() {
     env_set OLLAMA_MODEL "$model"
     ok "modèle d'IA : $model (mémoire du serveur : ${ram_mb} Mo)"
   fi
-  # Sans clé Anthropic, Nexus utilise l'IA du serveur.
-  if [ -z "$(env_get ANTHROPIC_API_KEY)" ] && [ "$(env_get NEXUS_LLM_PROVIDER)" = "anthropic" ]; then
+  # Sans accès à Claude (ni clé Anthropic, ni jeton du forfait), Nexus utilise l'IA du serveur.
+  if [ -z "$(env_get ANTHROPIC_API_KEY)" ] && [ -z "$(env_get CLAUDE_OAUTH_TOKEN)" ] \
+     && [ "$(env_get NEXUS_LLM_PROVIDER)" = "anthropic" ]; then
     env_set NEXUS_LLM_PROVIDER ollama
-    ok "Nexus : moteur par défaut = IA du serveur (aucune clé Anthropic)"
+    ok "Nexus : moteur par défaut = IA du serveur (ni clé Anthropic, ni jeton du forfait Claude)"
   fi
 }
 

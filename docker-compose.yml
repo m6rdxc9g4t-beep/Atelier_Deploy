@@ -21,9 +21,20 @@ name: atelier
 
 x-build: &build
   context: .
-  args:
+  args: &build-args
     ATELIER_DOMAIN: ${ATELIER_DOMAIN:?Renseigne ATELIER_DOMAIN dans .env}
     PROTO: ${PROTO:-https}
+
+# Images qui embarquent la CLI Claude Code (Viz, Convert, Projets, Hub, backend de Nexus) : Claude par le forfait de
+# l'utilisateur (CLAUDE_OAUTH_TOKEN dans .env, voir « Claude avec ton forfait » du README). Une seule version pour
+# toute la suite, ÉPINGLÉE : elle accepte les drapeaux du contrat d'isolation (docs/SUITE.md §5.3 : --safe-mode,
+# --tools "", --json-schema, --strict-mcp-config, --disable-slash-commands, --no-session-persistence, --max-turns).
+# La changer ici reconstruit ces cinq images ; vérifier d'abord la nouvelle version (README, « Vérifier le kit »).
+x-build-claude: &build-claude
+  context: .
+  args:
+    <<: *build-args
+    CLAUDE_CODE_VERSION: "2.1.311"
 
 # IA : l'Ollama du serveur (service « ollama ») et un seul modèle pour toutes les apps.
 # Chaque app lit le nom de variable qui la concerne ; les autres sont ignorés.
@@ -35,6 +46,17 @@ x-ia: &ia
   OLLAMA_TIMEOUT: "600"
   OLLAMA_TIMEOUT_SECONDS: "600"
   OLLAMA_TIMEOUT_MS: "600000"
+
+# Claude avec le forfait de l'utilisateur : un seul réglage dans .env, CLAUDE_OAUTH_TOKEN (jeton de
+# « claude setup-token »), facultatif ; vide = rien ne change. Chaque app le reçoit sous le nom qu'elle lit :
+#   Viz, Convert, Projets, Nexus   CLAUDE_OAUTH_TOKEN (ancre ci-dessous)
+#   Hub                            HUB_CLAUDE_OAUTH_TOKEN (son réglage propre, sinon le commun)
+#   DataMind                       CLAUDE_CODE_OAUTH_TOKEN (DATAMIND_CLAUDE_OAUTH_TOKEN, sinon le commun)
+# Les apps le lisent une fois au démarrage, le retirent de leur environnement et ne le donnent qu'à la CLI isolée,
+# jamais avec la clé API (ANTHROPIC_API_KEY ne part jamais vers la CLI). Changer de jeton : redémarrer le service.
+# Jamais à la démo publique de DataMind, au Wiki ni aux sites publics.
+x-forfait: &forfait
+  CLAUDE_OAUTH_TOKEN: ${CLAUDE_OAUTH_TOKEN:-}
 
 x-journal: &journal
   driver: json-file
@@ -118,9 +140,9 @@ services:
 
   viz:
     <<: *app
-    build: { <<: *build, dockerfile: docker/viz.Dockerfile }
+    build: { <<: *build-claude, dockerfile: docker/viz.Dockerfile }
     environment:
-      <<: [*tz, *ia]
+      <<: [*tz, *ia, *forfait]
       ALLOWED_HOSTS: viz.${ATELIER_DOMAIN}
       CLAUDE_MODE: ${VIZ_CLAUDE_MODE:-api}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
@@ -137,9 +159,9 @@ services:
 
   convert:
     <<: *app
-    build: { <<: *build, dockerfile: docker/convert.Dockerfile }
+    build: { <<: *build-claude, dockerfile: docker/convert.Dockerfile }
     environment:
-      <<: [*tz, *ia]
+      <<: [*tz, *ia, *forfait]
       ALLOWED_HOSTS: convert.${ATELIER_DOMAIN}
       CLAUDE_MODE: api
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
@@ -168,8 +190,8 @@ services:
       PORT: "3600"
       DATAMIND_ENGINE: ${DATAMIND_ENGINE:-}
       DATAMIND_INSTANCE_LABEL: Sites & tests
-      # Forfait Claude (Pro / Max) : jeton de « claude setup-token ». Prioritaire sur la clé API.
-      CLAUDE_CODE_OAUTH_TOKEN: ${DATAMIND_CLAUDE_OAUTH_TOKEN:-}
+      # Forfait Claude (Pro / Max) : jeton de « claude setup-token », le sien sinon le commun. Prioritaire sur la clé API.
+      CLAUDE_CODE_OAUTH_TOKEN: ${DATAMIND_CLAUDE_OAUTH_TOKEN:-${CLAUDE_OAUTH_TOKEN:-}}
       OLLAMA_NUM_CTX: "8192"
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       DATAMIND_CLAUDE_MODEL: ${DATAMIND_CLAUDE_MODEL:-claude-sonnet-5-5}
@@ -221,9 +243,9 @@ services:
 
   projets:
     <<: *app
-    build: { <<: *build, dockerfile: docker/projets.Dockerfile }
+    build: { <<: *build-claude, dockerfile: docker/projets.Dockerfile }
     environment:
-      <<: [*tz, *ia]
+      <<: [*tz, *ia, *forfait]
       ALLOWED_HOSTS: projets.${ATELIER_DOMAIN}
       APP_TIMEZONE: ${TZ:-Europe/Paris}
       ATELIER_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
@@ -256,11 +278,15 @@ services:
 
   # Atelier Hub : une fiche par projet. Lit Projets, Wiki, Viz, Convert et Nexus en 127.0.0.1 (lecture seule)
   # et l'index de Tab (fichiers du MCP de Tab) ; les liens ouvrent les sous-domaines de la suite.
+  # Présentations rédigées par l'IA du serveur (Ollama en bouclage, sinon le Hub le désactive) et, en mode
+  # « En ligne » de l'app, par Claude avec le forfait (HUB_CLAUDE_OAUTH_TOKEN, sinon le jeton commun). Jamais de clé API.
   hub:
     <<: *app
-    build: { <<: *build, dockerfile: docker/hub.Dockerfile }
+    build: { <<: *build-claude, dockerfile: docker/hub.Dockerfile }
     environment:
-      <<: *tz
+      <<: [*tz, *ia]
+      OLLAMA_NUM_CTX: "8192"
+      HUB_CLAUDE_OAUTH_TOKEN: ${HUB_CLAUDE_OAUTH_TOKEN:-${CLAUDE_OAUTH_TOKEN:-}}
       ALLOWED_HOSTS: hub.${ATELIER_DOMAIN}
       PROJETS_URL: ${PROTO:-https}://projets.${ATELIER_DOMAIN}
       WIKI_URL: ${PROTO:-https}://wiki.${ATELIER_DOMAIN}
@@ -361,15 +387,16 @@ services:
 
   nexus-backend:
     <<: *app
-    build: { <<: *build, dockerfile: docker/nexus-backend.Dockerfile }
+    build: { <<: *build-claude, dockerfile: docker/nexus-backend.Dockerfile }
     environment:
-      <<: [*tz, *ia]
+      <<: [*tz, *ia, *forfait]
       TIMEZONE: ${TZ:-Europe/Paris}
       CORS_ORIGINS: ${PROTO:-https}://nexus.${ATELIER_DOMAIN}
       DATABASE_URL: postgresql+asyncpg://nexus:${POSTGRES_PASSWORD:?Renseigne POSTGRES_PASSWORD dans .env}@127.0.0.1:5433/atelier_nexus
       DB_AUTO_MIGRATE: "true"
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       CLAUDE_MODE: api
+      # anthropic : Claude par défaut (clé API, ou le forfait si CLAUDE_OAUTH_TOKEN est renseigné, prioritaire sur la clé)
       LLM_DEFAULT_PROVIDER: ${NEXUS_LLM_PROVIDER:-ollama}
       PROJETS_IMPORT_TOKEN: ${ATELIER_IMPORT_TOKEN:-}
       GITHUB_TOKEN: ${APPS_GITHUB_TOKEN:-}

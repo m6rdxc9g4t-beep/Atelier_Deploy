@@ -57,6 +57,7 @@ ask() { # ask CLE "Question" [secret]
 ask ATELIER_DOMAIN "Domaine du portail (ex. atelier.mondomaine.fr)"
 ask ACME_EMAIL "E-mail pour les certificats HTTPS"
 ask GITHUB_CLONE_TOKEN "Jeton GitHub (lecture des dépôts privés)" secret
+ask CLAUDE_OAUTH_TOKEN "Jeton du forfait Claude, de « claude setup-token » sur ton ordinateur (Entrée pour passer)" secret
 ask ANTHROPIC_API_KEY "Clé API Anthropic (Entrée pour passer)" secret
 
 if [ -z "$(env_get PORTAL_PASSWORD)" ]; then
