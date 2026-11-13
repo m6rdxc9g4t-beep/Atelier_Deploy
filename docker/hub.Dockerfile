@@ -4,6 +4,15 @@
 
 ARG PROTO=https
 
+# CLI Claude Code (Claude avec le forfait, CLAUDE_OAUTH_TOKEN) : version épinglée par docker-compose.yml
+# (x-build-claude), la même dans toute la suite. Binaire natif autonome : ni node ni npm à l'exécution.
+# Seul « --version » est lancé ici (jamais une demande) : il prouve que le vrai binaire est en place, à la bonne version.
+FROM node:22-bookworm-slim AS claude
+ARG CLAUDE_CODE_VERSION
+RUN test -n "$CLAUDE_CODE_VERSION" || (echo "CLAUDE_CODE_VERSION manquant (docker-compose.yml, x-build-claude)" && exit 1)
+RUN npm install -g --no-audit --no-fund "@anthropic-ai/claude-code@$CLAUDE_CODE_VERSION" \
+    && /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe --version | grep -qF "$CLAUDE_CODE_VERSION"
+
 FROM node:24-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -36,12 +45,17 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/backend/package.json ./backend/
 COPY --from=build /app/backend/dist ./backend/dist
 COPY --from=build /app/frontend/dist ./frontend/dist
+# CLI Claude Code (voir l'étape « claude ») : l'app la cherche à CLAUDE_CLI, la lance isolée, et ne lui donne le jeton
+# du forfait que pour une demande, jamais la clé API.
+COPY --from=claude /usr/local/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe /usr/local/bin/claude
+RUN ["/usr/local/bin/claude", "--version"]
 
 ENV HOST=127.0.0.1 \
     PORT=3700 \
     HUB_DATA_DIR=/data \
     HUB_STATIC_DIR=/app/frontend/dist \
-    TAB_EXPORTS_DIR=/tab-exports
+    TAB_EXPORTS_DIR=/tab-exports \
+    CLAUDE_CLI=/usr/local/bin/claude
 
 # Un seul processus : SQLite n'a qu'un écrivain ; les migrations tournent au démarrage.
 CMD ["node", "backend/dist/server.js"]

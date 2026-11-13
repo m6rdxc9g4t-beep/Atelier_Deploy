@@ -57,4 +57,9 @@ titre "Caddy"
 attendu "l'image de Caddy valide le Caddyfile à la construction (après l'avoir copié)" \
   test "$(grep -n 'caddy validate --config /etc/caddy/Caddyfile' "$DEPOT/caddy/Dockerfile" | cut -d: -f1)" -gt "$(grep -n '^COPY caddy/Caddyfile' "$DEPOT/caddy/Dockerfile" | cut -d: -f1)"
 
+titre "Viz"
+# « Nouvelle connexion » de Viz : sans ses pilotes, SQL Server, PostgreSQL, MySQL, Snowflake et BigQuery disent « Pilote à installer ».
+attendu "les pilotes des connecteurs sont installés dans l'image, après ses dépendances" \
+  test "$(grep -n '^RUN pip install -r requirements-connectors.txt' "$DEPOT/docker/viz.Dockerfile" | cut -d: -f1)" -gt "$(grep -n '^RUN pip install -r requirements.txt' "$DEPOT/docker/viz.Dockerfile" | cut -d: -f1)"
+
 banc_fin
