@@ -230,8 +230,10 @@ hors_journal "build" "rien n'est construit"
 : > "$SIM/docker-init"; chmod +x "$SIM/docker-init"
 DOCKER_SANS_INIT=1 ATELIER_DOCKER_INIT="$SIM/docker-init" attendu "docker-init trouvé sur le disque : la mise à jour passe" ./update.sh ops
 
-titre "Nexus réglé sur Claude : gardé avec le jeton du forfait, ramené à l'IA du serveur sans accès à Claude"
-cp .env "$SIM/env.avant"
+titre "Nexus réglé sur Claude : gardé avec le jeton du forfait, ramené à l'IA du serveur sans accès à Claude ; ligne du jeton ajoutée à un .env d'avant"
+# .env d'avant le jeton du forfait : sans sa ligne (les passages précédents l'ont ajoutée).
+grep -v -e '^CLAUDE_OAUTH_TOKEN=' -e 'Claude avec ton forfait' .env > "$SIM/env.avant"
+cp "$SIM/env.avant" .env
 echo "NEXUS_LLM_PROVIDER=anthropic" >> .env
 attendu "update.sh ops réussit (ni clé ni jeton)" ./update.sh ops
 attendu "sans clé ni jeton : Nexus revient à l'IA du serveur" grep -qx "NEXUS_LLM_PROVIDER=ollama" .env
@@ -241,7 +243,19 @@ attendu "update.sh ops réussit (jeton du forfait seul)" ./update.sh ops
 attendu "avec le jeton du forfait : Claude reste le moteur par défaut de Nexus" grep -qx "NEXUS_LLM_PROVIDER=anthropic" .env
 attendu "et le jeton est laissé tel quel dans .env" grep -qx "CLAUDE_OAUTH_TOKEN=sk-ant-oat01-jeton-de-test" .env
 cp "$SIM/env.avant" .env
-attendu "sans la ligne CLAUDE_OAUTH_TOKEN (.env d'avant) : update.sh passe sans l'ajouter" ./update.sh ops
-refuse "aucune ligne de jeton n'est ajoutée à .env" grep -q "CLAUDE_OAUTH_TOKEN" .env
+refuse "le .env du banc est bien un .env d'avant (sans ligne de jeton)" grep -q "^CLAUDE_OAUTH_TOKEN=" .env
+sortie="$(./update.sh ops 2>&1)"; code=$?
+attendu "sans la ligne CLAUDE_OAUTH_TOKEN (.env d'avant) : update.sh ops réussit" test "$code" -eq 0
+attendu "la ligne CLAUDE_OAUTH_TOKEN= est ajoutée, vide (le jeton se colle au bon endroit)" grep -qx "CLAUDE_OAUTH_TOKEN=" .env
+attendu "et l'ajout est annoncé" grep -q "CLAUDE_OAUTH_TOKEN= ajoutée" <<<"$sortie"
+refuse "le jeton propre à DataMind n'est pas touché" grep -q "DATAMIND_CLAUDE_OAUTH_TOKEN" .env
+attendu "un second passage ne la double pas" ./update.sh ops
+attendu "une seule ligne CLAUDE_OAUTH_TOKEN=" test "$(grep -c '^CLAUDE_OAUTH_TOKEN=' .env)" = 1
+attendu "les autres réglages sont gardés" grep -qx "OLLAMA_MODEL=llama3.2:1b" .env
+cp "$SIM/env.avant" .env
+printf '%s\n' "CLAUDE_OAUTH_TOKEN=sk-ant-oat01-jeton-de-test" >> .env
+attendu "update.sh ops réussit (jeton déjà présent)" ./update.sh ops
+attendu "un jeton déjà présent n'est jamais vidé ni doublé" test "$(grep -c '^CLAUDE_OAUTH_TOKEN=' .env)" = 1
+attendu "il reste tel quel" grep -qx "CLAUDE_OAUTH_TOKEN=sk-ant-oat01-jeton-de-test" .env
 
 banc_fin

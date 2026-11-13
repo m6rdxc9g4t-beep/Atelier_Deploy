@@ -372,6 +372,12 @@ ensure_ia() {
     env_set OLLAMA_MODEL "$model"
     ok "modèle d'IA : $model (mémoire du serveur : ${ram_mb} Mo)"
   fi
+  # Un .env d'avant le jeton du forfait n'a pas sa ligne : on l'ajoute, vide (aucune app ne s'en sert), pour que le jeton
+  # se colle au bon endroit (README, « Claude avec ton forfait ») et non dans celui propre à DataMind.
+  if [ -f .env ] && ! grep -qE '^CLAUDE_OAUTH_TOKEN=' .env; then
+    printf '\n# Claude avec ton forfait (README, « Claude avec ton forfait ») : jeton de « claude setup-token », facultatif.\nCLAUDE_OAUTH_TOKEN=\n' >> .env
+    ok "ligne CLAUDE_OAUTH_TOKEN= ajoutée à .env (vide : colle-y le jeton de ton forfait Claude si tu veux t'en servir)"
+  fi
   # Sans accès à Claude (ni clé Anthropic, ni jeton du forfait), Nexus utilise l'IA du serveur.
   if [ -z "$(env_get ANTHROPIC_API_KEY)" ] && [ -z "$(env_get CLAUDE_OAUTH_TOKEN)" ] \
      && [ "$(env_get NEXUS_LLM_PROVIDER)" = "anthropic" ]; then
