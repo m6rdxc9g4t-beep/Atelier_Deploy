@@ -29,6 +29,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 COPY apps/atelier_viz/backend/requirements.txt ./
 RUN pip install -r requirements.txt
+# Pilotes des connecteurs de Viz (SQL Server, PostgreSQL, MySQL, Snowflake, BigQuery) : « Nouvelle connexion » ne dit
+# plus « Pilote à installer ». Roues binaires pour Linux x86_64 et arm64 : aucun paquet système (FreeTDS et libpq sont
+# dans les roues). Environ 145 Mo installés. SharePoint, SQLite et les fichiers n'en ont pas besoin.
+COPY apps/atelier_viz/backend/requirements-connectors.txt ./
+RUN pip install -r requirements-connectors.txt
 COPY apps/atelier_viz/backend/ ./
 COPY apps/atelier_viz/samples /opt/viz/samples
 # Exemples de la suite (histoires fictives communes, générées par exemples/generer.py)
