@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude avec le forfait (CLAUDE_OAUTH_TOKEN) : chaque app reçoit le jeton sous le nom qu'elle lit, et elle seule ;
-# jamais la clé API à sa place ; sans jeton, rien ne change. La CLI Claude Code est dans les images qui la lancent,
+# jamais la clé API à sa place ; sans jeton, aucune variable ne change (la CLI reste dans les images). La CLI Claude Code est dans les images qui la lancent,
 # en version épinglée. docker compose config suffit (pas besoin du démon) ; sauté si docker compose ou python3 manquent.
 source "$(dirname "$0")/banc.sh"
 if ! docker compose version >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
@@ -39,7 +39,7 @@ PY
   then vert "$2"; else rouge "$2"; fi
 }
 
-titre "Sans jeton (installation existante, .env inchangé) : rien ne change"
+titre "Sans jeton (installation existante, .env inchangé) : aucun jeton dans l'environnement des apps"
 config sans
 regle sans "aucun service ne reçoit de jeton (variables vides)" \
   'all(e(n).get(v, "") == "" for n in s for v in ("CLAUDE_OAUTH_TOKEN", "HUB_CLAUDE_OAUTH_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN"))'

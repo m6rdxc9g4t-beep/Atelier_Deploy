@@ -48,7 +48,7 @@ x-ia: &ia
   OLLAMA_TIMEOUT_MS: "600000"
 
 # Claude avec le forfait de l'utilisateur : un seul réglage dans .env, CLAUDE_OAUTH_TOKEN (jeton de
-# « claude setup-token »), facultatif ; vide = rien ne change. Chaque app le reçoit sous le nom qu'elle lit :
+# « claude setup-token »), facultatif ; vide = aucune app ne s'en sert (la CLI reste dans les images). Chaque app le reçoit sous le nom qu'elle lit :
 #   Viz, Convert, Projets, Nexus   CLAUDE_OAUTH_TOKEN (ancre ci-dessous)
 #   Hub                            HUB_CLAUDE_OAUTH_TOKEN (son réglage propre, sinon le commun)
 #   DataMind                       CLAUDE_CODE_OAUTH_TOKEN (DATAMIND_CLAUDE_OAUTH_TOKEN, sinon le commun)
